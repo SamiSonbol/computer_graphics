@@ -55,19 +55,13 @@ public:
 
 	};
 
-	vec2 subtract(const vec2& vec) {
-
-		return vec2(this->x - vec.x, this->y - vec.y);
-
-	};
-
 	vec2 operator-(const vec2& vec) {
 
 		return vec2(this->x - vec.x, this->y - vec.y);
 
 	};
 
-	vec2 multiply_number(float n) {
+	vec2 operator*(float n) {
 
 		return vec2(this->x * n, this->y * n);
 
@@ -131,18 +125,6 @@ public:
 
 	};
 
-	vec3 subtract(const vec3& vec) {
-
-		return vec3(this->x - vec.x, this->y - vec.y, this->z - vec.z);
-
-	};
-
-	vec3 subtract(const point& p) {
-
-		return vec3(this->x - p.x, this->y - p.y, this->z - p.z);
-
-	};
-
 	vec3 operator-(const vec3& vec) {
 
 		return vec3(this->x - vec.x, this->y - vec.y, this->z - vec.z);
@@ -152,12 +134,6 @@ public:
 	vec3 operator+(const vec3& vec) {
 
 		return vec3(this->x + vec.x, this->y + vec.y, this->z + vec.z);
-
-	};
-
-	vec3 multiply_number(float n) {
-
-		return vec3(this->x * n, this->y * n, this->z * n);
 
 	};
 
@@ -226,7 +202,7 @@ public:
 
 	};
 
-	vec4 subtract(const vec4& vec) {
+	vec4 operator-(const vec4& vec) {
 
 		return vec4(this->x - vec.x, this->y - vec.y, this->z - vec.z, 1.0);
 
@@ -238,7 +214,7 @@ public:
 
 	};
 
-	vec4 multiply_number(float n) {
+	vec4 operator*(float n) {
 
 		return vec4(this->x * n, this->y * n, this->z * n, 1);
 
