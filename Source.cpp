@@ -136,8 +136,6 @@ int main() {
 	std::vector<float> bitangents;
 	std::vector<float> colors;
 	
-	compute_tangents(positions,  indices, tangents, bitangents, texture_coordinates);
-	
 	for (int i = 0; i <  positions.size() / 3; ++i) {
 
 		vec3 n = vec3(positions[3 * i], positions[3 * i + 1], positions[3 * i + 2]);
@@ -151,6 +149,8 @@ int main() {
 		colors.emplace_back(1);
 		
 	};
+
+	compute_tangents(positions, indices, normals, tangents, bitangents, texture_coordinates);
 
 	//compute_normals(positions, indices, normals);
 	

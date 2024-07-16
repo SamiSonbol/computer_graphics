@@ -109,26 +109,17 @@ void main() {
     vec3 half_vector = normalize(view_vector + light_vector);
     vec3 n = gNormal;
 
-    if (dot(gNormal, view_vector) < 0.0) {
-
-       // n = -gNormal;
-
-    }
-
     vec3 texture_color = texture(uTexture, gTexture_coordinates).rgb;
 
 /////////////////////////////////////////////////////////////////////////////////
-	vec3 sampled_normal = texture(uNormal_map, gTexture_coordinates).rgb * 2.0 - 1.0;
-    vec3 transformed_normal = normalize(TBN * sampled_normal);
+	vec3 sampled_normal = texture(uNormal_map, gTexture_coordinates).rgb;
+    sampled_normal = sampled_normal * 2.0 - 1.0;
 
-	vec3 N = normalize((sampled_normal * 2.0) - 1.0);
-	
-	mat3 tBN = mat3(gTangent, gBitangent, n);
-	vec3 world_normal = normalize(tBN * N);
+    vec3 transformed_normal = normalize(TBN * sampled_normal);
 ///////////////////////////////////////////////////////////////////////////////////
 
-    float cos_alpha = max(dot(n, light_vector), 0.0);
-    float cos_theta_prime = max(dot(n, half_vector), 0.0);
+    float cos_alpha = max(dot(transformed_normal, light_vector), 0.0);
+    float cos_theta_prime = max(dot(transformed_normal, half_vector), 0.0);
     
     vec3 Ca = ambient * texture_color;
     vec3 Cd = diffuse * cos_alpha * texture_color;   
@@ -328,9 +319,10 @@ static void compute_normals(const std::vector<float>& positions, const std::vect
 
 }
 
-static void compute_tangents(const std::vector<float>& positions, const std::vector<unsigned short>& indices, std::vector<float>& tangents, std::vector<float>& bitangents, const std::vector<float>& texture_coordinates) {
-	tangents.resize(positions.size(), 0.0f);
-	bitangents.resize(positions.size(), 0.0f);
+static void compute_tangents(const std::vector<float>& positions, const std::vector<unsigned short>& indices, std::vector<float>& normals, std::vector<float>& tangents, std::vector<float>& bitangents, const std::vector<float>& texture_coordinates) {
+
+	tangents.resize(normals.size());
+	bitangents.resize(normals.size());
 
 	for (size_t i = 0; i < indices.size(); i += 3) {
 		int p1 = indices[i];
@@ -341,46 +333,52 @@ static void compute_tangents(const std::vector<float>& positions, const std::vec
 		vec3 b = vec3(positions[p2 * 3], positions[p2 * 3 + 1], positions[p2 * 3 + 2]);
 		vec3 c = vec3(positions[p3 * 3], positions[p3 * 3 + 1], positions[p3 * 3 + 2]);
 
-		vec3 deltaPos1 = b - a;
-		vec3 deltaPos2 = c - a;
+		vec3 edge1 = b - a;
+		vec3 edge2 = c - a;
 
 		vec2 uv0 = vec2(texture_coordinates[p1 * 2], texture_coordinates[p1 * 2 + 1]);
 		vec2 uv1 = vec2(texture_coordinates[p2 * 2], texture_coordinates[p2 * 2 + 1]);
 		vec2 uv2 = vec2(texture_coordinates[p3 * 2], texture_coordinates[p3 * 2 + 1]);
 
-		vec2 deltaUV1 = uv1.subtract(uv0);
-		vec2 deltaUV2 = uv2.subtract(uv0);
+		vec2 deltaUV1 = uv1 - uv0;
+		vec2 deltaUV2 = uv2 - uv0;
+
+		//E1 = d1x*T + d1y*B
+		//E2 = d2x*T + d2y*B
 
 		float r = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x);
-		vec3 tangent = (deltaPos1 * deltaUV2.y - deltaPos2 * deltaUV1.y) * r;
-		vec3 bitangent = (deltaPos2 * deltaUV1.x - deltaPos1 * deltaUV2.x) * r;
+		vec3 tangent, bitangent;
 
-		for (int vert = 0; vert < 3; ++vert) {
-			int p = indices[i + vert];
-			tangents[p * 3] += tangent.x;
-			tangents[p * 3 + 1] += tangent.y;
-			tangents[p * 3 + 2] += tangent.z;
+		tangent.x = r * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
+		tangent.y = r * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
+		tangent.z = r * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
 
-			bitangents[p * 3] += bitangent.x;
-			bitangents[p * 3 + 1] += bitangent.y;
-			bitangents[p * 3 + 2] += bitangent.z;
-		}
-	}
+		bitangent.x = r * (-deltaUV2.x * edge1.x + deltaUV1.x * edge2.x);
+		bitangent.y = r * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y);
+		bitangent.z = r * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z);
 
-	for (size_t i = 0; i < positions.size(); i += 3) {
-		vec3 t = vec3(tangents[i], tangents[i + 1], tangents[i + 2]);
-		t.normalize();
-		tangents[i] = t.x;
-		tangents[i + 1] = t.y;
-		tangents[i + 2] = t.z;
+		tangents[p1 * 3] = tangent.x, tangents[p1 * 3 + 1] = tangent.y, tangents[p1 * 3 + 2] = tangent.z;
+		tangents[p2 * 3] = tangent.x, tangents[p2 * 3 + 1] = tangent.y, tangents[p2 * 3 + 2] = tangent.z;
+		tangents[p3 * 3] = tangent.x, tangents[p3 * 3 + 1] = tangent.y, tangents[p3 * 3 + 2] = tangent.z;
 
-		vec3 b = vec3(bitangents[i], bitangents[i + 1], bitangents[i + 2]);
-		b.normalize();
-		bitangents[i] = b.x;
-		bitangents[i + 1] = b.y;
-		bitangents[i + 2] = b.z;
-	}
-}
+		bitangents[p1 * 3] = bitangent.x, bitangents[p1 * 3 + 1] = bitangent.y, bitangents[p1 * 3 + 2] = bitangent.z;
+		bitangents[p2 * 3] = bitangent.x, bitangents[p2 * 3 + 1] = bitangent.y, bitangents[p2 * 3 + 2] = bitangent.z;
+		bitangents[p3 * 3] = bitangent.x, bitangents[p3 * 3 + 1] = bitangent.y, bitangents[p3 * 3 + 2] = bitangent.z;
+
+		/*tangents.emplace_back(tangent.x);
+		tangents.emplace_back(tangent.y);
+		tangents.emplace_back(tangent.z);*/
+		
+		/*bitangents.emplace_back(bitangent.x);
+		bitangents.emplace_back(bitangent.y);
+		bitangents.emplace_back(bitangent.z);*/
+
+	};
+
+	std::cout << normals.size() << std::endl;
+	std::cout << bitangents.size() << std::endl;
+
+};
 
 class Texture {
 
