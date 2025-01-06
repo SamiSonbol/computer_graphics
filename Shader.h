@@ -3,8 +3,10 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <vector>
-#include "Vector.h"
 #include <stb/stb_image.h>
+
+#include "Math.h"
+#include "Mesh.h"
 
 static const std::string vertex_shader = R"(
 #version 330 core
@@ -118,8 +120,8 @@ void main() {
     vec3 transformed_normal = normalize(TBN * sampled_normal);
 ///////////////////////////////////////////////////////////////////////////////////
 
-    float cos_alpha = max(dot(transformed_normal, light_vector), 0.0);
-    float cos_theta_prime = max(dot(transformed_normal, half_vector), 0.0);
+    float cos_alpha = max(dot(n, light_vector), 0.0);
+    float cos_theta_prime = max(dot(n, half_vector), 0.0);
     
     vec3 Ca = ambient * texture_color;
     vec3 Cd = diffuse * cos_alpha * texture_color;   
@@ -132,81 +134,17 @@ void main() {
 }
 )";
 
-static unsigned int compile_shader(unsigned int type, const std::string& source) {
 
-	unsigned int id = glCreateShader(type);
-
-	const char* src = source.c_str();//SOURCE HAS TO EXIST TO USE THIS, MAKE SURE IT IS ALIVE AT THE TIME OF THIS COMPILATION
-
-	glShaderSource(id, 1, &src, nullptr);
-
-	glCompileShader(id);
-
-	int result;
-	glGetShaderiv(id, GL_COMPILE_STATUS, &result);
-
-	if (result == GL_FALSE) {
-
-		int length;
-
-		glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
-
-		char* message = (char*)alloca(length * sizeof(char));
-
-		glGetShaderInfoLog(id, length, &length, message);
-
-		std::cout << "Failed to compile "
-			<< (type == GL_VERTEX_SHADER ? "vertex"
-				: type == GL_FRAGMENT_SHADER ? "fragment"
-				: "geometry")
-			<< " shader." << std::endl;
-
-		std::cout << message << std::endl;
-
-		glDeleteShader(id);
-
-		return -1;
-
-	};
-
-	return id;
-
-}
-
-static unsigned int create_shader(const std::string& vertex_shader, const std::string& geometry_shader, const std::string& fragment_shader) {
-
-	unsigned int program = glCreateProgram();
-
-	unsigned int v_shader = compile_shader(GL_VERTEX_SHADER, vertex_shader);
-
-	unsigned int g_shader = compile_shader(GL_GEOMETRY_SHADER, geometry_shader);
-
-	unsigned int f_shader = compile_shader(GL_FRAGMENT_SHADER, fragment_shader);
-
-	glAttachShader(program, v_shader);
-	glAttachShader(program, g_shader);
-	glAttachShader(program, f_shader);
-
-	glLinkProgram(program);
-	glValidateProgram(program);
-
-	glDeleteShader(v_shader);
-	glDeleteShader(g_shader);
-	glDeleteShader(f_shader);
-
-	return program;
-
-}
 
 //generates a buffer from the inputted paramter and binds it OR binds the inputted buffer
 template<typename T>
-static void bind_buffer(unsigned int GL_ARRAY_TYPE, unsigned int* buffer, const std::vector<T>& buffer_data, unsigned int GL_DRAW_TYPE, int attribute_position, int attribute_size, bool generate_buffer = false) {
+static void bind_buffer(const unsigned int& GL_ARRAY_TYPE, unsigned int* buffer, const std::vector<T>& buffer_data, const unsigned int& GL_DRAW_TYPE, const int& attribute_position, const int& attribute_size, const bool generate_buffer = false) {
 
 	if (generate_buffer) {
 
 		glGenBuffers(1, buffer);
 
-	}
+	};
 
 	glBindBuffer(GL_ARRAY_TYPE, *buffer);
 	glBufferData(GL_ARRAY_TYPE, buffer_data.size() * sizeof(T), buffer_data.data(), GL_DRAW_TYPE);
@@ -214,14 +152,14 @@ static void bind_buffer(unsigned int GL_ARRAY_TYPE, unsigned int* buffer, const 
 	if (attribute_position > -1) {
 
 		glVertexAttribPointer(attribute_position, attribute_size, GL_FLOAT, GL_FALSE, sizeof(T) * attribute_size, (void*)0);
-		
+
 		glEnableVertexAttribArray(attribute_position);
 
-	}
+	};
 
 };
 
-static void bind_texture(unsigned int* texture, unsigned int GL_TEXTUREindex, unsigned char* bytes, std::vector<int>& image_details_vector) {
+static void bind_texture(unsigned int* texture, const unsigned int& GL_TEXTUREindex, unsigned char* bytes, const std::vector<int>& image_details_vector) {
 
 	glGenTextures(1, texture);/////////////////////////////////////
 	glActiveTexture(GL_TEXTUREindex);
@@ -239,87 +177,7 @@ static void bind_texture(unsigned int* texture, unsigned int GL_TEXTUREindex, un
 
 };
 
-static void get_indices(const std::vector<float>& positions, const std::vector<float>& normals, const std::vector<float>& texture_coordinates, std::vector<unsigned short>& indices) {
-	size_t vertex_count = positions.size() / 3;
-	
-	for (int i = 0; i < vertex_count; ++i) {
-
-		indices.emplace_back(i);
-
-	}
-
-	for (size_t i = 0; i < vertex_count; ++i) {
-
-		vec3 vertex = vec3(positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2]);
-		vec3 normal = vec3(normals[i * 3], normals[i * 3 + 1], normals[i * 3 + 2]);
-		vec2 texture_coords = vec2(texture_coordinates[i * 2], texture_coordinates[i * 2 + 1]);
-
-		//indices.emplace_back(i);	
-		indices[i] = i;
-
-		for (size_t j = i + 1; j < vertex_count; ++j) {
-
-			vec3 other_vertex = vec3(positions[j * 3], positions[j * 3 + 1], positions[j * 3 + 2]);
-			vec3 other_normal = vec3(normals[j * 3], normals[j * 3 + 1], normals[j * 3 + 2]);
-			vec2 other_texture_coords = vec2(texture_coordinates[j * 2], texture_coordinates[j * 2 + 1]);
-
-			if (vertex.x == other_vertex.x && vertex.y == other_vertex.y && vertex.z == other_vertex.z) {
-
-				if (normal.x == other_normal.x && normal.y == other_normal.y && normal.z == other_normal.z) {
-
-					if (texture_coords.x == other_texture_coords.x && texture_coords.y == other_texture_coords.y) {
-					
-						//indices.emplace_back(j);
-						indices[j] = i;
-
-					}	
-
-				}
-
-			}
-					
-		}
-	}
-
-}
-
-static void compute_normals(const std::vector<float>& positions, const std::vector<unsigned short>& indices, std::vector<float>& normals) {
-
-	normals.clear();
-	//normals.resize(positions.size(), 0.0f);
-	
-	for (size_t i = 0; i < indices.size(); i += 3) {
-		int p1 = indices[i];
-		int p2 = indices[i + 1];
-		int p3 = indices[i + 2];
-
-		vec3 a = vec3(positions[p1 * 3], positions[p1 * 3 + 1], positions[p1 * 3 + 2]);
-		vec3 b = vec3(positions[p2 * 3], positions[p2 * 3 + 1], positions[p2 * 3 + 2]);
-		vec3 c = vec3(positions[p3 * 3], positions[p3 * 3 + 1], positions[p3 * 3 + 2]);
-
-		vec3 deltaPos1 = b - a;
-		vec3 deltaPos2 = c - a;
-
-		vec3 normal = deltaPos1.cross(deltaPos2);
-		normal.normalize();
-
-		/*normals.emplace_back(normal.x);
-		normals.emplace_back(normal.y);
-		normals.emplace_back(normal.z);
-
-		normals.emplace_back(normal.x);
-		normals.emplace_back(normal.y);
-		normals.emplace_back(normal.z);
-
-		normals.emplace_back(normal.x);
-		normals.emplace_back(normal.y);
-		normals.emplace_back(normal.z);*/
-
-	}
-
-}
-
-static void compute_tangents(const std::vector<float>& positions, const std::vector<unsigned short>& indices, std::vector<float>& normals, std::vector<float>& tangents, std::vector<float>& bitangents, const std::vector<float>& texture_coordinates) {
+static void compute_tangents(const std::vector<float>& positions, const std::vector<unsigned short>& indices, const std::vector<float>& normals, std::vector<float>& tangents, std::vector<float>& bitangents, const std::vector<float>& texture_coordinates) {
 
 	tangents.resize(normals.size());
 	bitangents.resize(normals.size());
@@ -380,71 +238,9 @@ static void compute_tangents(const std::vector<float>& positions, const std::vec
 
 };
 
-class Texture {
 
-public:
 
-	int width, height, n_color_channels;
 
-	unsigned int GL_TEXTUREindex;
-
-	int index;
-
-	const char* uniform_name;	
-
-	unsigned char* bytes;
-
-	unsigned int txt;
-
-	Texture(const std::string& file_path, const char* uniform_name, unsigned int GL_TEXTUREindex, int index) {
-
-		this->bytes = stbi_load(file_path.c_str(), &this->width, &this->height, &this->n_color_channels, 0);
-
-		this->uniform_name = uniform_name;
-
-		this->GL_TEXTUREindex = GL_TEXTUREindex;
-
-		this->index = index;
-
-	}
-
-	std::vector<float> generate_normal_map() {
-
-		std::vector<float> normals;
-
-		for (int j = 0; j < height; ++j) {
-
-			for (int i = 0; i < width; ++i) {
-
-				int index = (j * width + i) * 3;
-
-				float x = bytes[index] / 255.0f * 2.0f - 1.0f;
-				float y = bytes[index + 1] / 255.0f * 2.0f - 1.0f;
-				float z = bytes[index + 2] / 255.0f * 2.0f - 1.0f;
-
-				vec3 v = vec3(x, y, z);
-				v.normalize();
-
-				normals.emplace_back(v.x);
-				normals.emplace_back(v.y);
-				normals.emplace_back(v.z);
-
-			}
-
-		}
-
-		return normals;
-
-	}
-
-	~Texture() {
-
-		this->uniform_name = nullptr;
-		this->bytes = nullptr;
-
-	};
-
-};
 
 class Shader {
 
@@ -454,190 +250,42 @@ public:
 
 	std::vector<unsigned int> textures;
 
-	Shader(std::string vertex_shader, std::string geometry_shader, std::string fragment_shader) {
+	unsigned int compile_shader(unsigned int type, const std::string& source);
 
-		this->program = create_shader(vertex_shader, geometry_shader, fragment_shader);
+	unsigned int create_shader(const std::string& vertex_shader, const std::string& geometry_shader, const std::string& fragment_shader);
 
-	};
+	Shader(const std::string& vertex_shader, const std::string& geometry_shader, const std::string& fragment_shader);
 	
-	void create_uniform_mat4(std::vector<float>& data_vector, const char* uniform_name) {
+	void create_uniform_mat4(const std::vector<float>& data_vector, const char* uniform_name);
 
-		unsigned int location = glGetUniformLocation(this->program, uniform_name);
+	void create_uniform_vec3(const std::vector<float>& data_vector, const char* uniform_name);
 
-		glUniformMatrix4fv(location, 1, GL_FALSE, data_vector.data());
+	void create_uniform_float(const float data_variable, const char* uniform_name);
 
-	}
+	void create_uniform_2D_texture(const int index, const char* uniform_name);
 
-	void create_uniform_vec3(std::vector<float>& data_vector, const char* uniform_name) {
+	std::vector<vec3> create_standard_matrix_vectors();
 
-		unsigned int location = glGetUniformLocation(this->program, uniform_name);
+	std::vector<vec3> create_standard_light_vectors();
 
-		glUniform3fv(location, 1, data_vector.data());
+	void setup_matrices(const vec2& screen_size, const vec3& right, const vec3& up, const vec3& direction, const vec3& camera, const vec3& translation_vector, const vec3& scaling_vector, const vec3& rotation_vector);
 
-	}
+	void setup_light(const vec3& light_pos, const vec3& color, const vec4& material_properties);
 
-	void create_uniform_float(float data_variable, const char* uniform_name) {
+	void add_texture(Texture& texture);
 
-		unsigned int location = glGetUniformLocation(this->program, uniform_name);
-
-		glUniform1f(location, data_variable);
-
-	}
-
-	void create_uniform_2D_texture(int index, const char* uniform_name) {
-
-		unsigned int location = glGetUniformLocation(this->program, uniform_name);
-
-		//glUseProgram(this->program);
-
-		glUniform1i(location, index);
-
-	}
-
-	std::vector<vec3> create_standard_matrix_vectors() {
-
-		vec3 right = vec3(1, 0, 0);
-		vec3 up = vec3(0, 1, 0);
-		vec3 direction = vec3(0, 0, 1);
-		vec3 camera = vec3(0, 0, -3);
-
-		vec3 translation_vector = vec3(0, 0, 0);
-		vec3 scaling_vector = vec3(1, 1, 1);
-		vec3 rotation_vector = vec3(0, 0, 0);
-
-		std::vector<vec3> vectors = { right, up, direction, camera, translation_vector, scaling_vector, rotation_vector };
-		return vectors;
-
-	}
-
-	std::vector<vec3> create_standard_light_vectors() {
-
-		vec3 light_position = vec3(0, 0, -3);
-		vec3 light_color = vec3(1, 1, 1);
-
-		std::vector<vec3> vectors = { light_position, light_color };
-		return vectors;
-
-	}
-
-	void setup_matrices(vec2& screen_size, vec3& right, vec3& up, vec3& direction, vec3& camera, vec3& translation_vector, vec3& scaling_vector, vec3& rotation_vector) {
-
-		mat4 model_transformation_matrix = create_model_transformation_matrix(translation_vector, scaling_vector, rotation_vector);
-		mat4 look_at_matrix = create_view_matrix(right, up, direction, camera);
-		mat4 model_view_mat = create_model_view_matrix(model_transformation_matrix, look_at_matrix);
-
-		std::vector<float> normal_matrix = model_view_mat.inverse().transpose().to_GL();
-		std::vector<float> model_view_matrix = model_view_mat.to_GL();
-		std::vector<float> projection_matrix = create_frustum_projection_matrix(60.0f, screen_size.x, screen_size.y, 0.1f, 100.0f).to_GL();	
-		std::vector<float> eye_vector = camera.to_GL();
-
-		create_uniform_vec3(eye_vector, "eye_vector");
-		create_uniform_mat4(normal_matrix, "normal_matrix");
-		create_uniform_mat4(model_view_matrix, "model_view_matrix");
-		create_uniform_mat4(projection_matrix, "projection_matrix");		
-
-	}
-
-	void setup_light(vec3& light_pos, vec3& color, vec4& material_properties) {
-
-		std::vector<float> light_position = light_pos.to_GL();
-		std::vector<float> light_color = color.to_GL();
-
-		float ambient = material_properties.x;
-		float diffuse = material_properties.y;
-		float specular = material_properties.z;
-		float shininess = material_properties.w;
-
-		create_uniform_vec3(light_position, "light_position");
-		create_uniform_vec3(light_color, "light_color");
-
-		create_uniform_float(ambient, "ambient");
-		create_uniform_float(diffuse, "diffuse");
-		create_uniform_float(specular, "specular");
-		create_uniform_float(shininess, "shininess");
-
-	}
-
-	void add_texture(Texture& texture) {
-
-		std::vector<int> texture_details = { texture.width, texture.height, texture.n_color_channels };
-
-		bind_texture(&texture.txt, texture.GL_TEXTUREindex, texture.bytes, texture_details);
-
-		create_uniform_2D_texture(texture.index, texture.uniform_name);
-		
-	}
-
-	void setup_textures(std::vector<Texture>& textures) {
-
-
-		for (int i = 0; i < textures.size(); ++i) {
-
-			add_texture(textures[i]);
-
-			//this->textures.emplace_back(texture);
-
-		}	
-		
-	}
+	void setup_textures(std::vector<Texture>& textures);
 
 	//sets the transformation matrices and light vectors
-	void setup(vec2& screen_size, std::vector<vec3>& matrices_vectors, std::vector<vec3>& light_vectors, vec4& material_properties, std::vector<Texture>& textures) {
+	void setup(const vec2& screen_size, const std::vector<vec3>& matrices_vectors, const std::vector<vec3>& light_vectors, const vec4& material_properties, std::vector<Texture>& textures);
 
-		setup_matrices(screen_size, matrices_vectors[0], matrices_vectors[1], matrices_vectors[2], matrices_vectors[3], matrices_vectors[4], matrices_vectors[5], matrices_vectors[6]);
-		setup_light(light_vectors[0], light_vectors[1], material_properties);
-		setup_textures(textures);
+	void update_matrices(const vec3& right, const vec3& up, const vec3& direction, const vec3& camera, const vec3& translation_vector, const vec3& scaling_vector, const vec3& rotation_vector);
 
-	}
+	void update_light(const vec3& light_pos, const vec4& material_properties);
 
-	void update_matrices(vec3& right, vec3& up, vec3& direction, vec3& camera, vec3& translation_vector, vec3& scaling_vector, vec3& rotation_vector) {
+	void update(const std::vector<vec3>& matrices_vectors, const std::vector<vec3>& light_vectors, const vec4& material_properties);
 
-		mat4 model_transformation_matrix = create_model_transformation_matrix(translation_vector, scaling_vector, rotation_vector);
-		mat4 model_view_mat = create_view_matrix(right, up, direction, camera).multiply_matrix(model_transformation_matrix);
-		std::vector<float> normal_matrix = model_view_mat.inverse().transpose().to_GL();
-		std::vector<float> model_view_matrix = model_view_mat.to_GL();
-		std::vector<float> eye_vector = camera.to_GL();
-
-		create_uniform_vec3(eye_vector, "eye_vector");
-		create_uniform_mat4(normal_matrix, "normal_matrix");
-		create_uniform_mat4(model_view_matrix, "model_view_matrix");
-
-	}
-
-	void update_light(vec3& light_pos, vec4& material_properties) {
-
-		std::vector<float> light_position = light_pos.to_GL();
-		create_uniform_vec3(light_position, "light_position");
-
-		float ambient = material_properties.x;
-		float diffuse = material_properties.y;
-		float specular = material_properties.z;
-		float shininess = material_properties.w;
-
-		create_uniform_float(ambient, "ambient");
-		create_uniform_float(diffuse, "diffuse");
-		create_uniform_float(specular, "specular");
-		create_uniform_float(shininess, "shininess");
-
-	}
-
-	void update(std::vector<vec3>& matrices_vectors, std::vector<vec3>& light_vectors, vec4& material_properties) {
-		
-		update_matrices(matrices_vectors[0], matrices_vectors[1], matrices_vectors[2], matrices_vectors[3], matrices_vectors[4], matrices_vectors[5], matrices_vectors[6]);
-		update_light(light_vectors[0], material_properties);
-
-	}
-
-	void delete_textures() {
-
-		int length = this->textures.size();
-		for (int i = 0; i < length; ++i) {
-
-			glDeleteTextures(1, &textures[i]);
-
-		}
-
-	}
+	void delete_textures();
 
 };
 
@@ -955,27 +603,3 @@ public:
 	}//move bracket
 
 };
-
-
-static std::vector<float> generateSphereVertices(float radius, int stacks, int slices) {
-
-	std::vector<float> vertices;
-
-	for (int i = 0; i <= stacks; ++i) {
-		float stackAngle = 3.14159265359 / 2 - i * 3.14159265359 / stacks; // from pi/2 to -pi/2
-		float xy = radius * cosf(stackAngle);           // radius * cos(theta)
-		float z = radius * sinf(stackAngle);            // radius * sin(theta)
-
-		for (int j = 0; j <= slices; ++j) {
-			float sectorAngle = j * 2 * 3.14159265359 / slices; // from 0 to 2pi
-
-			float x = xy * cosf(sectorAngle);          // radius * cos(theta) * cos(phi)
-			float y = xy * sinf(sectorAngle);          // radius * cos(theta) * sin(phi)
-			vertices.push_back(x);
-			vertices.push_back(y);
-			vertices.push_back(z);
-		}
-	}
-
-	return vertices;
-}

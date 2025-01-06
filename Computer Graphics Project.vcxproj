@@ -138,14 +138,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="glad.c" />
+    <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="STB.cpp" />
-    <ClCompile Include="Vector.cpp" />
+    <ClCompile Include="Math.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Mesh.h" />
     <ClInclude Include="Shader.h" />
-    <ClInclude Include="Vector.h" />
+    <ClInclude Include="Math.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="ganges_river_pebbles_diff_4k.png" />
