@@ -152,6 +152,7 @@
   <ItemGroup>
     <Image Include="ganges_river_pebbles_diff_4k.png" />
     <Image Include="ganges_river_pebbles_nor_gl_4k.png" />
+    <Image Include="test_texture.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

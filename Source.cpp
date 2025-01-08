@@ -5,6 +5,13 @@
 #include "Mesh.h"
 #include <stb/stb_image.h>
 
+void checkOpenGLError(const std::string& operation) {
+	GLenum err;
+	while ((err = glGetError()) != GL_NO_ERROR) {
+		std::cerr << "OpenGL error after " << operation << ": " << err << std::endl;
+	}
+};
+
 int main() {
 
 	glfwInit();
@@ -21,7 +28,7 @@ int main() {
 		glfwTerminate();
 		return -1;
 
-	}
+	};
 
 	const GLFWvidmode* video_mode = glfwGetVideoMode(primary_monitor);
 	if (!video_mode) {
@@ -30,7 +37,7 @@ int main() {
 		glfwTerminate();
 		return -1;
 
-	}
+	};
 	 
 	vec2 screen_size (video_mode->width, video_mode->height);
 	GLFWwindow* window = glfwCreateWindow(screen_size.x, screen_size.y, "TEST", NULL, NULL);
@@ -40,7 +47,7 @@ int main() {
 		glfwTerminate();
 		return -1;
 
-	}
+	};
 	glfwMakeContextCurrent(window);
 
 	gladLoadGL();
@@ -50,9 +57,9 @@ int main() {
 	Mouse mouse = Mouse(window);
 	//////
 
-	Texture river_pebbles = Texture("ganges_river_pebbles_diff_4k.png", "uTexture", GL_TEXTURE0, 0);
-	Texture river_pebbles_normal_map = Texture("ganges_river_pebbles_nor_gl_4k.png", "uNormal_map", GL_TEXTURE1, 1);
-	Mesh mesh = Mesh(&river_pebbles);
+	Texture river_pebbles = Texture("test_texture.png", "uTexture", GL_TEXTURE0, 0);
+	Texture river_pebbles_normal_map = Texture("test_texture.png", "uNormal_map", GL_TEXTURE1, 1);
+	Mesh mesh = Mesh(river_pebbles);
 
 	std::vector<float> tangents;
 	std::vector<float> bitangents;
@@ -69,12 +76,12 @@ int main() {
 
 	std::vector<vec3> matrix_vectors = shader.create_standard_matrix_vectors();
 	std::vector<vec3> light_vectors = shader.create_standard_light_vectors();
-	std::vector<Texture> textures = { river_pebbles, river_pebbles_normal_map };
+	std::vector<Texture> textures = { river_pebbles, river_pebbles_normal_map};
 
 	bind_buffer(GL_ARRAY_BUFFER, &positions_buffer, mesh.positions, GL_STATIC_DRAW, 0, 3, true);
 	bind_buffer(GL_ARRAY_BUFFER, &normals_buffer, mesh.normals, GL_STATIC_DRAW, 1, 3, true);
 	bind_buffer(GL_ARRAY_BUFFER, &colors_buffer, mesh.colors, GL_STATIC_DRAW, 2, 3, true);
-	bind_buffer(GL_ELEMENT_ARRAY_BUFFER, &indices_buffer, mesh.indices, GL_STATIC_DRAW, -1, 3, true);
+	bind_buffer(GL_ELEMENT_ARRAY_BUFFER, &indices_buffer, mesh.indices, GL_STATIC_DRAW, -1, 1, true);
 	bind_buffer(GL_ARRAY_BUFFER, &texture_coordinates_buffer, mesh.texture_coordinates, GL_STATIC_DRAW, 3, 2, true);
 	bind_buffer(GL_ARRAY_BUFFER, &tangents_buffer, tangents, GL_STATIC_DRAW, 4, 3, true);
 	bind_buffer(GL_ARRAY_BUFFER, &bitangents_buffer, bitangents, GL_STATIC_DRAW, 5, 3, true);
@@ -93,9 +100,9 @@ int main() {
 		mouse.move(matrix_vectors, light_vectors, material_properties);
 		shader.update(matrix_vectors, light_vectors, material_properties);
 
-
-		//glDrawArrays(GL_TRIANGLES, 0, positions.size() / 3);
+		//glDrawArrays(GL_TRIANGLES, 0, mesh.positions.size() / 3);
 		glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_SHORT, 0);
+		//checkOpenGLError("glDrawElements");
 
 		glBindVertexArray(0);
 		glfwSwapBuffers(window);

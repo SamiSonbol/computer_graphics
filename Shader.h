@@ -165,81 +165,32 @@ static void bind_texture(unsigned int* texture, const unsigned int& GL_TEXTUREin
 	glActiveTexture(GL_TEXTUREindex);
 	glBindTexture(GL_TEXTURE_2D, *texture);
 
+	if (*texture == 0) {
+		std::cerr << "Failed to generate texture!" << std::endl;
+		return;//handle the error appropriately
+	};
+
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_details_vector[0], image_details_vector[1], 0, GL_RGBA, GL_UNSIGNED_BYTE, bytes);
+	if (image_details_vector[2] == 4) {//checks if n_color_channels is 3 or 4; RGB or RGBA
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_details_vector[0], image_details_vector[1], 0, GL_RGBA, GL_UNSIGNED_BYTE, bytes);
+
+	}
+	else {
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image_details_vector[0], image_details_vector[1], 0, GL_RGB, GL_UNSIGNED_BYTE, bytes);
+
+	};
+	
 	glGenerateMipmap(GL_TEXTURE_2D);
 
 	stbi_image_free(bytes);
 
 };
-
-static void compute_tangents(const std::vector<float>& positions, const std::vector<unsigned short>& indices, const std::vector<float>& normals, std::vector<float>& tangents, std::vector<float>& bitangents, const std::vector<float>& texture_coordinates) {
-
-	tangents.resize(normals.size());
-	bitangents.resize(normals.size());
-
-	for (size_t i = 0; i < indices.size(); i += 3) {
-		int p1 = indices[i];
-		int p2 = indices[i + 1];
-		int p3 = indices[i + 2];
-
-		vec3 a = vec3(positions[p1 * 3], positions[p1 * 3 + 1], positions[p1 * 3 + 2]);
-		vec3 b = vec3(positions[p2 * 3], positions[p2 * 3 + 1], positions[p2 * 3 + 2]);
-		vec3 c = vec3(positions[p3 * 3], positions[p3 * 3 + 1], positions[p3 * 3 + 2]);
-
-		vec3 edge1 = b - a;
-		vec3 edge2 = c - a;
-
-		vec2 uv0 = vec2(texture_coordinates[p1 * 2], texture_coordinates[p1 * 2 + 1]);
-		vec2 uv1 = vec2(texture_coordinates[p2 * 2], texture_coordinates[p2 * 2 + 1]);
-		vec2 uv2 = vec2(texture_coordinates[p3 * 2], texture_coordinates[p3 * 2 + 1]);
-
-		vec2 deltaUV1 = uv1 - uv0;
-		vec2 deltaUV2 = uv2 - uv0;
-
-		//E1 = d1x*T + d1y*B
-		//E2 = d2x*T + d2y*B
-
-		float r = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x);
-		vec3 tangent, bitangent;
-
-		tangent.x = r * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
-		tangent.y = r * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
-		tangent.z = r * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
-
-		bitangent.x = r * (-deltaUV2.x * edge1.x + deltaUV1.x * edge2.x);
-		bitangent.y = r * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y);
-		bitangent.z = r * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z);
-
-		tangents[p1 * 3] = tangent.x, tangents[p1 * 3 + 1] = tangent.y, tangents[p1 * 3 + 2] = tangent.z;
-		tangents[p2 * 3] = tangent.x, tangents[p2 * 3 + 1] = tangent.y, tangents[p2 * 3 + 2] = tangent.z;
-		tangents[p3 * 3] = tangent.x, tangents[p3 * 3 + 1] = tangent.y, tangents[p3 * 3 + 2] = tangent.z;
-
-		bitangents[p1 * 3] = bitangent.x, bitangents[p1 * 3 + 1] = bitangent.y, bitangents[p1 * 3 + 2] = bitangent.z;
-		bitangents[p2 * 3] = bitangent.x, bitangents[p2 * 3 + 1] = bitangent.y, bitangents[p2 * 3 + 2] = bitangent.z;
-		bitangents[p3 * 3] = bitangent.x, bitangents[p3 * 3 + 1] = bitangent.y, bitangents[p3 * 3 + 2] = bitangent.z;
-
-		/*tangents.emplace_back(tangent.x);
-		tangents.emplace_back(tangent.y);
-		tangents.emplace_back(tangent.z);*/
-		
-		/*bitangents.emplace_back(bitangent.x);
-		bitangents.emplace_back(bitangent.y);
-		bitangents.emplace_back(bitangent.z);*/
-
-	};
-
-	std::cout << normals.size() << std::endl;
-	std::cout << bitangents.size() << std::endl;
-
-};
-
-
-
 
 
 class Shader {
@@ -250,7 +201,7 @@ public:
 
 	std::vector<unsigned int> textures;
 
-	unsigned int compile_shader(unsigned int type, const std::string& source);
+	unsigned int compile_shader(const unsigned int& type, const std::string& source);
 
 	unsigned int create_shader(const std::string& vertex_shader, const std::string& geometry_shader, const std::string& fragment_shader);
 
@@ -260,9 +211,9 @@ public:
 
 	void create_uniform_vec3(const std::vector<float>& data_vector, const char* uniform_name);
 
-	void create_uniform_float(const float data_variable, const char* uniform_name);
+	void create_uniform_float(const float& data_variable, const char* uniform_name);
 
-	void create_uniform_2D_texture(const int index, const char* uniform_name);
+	void create_uniform_2D_texture(const int& index, const char* uniform_name);
 
 	std::vector<vec3> create_standard_matrix_vectors();
 

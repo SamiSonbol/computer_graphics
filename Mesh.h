@@ -18,7 +18,7 @@ class Texture {
 
 	unsigned char* bytes;
 
-	unsigned int txt;
+	unsigned int texture_ID;//vipNote: dont ever make this a pointer
 
 	Texture(const std::string& file_path, const char* uniform_name, const unsigned int& GL_TEXTUREindex, const int& index);
 
@@ -50,11 +50,13 @@ class Mesh {
 
 	 public:
 
-		Vertex a;
-		Vertex b;
-		Vertex c;
+		Vertex A;
+		Vertex B;
+		Vertex C;
 
-		Triangle(const Vertex& a, const Vertex& b, const Vertex& c);
+		vec3 get_triangle_normal();
+
+		Triangle(const Vertex& A, const Vertex& B, const Vertex& C);
 
 	};
 
@@ -69,7 +71,7 @@ class Mesh {
 
 	};
 
-	Texture* texture;
+	Texture texture;
 	std::vector<std::vector<Square>> Grid;
 
 	std::vector<float> positions;
@@ -86,15 +88,16 @@ class Mesh {
 	void check_for_duplicates_and_insert(Triangle& triangle);
 	void check_for_duplicates_and_insert(Square& square);
 
+	//VIMP: THESE HAVE TO BE RAN IN THIS EXACT ORDER OR NULL POINTERS WILL OCCUR; example: exception ocuured novlg64.pdb file not loaded
+	void init_grid();
+	void get_normals();
+	void get_indices();
 	void get_positions();
-	void compute_normals();
 	void get_texture_coordinates();
-
-	//uses the function "update_vertex_indices" to update the indices of all vertices and avoid adding duplicate vertices to the "indices" vector, which will later be used as index buffer
-	void sort_indices();
+	void get_colors();
 
 	void fill_data();
 
-	Mesh(Texture* t);
+	Mesh(Texture& texture);
 
 };

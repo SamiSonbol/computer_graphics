@@ -45,41 +45,45 @@ Texture::~Texture() {
 
 };
 
-
 Mesh::Vertex::Vertex(const vec3& position, const int& index) : position(position), index(index) {};
-
 Mesh::Vertex::Vertex(const float& x, const float& y, const float& z, const int& index) : position(x, y, z), index(index) {};
+vec3 Mesh::Triangle::get_triangle_normal() {
 
-Mesh::Triangle::Triangle(const Vertex& a, const Vertex& b, const Vertex& c) : a(a), b(b), c(c) {};
+	vec3 AB = this->B.position - this->A.position;
+	vec3 AC = this->C.position - this->A.position;
 
+	return AB.cross(AC).normalize();
+
+};
+Mesh::Triangle::Triangle(const Vertex& A, const Vertex& B, const Vertex& C) : A(A), B(B), C(C) {};
 Mesh::Square::Square(const Triangle& A, const Triangle& B) : A(A), B(B) {};
 
 //checks if the vertex we have is a duplicate of another vertex on the we are comparing it with triangle, if it is a duplicate then it takes the lower index number of both vertices
 void Mesh::update_vertex_indices(Vertex& vertex, Triangle& triangle) {
  
-	if (vertex.position == triangle.a.position) {
-		vertex.index = std::min(triangle.a.index, vertex.index);
-		triangle.a.index = vertex.index;
-		triangle.a.duplicated = true;
+	if (vertex.position == triangle.A.position) {
+		vertex.index = std::min(triangle.A.index, vertex.index);
+		triangle.A.index = vertex.index;
+		triangle.A.duplicated = true;
 	}
-	else if (vertex.position == triangle.b.position) {
-		vertex.index = std::min(triangle.b.index, vertex.index);
-		triangle.b.index = vertex.index;
-		triangle.b.duplicated = true;
+	else if (vertex.position == triangle.B.position) {
+		vertex.index = std::min(triangle.B.index, vertex.index);
+		triangle.B.index = vertex.index;
+		triangle.B.duplicated = true;
 	}
-	else if (vertex.position == triangle.c.position) {
-		vertex.index = std::min(triangle.c.index, vertex.index);
-		triangle.c.index = vertex.index;
-		triangle.c.duplicated = true;
+	else if (vertex.position == triangle.C.position) {
+		vertex.index = std::min(triangle.C.index, vertex.index);
+		triangle.C.index = vertex.index;
+		triangle.C.duplicated = true;
 	};
 
 };
 
 void Mesh::update_vertex_indices(Triangle& A, Triangle& B) {
 
-	update_vertex_indices(A.a, B);
-	update_vertex_indices(A.b, B);
-	update_vertex_indices(A.c, B);
+	update_vertex_indices(A.A, B);
+	update_vertex_indices(A.B, B);
+	update_vertex_indices(A.C, B);
 
 };
 
@@ -98,30 +102,30 @@ void Mesh::update_vertex_indices(Square& A, Square& B) {
 
 void Mesh::check_for_duplicates_and_insert(Triangle& triangle) {
 
-	this->positions.emplace_back(triangle.a.position.x);
-	this->positions.emplace_back(triangle.a.position.y);
-	this->positions.emplace_back(triangle.a.position.z);
-	if (!triangle.a.duplicated) {
+	this->positions.emplace_back(triangle.A.position.x);
+	this->positions.emplace_back(triangle.A.position.y);
+	this->positions.emplace_back(triangle.A.position.z);
+	if (!triangle.A.duplicated) {
 
-		this->indices.emplace_back(triangle.a.index);
-
-	};
-
-	this->positions.emplace_back(triangle.b.position.x);
-	this->positions.emplace_back(triangle.b.position.y);
-	this->positions.emplace_back(triangle.b.position.z);
-	if (!triangle.b.duplicated) {	
-
-		this->indices.emplace_back(triangle.b.index);
+		this->indices.emplace_back(triangle.A.index);
 
 	};
 
-	this->positions.emplace_back(triangle.c.position.x);
-	this->positions.emplace_back(triangle.c.position.y);
-	this->positions.emplace_back(triangle.c.position.z);
-	if (!triangle.c.duplicated) {
+	this->positions.emplace_back(triangle.B.position.x);
+	this->positions.emplace_back(triangle.B.position.y);
+	this->positions.emplace_back(triangle.B.position.z);
+	if (!triangle.B.duplicated) {	
 
-		this->indices.emplace_back(triangle.c.index);
+		this->indices.emplace_back(triangle.B.index);
+
+	};
+
+	this->positions.emplace_back(triangle.C.position.x);
+	this->positions.emplace_back(triangle.C.position.y);
+	this->positions.emplace_back(triangle.C.position.z);
+	if (!triangle.C.duplicated) {
+
+		this->indices.emplace_back(triangle.C.index);
 
 	};
 
@@ -134,10 +138,10 @@ void Mesh::check_for_duplicates_and_insert(Square& square) {
 
 };
 
-void Mesh::get_positions() {
+void Mesh::init_grid() {
 
-    int n_columns = this->texture->width - 1;
-	int n_rows = this->texture->height - 1;
+    int n_columns = this->texture.width - 1;
+	int n_rows = this->texture.height - 1;
 
 	//since i have no default constructor for Square i have to init the vector in this long way
 	Vertex a(vec3(0, 0, 0), 0);
@@ -176,32 +180,35 @@ void Mesh::get_positions() {
 
 };
 
-void Mesh::compute_normals() {
+void Mesh::get_normals() {
 
-	this->normals.reserve(this->positions.size() / 3);
-	this->colors.reserve(this->positions.size() / 3);
-	for (int i = 0; i < this->positions.size() / 3; ++i) {
+	int n_columns = this->texture.width - 1;
+	int n_rows = this->texture.height - 1;
+	for (int y = 0; y < n_rows; ++y) {
 
-		vec3 n = vec3(this->positions[3 * i], this->positions[3 * i + 1], this->positions[3 * i + 2]);
+		for (int x = 0; x < n_columns; ++x) {
 
-		this->normals.emplace_back(n.x);
-		this->normals.emplace_back(n.y);
-		this->normals.emplace_back(n.z);
+			vec3 normal_A = Grid[y][x].A.get_triangle_normal();
+			this->normals.emplace_back(normal_A.x);
+			this->normals.emplace_back(normal_A.y);
+			this->normals.emplace_back(normal_A.z);
 
-		this->colors.emplace_back(0);
-		this->colors.emplace_back(0);
-		this->colors.emplace_back(1);
+			vec3 normal_B = Grid[y][x].B.get_triangle_normal();
+			this->normals.emplace_back(normal_B.x);
+			this->normals.emplace_back(normal_B.y);
+			this->normals.emplace_back(normal_B.z);
+
+		};
 
 	};
 
 };
 
 //uses the function "update_vertex_indices" to update the indices of all vertices and avoid adding duplicate vertices to the "indices" vector, which will later be used as index buffer
-void Mesh::sort_indices() {
-
-	int n_columns = this->texture->width - 1;
-	int n_rows = this->texture->height - 1;
-
+void Mesh::get_indices() {
+	
+	int n_columns = this->texture.width - 1;
+	int n_rows = this->texture.height - 1;
 	for (int y = 0; y < n_rows; ++y) {
 
 		for (int x = 0; x < n_columns; ++x) {
@@ -217,6 +224,12 @@ void Mesh::sort_indices() {
 
 	};
 
+};
+
+void Mesh::get_positions() {
+
+	int n_columns = this->texture.width - 1;
+	int n_rows = this->texture.height - 1;
 	for (int y = 0; y < n_rows; ++y) {
 
 		for (int x = 0; x < n_columns; ++x) {
@@ -231,8 +244,8 @@ void Mesh::sort_indices() {
 
 void Mesh::get_texture_coordinates() {
 
-	int n_columns = this->texture->width - 1;
-	int n_rows = this->texture->height - 1;
+	int n_columns = this->texture.width - 1;
+	int n_rows = this->texture.height - 1;
 	int n = n_rows * n_columns;
 	for (int i = 0; i < n; ++i) {
 
@@ -252,25 +265,40 @@ void Mesh::get_texture_coordinates() {
 
 };
 
+void Mesh::get_colors() {
+
+	this->colors.reserve(this->positions.size() / 3);
+	for (int i = 0; i < this->positions.size() / 3; ++i) {
+
+		this->colors.emplace_back(0);
+		this->colors.emplace_back(0);
+		this->colors.emplace_back(1);
+
+	};
+
+};
+
 void Mesh::fill_data() {
 
+	init_grid();
+	get_normals();
+	get_indices();	
 	get_positions();
-	compute_normals();
-	sort_indices();
 	get_texture_coordinates();
+	get_colors();
 
-	std::cout << "n_vertices: " << positions.size() / 3 << " Grid size: " << this->Grid.size() << "x" << this->Grid[0].size() << std::endl;
+	std::cout << "width: " << this->texture.width << " height: " << this->texture.height << std::endl;
+	std::cout << "n_vertices: " << positions.size() / 3 << " Grid size: " << this->Grid.size() << " x " << this->Grid[0].size() << std::endl;
 	std::cout << "n_indices: " << indices.size() << std::endl;
-	std::cout << "ended";
 
 };//"fill data" bracket
 
-Mesh::Mesh(Texture* t) : texture(t) {
-
-	std::cout << "width: " << this->texture->width << "height: " << this->texture->height << std::endl;
+Mesh::Mesh(Texture& texture) : texture(texture) {
 
 	fill_data();
+	std::cout << "filled data\n";
 
 	this->Grid.clear();
+	std::cout << "cleared Grid\n";
 
 };

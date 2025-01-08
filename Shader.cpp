@@ -1,6 +1,6 @@
 #include "Shader.h"
 
-unsigned int Shader::compile_shader(unsigned int type, const std::string & source) {
+unsigned int Shader::compile_shader(const unsigned int& type, const std::string& source) {
 
 	unsigned int id = glCreateShader(type);
 
@@ -88,7 +88,7 @@ void Shader::create_uniform_vec3(const std::vector<float>& data_vector, const ch
 
 };
 
-void Shader::create_uniform_float(const float data_variable, const char* uniform_name) {
+void Shader::create_uniform_float(const float& data_variable, const char* uniform_name) {
 
 	unsigned int location = glGetUniformLocation(this->program, uniform_name);
 
@@ -96,7 +96,7 @@ void Shader::create_uniform_float(const float data_variable, const char* uniform
 
 };
 
-void Shader::create_uniform_2D_texture(const int index, const char* uniform_name) {
+void Shader::create_uniform_2D_texture(const int& index, const char* uniform_name) {
 
 	unsigned int location = glGetUniformLocation(this->program, uniform_name);
 
@@ -117,7 +117,7 @@ std::vector<vec3> Shader::create_standard_matrix_vectors() {
 	vec3 scaling_vector = vec3(1, 1, 1);
 	vec3 rotation_vector = vec3(0, 0, 0);
 
-	return { right, up, direction, camera, translation_vector, scaling_vector, rotation_vector };
+	return std::vector<vec3> { right, up, direction, camera, translation_vector, scaling_vector, rotation_vector };
 
 };
 
@@ -126,7 +126,7 @@ std::vector<vec3> Shader::create_standard_light_vectors() {
 	vec3 light_position = vec3(0, 0, -3);
 	vec3 light_color = vec3(1, 1, 1);
 
-	return { light_position, light_color };
+	return std::vector<vec3> { light_position, light_color };
 
 };
 
@@ -172,7 +172,7 @@ void Shader::add_texture(Texture& texture) {
 
 	std::vector<int> texture_details = { texture.width, texture.height, texture.n_color_channels };
 
-	bind_texture(&texture.txt, texture.GL_TEXTUREindex, texture.bytes, texture_details);
+	bind_texture(&texture.texture_ID, texture.GL_TEXTUREindex, texture.bytes, texture_details);
 
 	create_uniform_2D_texture(texture.index, texture.uniform_name);
 
