@@ -66,6 +66,18 @@ unsigned int Shader::create_shader(const std::string& vertex_shader, const std::
 
 };
 
+void Shader::bind_mesh_buffers(Mesh& mesh) {
+
+	bind_buffer(GL_ARRAY_BUFFER, &this->positions_buffer, mesh.positions, GL_STATIC_DRAW, 0, 3, true);
+	bind_buffer(GL_ARRAY_BUFFER, &this->normals_buffer, mesh.normals, GL_STATIC_DRAW, 1, 3, true);
+	bind_buffer(GL_ARRAY_BUFFER, &this->colors_buffer, mesh.colors, GL_STATIC_DRAW, 2, 3, true);
+	bind_buffer(GL_ELEMENT_ARRAY_BUFFER, &this->indices_buffer, mesh.indices, GL_STATIC_DRAW, -1, 1, true);
+	bind_buffer(GL_ARRAY_BUFFER, &this->texture_coordinates_buffer, mesh.texture_coordinates, GL_STATIC_DRAW, 3, 2, true);
+	bind_buffer(GL_ARRAY_BUFFER, &this->tangents_buffer, mesh.tangents, GL_STATIC_DRAW, 4, 3, true);
+	bind_buffer(GL_ARRAY_BUFFER, &this->bitangents_buffer, mesh.bitangents, GL_STATIC_DRAW, 5, 3, true);
+
+};
+
 Shader::Shader(const std::string& vertex_shader, const std::string& geometry_shader, const std::string& fragment_shader) :
 
 	program(create_shader(vertex_shader, geometry_shader, fragment_shader)) {
@@ -75,7 +87,6 @@ Shader::Shader(const std::string& vertex_shader, const std::string& geometry_sha
 void Shader::create_uniform_mat4(const std::vector<float>& data_vector, const char* uniform_name) {
 
 	unsigned int location = glGetUniformLocation(this->program, uniform_name);
-
 	glUniformMatrix4fv(location, 1, GL_FALSE, data_vector.data());
 
 };
@@ -83,7 +94,6 @@ void Shader::create_uniform_mat4(const std::vector<float>& data_vector, const ch
 void Shader::create_uniform_vec3(const std::vector<float>& data_vector, const char* uniform_name) {
 
 	unsigned int location = glGetUniformLocation(this->program, uniform_name);
-
 	glUniform3fv(location, 1, data_vector.data());
 
 };
@@ -91,75 +101,55 @@ void Shader::create_uniform_vec3(const std::vector<float>& data_vector, const ch
 void Shader::create_uniform_float(const float& data_variable, const char* uniform_name) {
 
 	unsigned int location = glGetUniformLocation(this->program, uniform_name);
-
 	glUniform1f(location, data_variable);
 
 };
 
 void Shader::create_uniform_2D_texture(const int& index, const char* uniform_name) {
 
+	//VIMP: openGL has to be using glUseProgram(this->program); before this function is called. 
+
 	unsigned int location = glGetUniformLocation(this->program, uniform_name);
-
-	//glUseProgram(this->program);
-
 	glUniform1i(location, index);
 
 };
 
-std::vector<vec3> Shader::create_standard_matrix_vectors() {
+Shader::graphics_vectors_container Shader::create_standard_matrix_vectors() {
 
-	vec3 right = vec3(1, 0, 0);
-	vec3 up = vec3(0, 1, 0);
-	vec3 direction = vec3(0, 0, 1);
-	vec3 camera = vec3(0, 0, -3);
+	vec3 right_vector(1, 0, 0);
+	vec3 up_vector(0, 1, 0);
+	vec3 direction_vector(0, 0, 1);
+	vec3 camera_position(0, 0, -1);
 
-	vec3 translation_vector = vec3(0, 0, 0);
-	vec3 scaling_vector = vec3(1, 1, 1);
-	vec3 rotation_vector = vec3(0, 0, 0);
+	vec3 translation_vector(0, 0, 0);
+	vec3 scaling_vector(1, 1, 1);
+	vec3 rotation_vector(0, 0, 0);
 
-	return std::vector<vec3> { right, up, direction, camera, translation_vector, scaling_vector, rotation_vector };
+	vec3 light_position(0, 0, -1);
+	vec3 light_color(1, 1, 1);
 
-};
-
-std::vector<vec3> Shader::create_standard_light_vectors() {
-
-	vec3 light_position = vec3(0, 0, -3);
-	vec3 light_color = vec3(1, 1, 1);
-
-	return std::vector<vec3> { light_position, light_color };
+	return { right_vector, up_vector, direction_vector, camera_position, translation_vector, scaling_vector, rotation_vector, light_position, light_color };
 
 };
 
-void Shader::setup_matrices(const vec2& screen_size, const vec3& right, const vec3& up, const vec3& direction, const vec3& camera, const vec3& translation_vector, const vec3& scaling_vector, const vec3& rotation_vector) {
+void Shader::init_matrices(const vec2& screen_size, const vec3& right_vector, const vec3& up_vector, const vec3& direction_vector, const vec3& camera_position, const vec3& translation_vector, const vec3& scaling_vector, const vec3& rotation_vector) {
 
-	mat4 model_transformation_matrix = create_model_transformation_matrix(translation_vector, scaling_vector, rotation_vector);
-	mat4 look_at_matrix = create_view_matrix(right, up, direction, camera);
-	mat4 model_view_mat = create_model_view_matrix(model_transformation_matrix, look_at_matrix);
-
-	std::vector<float> normal_matrix = model_view_mat.inverse().transpose().to_GL();
-	std::vector<float> model_view_matrix = model_view_mat.to_GL();
-	std::vector<float> projection_matrix = create_frustum_projection_matrix(60.0f, screen_size.x, screen_size.y, 0.1f, 100.0f).to_GL();
-	std::vector<float> eye_vector = camera.to_GL();
-
-	create_uniform_vec3(eye_vector, "eye_vector");
-	create_uniform_mat4(normal_matrix, "normal_matrix");
-	create_uniform_mat4(model_view_matrix, "model_view_matrix");
-	create_uniform_mat4(projection_matrix, "projection_matrix");
+	create_uniform_vec3(camera_position.to_GL(), "eye_vector");
+	create_uniform_mat4(create_model_transformation_matrix(translation_vector, scaling_vector, rotation_vector).to_GL(), "model_transformation_matrix");
+	create_uniform_mat4(create_view_matrix(right_vector, up_vector, direction_vector, camera_position).to_GL(), "view_matrix");
+	create_uniform_mat4(create_frustum_projection_matrix(60.0f, screen_size.x, screen_size.y, 0.1f, 100.0f).to_GL(), "projection_matrix");
 
 };
 
-void Shader::setup_light(const vec3& light_pos, const vec3& color, const vec4& material_properties) {
-
-	std::vector<float> light_position = light_pos.to_GL();
-	std::vector<float> light_color = color.to_GL();
+void Shader::init_light(const vec3& light_position, const vec3& light_color, const vec4& material_properties) {
 
 	float ambient = material_properties.x;
 	float diffuse = material_properties.y;
 	float specular = material_properties.z;
 	float shininess = material_properties.w;
 
-	create_uniform_vec3(light_position, "light_position");
-	create_uniform_vec3(light_color, "light_color");
+	create_uniform_vec3(light_position.to_GL(), "light_position");
+	create_uniform_vec3(light_color.to_GL(), "light_color");
 
 	create_uniform_float(ambient, "ambient");
 	create_uniform_float(diffuse, "diffuse");
@@ -178,52 +168,50 @@ void Shader::add_texture(Texture& texture) {
 
 };
 
-void Shader::setup_textures(std::vector<Texture>& textures) {
-
+void Shader::add_textures(std::vector<Texture>& textures) {
 
 	for (int i = 0; i < textures.size(); ++i) {
 
 		add_texture(textures[i]);
-
-		//this->textures.emplace_back(texture);
 
 	};
 
 };
 
 //sets the transformation matrices and light vectors
-void Shader::setup(const vec2& screen_size, const std::vector<vec3>& matrices_vectors, const std::vector<vec3>& light_vectors, const vec4& material_properties, std::vector<Texture>& textures) {
+void Shader::initialize(const vec2& screen_size, const vec3& right_vector, const vec3& up_vector, const vec3& direction_vector, const vec3& camera_position, const vec3& translation_vector, const vec3& scaling_vector, const vec3& rotation_vector, const vec3& light_position, const vec3& light_color, const vec4& material_properties, std::vector<Texture>& textures) {
 
-	setup_matrices(screen_size, matrices_vectors[0], matrices_vectors[1], matrices_vectors[2], matrices_vectors[3], matrices_vectors[4], matrices_vectors[5], matrices_vectors[6]);
-	setup_light(light_vectors[0], light_vectors[1], material_properties);
-	setup_textures(textures);
-
-};
-
-void Shader::update_matrices(const vec3& right, const vec3& up, const vec3& direction, const vec3& camera, const vec3& translation_vector, const vec3& scaling_vector, const vec3& rotation_vector) {
-
-	mat4 model_transformation_matrix = create_model_transformation_matrix(translation_vector, scaling_vector, rotation_vector);
-	mat4 model_view_mat = create_view_matrix(right, up, direction, camera) * model_transformation_matrix;
-	std::vector<float> normal_matrix = model_view_mat.inverse().transpose().to_GL();
-	std::vector<float> model_view_matrix = model_view_mat.to_GL();
-	std::vector<float> eye_vector = camera.to_GL();
-
-	create_uniform_vec3(eye_vector, "eye_vector");
-	create_uniform_mat4(normal_matrix, "normal_matrix");
-	create_uniform_mat4(model_view_matrix, "model_view_matrix");
+	init_matrices(screen_size, right_vector, up_vector, direction_vector, camera_position, translation_vector, scaling_vector, rotation_vector);
+	init_light(light_position, light_color, material_properties);
+	add_textures(textures);
 
 };
 
-void Shader::update_light(const vec3& light_pos, const vec4& material_properties) {
+//override
+void Shader::initialize(const vec2& screen_size, const graphics_vectors_container& container, const vec4& material_properties, std::vector<Texture>& textures) {
 
-	std::vector<float> light_position = light_pos.to_GL();
-	create_uniform_vec3(light_position, "light_position");
+	init_matrices(screen_size, container.right_vector, container.up_vector, container.direction_vector, container.camera_position, container.translation_vector, container.scaling_vector, container.rotation_vector);
+	init_light(container.light_position, container.light_color, material_properties);
+	add_textures(textures);
+
+};
+
+void Shader::update_matrices(const vec3& right_vector, const vec3& up_vector, const vec3& direction_vector, const vec3& camera_position, const vec3& translation_vector, const vec3& scaling_vector, const vec3& rotation_vector) {
+
+	create_uniform_vec3(camera_position.to_GL(), "eye_vector");
+	create_uniform_mat4(create_model_transformation_matrix(translation_vector, scaling_vector, rotation_vector).to_GL(), "model_transformation_matrix");
+	create_uniform_mat4(create_view_matrix(right_vector, up_vector, direction_vector, camera_position).to_GL(), "view_matrix");
+
+};
+
+void Shader::update_light(const vec3& light_position, const vec4& material_properties) {
 
 	float ambient = material_properties.x;
 	float diffuse = material_properties.y;
 	float specular = material_properties.z;
 	float shininess = material_properties.w;
 
+	create_uniform_vec3(light_position.to_GL(), "light_position");
 	create_uniform_float(ambient, "ambient");
 	create_uniform_float(diffuse, "diffuse");
 	create_uniform_float(specular, "specular");
@@ -231,10 +219,30 @@ void Shader::update_light(const vec3& light_pos, const vec4& material_properties
 
 };
 
-void Shader::update(const std::vector<vec3>& matrices_vectors, const std::vector<vec3>& light_vectors, const vec4& material_properties) {
+void Shader::update(const vec3& right_vector, const vec3& up_vector, const vec3& direction_vector, const vec3& camera_position, const vec3& translation_vector, const vec3& scaling_vector, const vec3& rotation_vector, const vec3& light_position, const vec3& light_color, const vec4& material_properties) {
 
-	update_matrices(matrices_vectors[0], matrices_vectors[1], matrices_vectors[2], matrices_vectors[3], matrices_vectors[4], matrices_vectors[5], matrices_vectors[6]);
-	update_light(light_vectors[0], material_properties);
+	update_matrices(right_vector, up_vector, direction_vector, camera_position, translation_vector, scaling_vector, rotation_vector);
+	update_light(light_position, material_properties);
+
+};
+
+//override
+void Shader::update(const graphics_vectors_container& container, const vec4& material_properties) {
+
+	update_matrices(container.right_vector, container.up_vector, container.direction_vector, container.camera_position, container.translation_vector, container.scaling_vector, container.rotation_vector);
+	update_light(container.light_position, material_properties);
+
+};
+
+void Shader::delete_buffers() {
+
+	glDeleteBuffers(1, &this->positions_buffer);
+	glDeleteBuffers(1, &this->normals_buffer);
+	glDeleteBuffers(1, &this->indices_buffer);
+	glDeleteBuffers(1, &this->texture_coordinates_buffer);
+	glDeleteBuffers(1, &this->colors_buffer);
+	glDeleteBuffers(1, &this->tangents_buffer);
+	glDeleteBuffers(1, &this->bitangents_buffer);
 
 };
 
@@ -243,8 +251,22 @@ void Shader::delete_textures() {
 	int length = this->textures.size();
 	for (int i = 0; i < length; ++i) {
 
-		glDeleteTextures(1, &textures[i]);
+		glDeleteTextures(1, &this->textures[i]);
 
 	};
+
+};
+
+void Shader::delete_program() {
+
+	glDeleteProgram(this->program);
+
+};
+
+void Shader::delete_all() {
+
+	delete_buffers();
+	delete_textures();
+	delete_program();
 
 };

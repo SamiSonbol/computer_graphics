@@ -3,7 +3,6 @@
 #include <cmath>
 #include <vector>
 
-
 class point {
 
 public:
@@ -99,59 +98,57 @@ public:
 
 	vec2 operator/(const vec2& vec) const {
 
-		return vec2(this->x / vec.x, this->y / vec.y);
+		float x = this->x, y = this->y;
+
+		if (this->x != 0 && vec.x != 0) { x = this->x / vec.x; };
+
+		if (this->y != 0 && vec.y != 0) { y = this->y / vec.y; };
+
+		return vec2(x, y);
 
 	};
 	vec2 operator/(const float& n) const {
 
-		return vec2(this->x / n, this->y / n);
+		float x = this->x, y = this->y;
+
+		if (this->x != 0 && n != 0) { x = this->x / n; };
+
+		if (this->y != 0 && n != 0) { y = this->y / n; };
+
+		return vec2(x, y);
 
 	};
 	void operator/=(const vec2& vec) {
 
-		this->x /= vec.x;
-		this->y /= vec.y;
+		if (this->x != 0 && vec.x != 0) { this->x /= vec.x; };
+
+		if (this->y != 0 && vec.y != 0) { this->y /= vec.y; };
 
 	};
 	void operator/=(const float& n) {
 
-		this->x /= n;
-		this->y /= n;
+		if (this->x != 0 && n != 0) { this->x /= n; };
+
+		if (this->y != 0 && n != 0) { this->y /= n; };
 
 	};
 
 	bool operator==(const vec2& vec) const {
 
-		if (this->x == vec.x && this->y == vec.y) {
-
-			return true;
-
-		};
-
-		return false;
+		return this->x == vec.x && this->y == vec.y;
 
 	};
+
 	bool operator!=(const vec2& vec) const {
 
-		if (this->x != vec.x && this->y != vec.y) {
-
-			return true;
-
-		};
-
-		return false;
+		return !(*this == vec);
 
 	};
 
 	vec2 normalize() const {
 
-		float n = magnitude();
+	    return vec2(this->x, this->y) / this->magnitude();
 
-		if (n != 0.0f) {
-
-			return vec2(this->x, this->y) / n;
-
-		};
 
 	};
 
@@ -170,9 +167,9 @@ public:
 
 	float x, y, z;
 
-	vec3(const float& x = 0.0f, const float& y = 0.0f, const float& z = 1.0f) : x(x), y(y), z(z) {};
+	vec3(const float& x = 0.0f, const float& y = 0.0f, const float& z = 0.0f) : x(x), y(y), z(z) {};
 
-	vec3(const vec2& vec, const float& z) : x(vec.x), y(vec.y), z(z) {};//override
+	vec3(const vec2& vec, const float& z = 0.0f) : x(vec.x), y(vec.y), z(z) {};//override
 
 	float magnitude() const {
 
@@ -247,26 +244,46 @@ public:
 
 	vec3 operator/(const vec3& vec) const {
 
-		return vec3(this->x / vec.x, this->y / vec.y, this->z / vec.z);
+		float x = this->x, y = this->y, z = this->z;
+
+		if (this->x != 0 && vec.x != 0) { x = this->x / vec.x; };
+
+		if (this->y != 0 && vec.y != 0) { y = this->y / vec.y; };
+
+		if (this->z != 0 && vec.z != 0) { z = this->z / vec.z; };
+
+		return vec3(x, y, z);
 
 	};
 	vec3 operator/(const float& n) const {
 
-		return vec3(this->x / n, this->y / n, this->z / n);
+		float x = this->x, y = this->y, z = this->z;
+
+		if (this->x != 0 && n != 0) { x = this->x / n; };
+
+		if (this->y != 0 && n != 0) { y = this->y / n; };
+
+		if (this->z != 0 && n != 0) { z = this->z / n; };
+
+		return vec3(x, y, z);
 
 	};
 	void operator/=(const vec3& vec) {
 
-		this->x /= vec.x;
-		this->y /= vec.y;
-		this->z /= vec.z;
+		if (this->x != 0 && vec.x != 0) { this->x /= vec.x; };
+
+		if (this->y != 0 && vec.y != 0) { this->y /= vec.y; };
+
+		if (this->z != 0 && vec.z != 0) { this->z /= vec.z; };
 
 	};
 	void operator/=(const float& n) {
 
-		this->x /= n;
-		this->y /= n;
-		this->z /= n;
+		if (this->x != 0 && n != 0) { this->x /= n; };
+
+		if (this->y != 0 && n != 0) { this->y /= n; };
+
+		if (this->z != 0 && n != 0) { this->z /= n; };
 
 	};
 
@@ -284,13 +301,13 @@ public:
 
 	vec3 normalize() const {
 
-		float n = magnitude();
+		return vec3(this->x, this->y, this->z) / this->magnitude();
 
-		if (n != 0.0f) {
+	};
 
-			return vec3(this->x, this->y, this->z) / n;
+	vec2 xy() const {
 
-		};
+		return vec2(this->x, this->y);
 
 	};
 
@@ -380,63 +397,84 @@ public:
 
 	vec4 operator/(const vec4& vec) const {
 
-		return vec4(this->x / vec.x, this->y / vec.y, this->z / vec.z, this->w / vec.w);
+		float x = this->x, y = this->y, z = this->z, w = this->w;
+
+		if (this->x != 0 && vec.x != 0) { x = this->x / vec.x; };
+
+		if (this->y != 0 && vec.y != 0) { y = this->y / vec.y; };
+
+		if (this->z != 0 && vec.z != 0) { z = this->z / vec.z; };
+
+		if (this->w != 0 && vec.w != 0) { w = this->w / vec.w; };
+
+		return vec4(x, y, z, w);
 
 	};
 	vec4 operator/(const float& n) const {
 
-		return vec4(this->x / n, this->y / n, this->z / n, this->w / n);
+		float x = this->x, y = this->y, z = this->z, w = this->w;
+
+		if (this->x != 0 && n != 0) { x = this->x / n; };
+
+		if (this->y != 0 && n != 0) { y = this->y / n; };
+
+		if (this->z != 0 && n != 0) { z = this->z / n; };
+
+		if (this->w != 0 && n != 0) { w = this->w / n; };
+
+		return vec4(x, y, z, w);
 
 	};
 	void operator/=(const vec4& vec) {
 
-		this->x /= vec.x;
-		this->y /= vec.y;
-		this->z /= vec.z;
-		this->w /= vec.w;
+		if (this->x != 0 && vec.x != 0) { this->x /= vec.x; };
+
+		if (this->y != 0 && vec.y != 0) { this->y /= vec.y; };
+
+		if (this->z != 0 && vec.z != 0) { this->z /= vec.z; };
+
+		if (this->w != 0 && vec.w != 0) { this->w /= vec.w; };
 
 	};
 	void operator/=(const float& n) {
 
-		this->x /= n;
-		this->y /= n;
-		this->z /= n;
-		this->w /= n;
+		if (this->x != 0 && n != 0) { this->x /= n; };
+
+		if (this->y != 0 && n != 0) { this->y /= n; };
+
+		if (this->z != 0 && n != 0) { this->z /= n; };
+
+		if (this->w != 0 && n != 0) { this->w /= n; };
 
 	};
 
 	bool operator==(const vec4& vec) const {
 
-		if (this->x == vec.x && this->y == vec.y && this->z == vec.z && this->w == vec.w) {
-
-			return true;
-
-		};
-
-		return false;
+		return this->x == vec.x && this->y == vec.y && this->z == vec.z && this->w == w;
 
 	};
+
 	bool operator!=(const vec4& vec) const {
 
-		if (this->x != vec.x && this->y != vec.y && this->z != vec.z && this->w != vec.w) {
-
-			return true;
-
-		};
-
-		return false;
+		return !(*this == vec);
 
 	};
 
 	vec4 normalize() const {
 
-		float n = magnitude();
+		return vec4(this->x, this->y, this->z, this->w) / this->magnitude();
 
-		if (n != 0.0f) {
+	};
 
-			return vec4(this->x, this->y, this->z, this->w) / n;
+	vec2 xy() const {
 
-		};
+		return vec2(this->x, this->y);
+
+	};
+
+	vec3 xyz() const {
+
+		return vec3(this->x, this->y, this->z);
 
 	};
 
@@ -883,12 +921,12 @@ static mat4 create_view_matrix(const vec3& r, const vec3& u, const vec3& d, cons
 
 	//here am basically taking r as X-axis, u as Y-axis, and d as Z-axis and using them to find the actual right, up, direction vectors
 	vec3 direction = vec3(0, 0, 0) - camera;
-	direction.normalize();
+	direction = direction.normalize();
 
 	vec3 right = u.cross(direction);
-	right.normalize();
+	right = right.normalize();
 
-	vec3 up = direction.cross(right);
+	vec3 up = direction.cross(right).normalize();
 
 	return mat4(
 
@@ -979,87 +1017,6 @@ static mat4 create_model_view_projection_matrix(const mat4& model_transformation
 
 };
 
-//static void translate(const vec3& position) {
-//
-//	vec3 center_difference(position - this->center);
-//	mat4 translation_matrix = create_translation_matrix(center_difference);
-//	for (auto& point : this->points) {
-//
-//		vec4 new_pos = translation_matrix * point.position;
-//		point.position = { new_pos.x, new_pos.y, new_pos.z };
-//
-//		if (point.index < n_frame_points) {
-//
-//			this->frame.setPoint(point.index, sf::Vector2f(point.position.x, point.position.y));
-//
-//		};
-//
-//	};
-//
-//	this->update_center();
-//
-//};
-//
-//static void Physics::Body::scale(const vec3& scale_vector) {
-//
-//	int n_frame_points = this->frame.getPointCount();
-//	mat4 scale_matrix = create_scale_matrix(scale_vector);
-//	vec4 new_pos;
-//	for (auto& constraint : this->constraints) {
-//
-//		new_pos = scale_matrix * constraint.spring_at_rest;
-//		constraint.spring_at_rest = { new_pos.x, new_pos.y, new_pos.z };
-//
-//	};
-//
-//	vec3 original_position = this->get_position();
-//	this->set_position({ 0, 0, 1 });
-//	for (auto& point : this->points) {
-//
-//		this->center_to_point_length[point.index] *= scale_vector.x;
-//
-//		point.radius *= scale_vector.x;
-//		new_pos = scale_matrix * point.position;
-//		point.position = { new_pos.x, new_pos.y, new_pos.z };
-//
-//		if (point.index < n_frame_points) {
-//
-//			this->frame.setPoint(point.index, sf::Vector2f(point.position.x, point.position.y));
-//
-//		};
-//
-//	};
-//	this->set_position(original_position);
-//	this->update_center();
-//
-//};
-//
-//static void Physics::Body::rotate(const vec3& rotation_vector) {
-//
-//	int n_frame_points = this->frame.getPointCount();
-//
-//	vec3 original_pos = this->get_position();
-//	this->set_position({ 0, 0, 1 });//translating to a different coord so we can return to our original coords after rotation => hence having done a rotation around our object's origin
-//
-//	mat4 rotation_matrix = create_rotation_matrix(rotation_vector.x, rotation_vector.y, rotation_vector.z);
-//	for (auto& point : this->points) {
-//
-//		vec4 new_pos = rotation_matrix * point.position;
-//		point.position = { new_pos.x, new_pos.y, new_pos.z };
-//
-//		if (point.index < n_frame_points) {
-//
-//			this->frame.setPoint(point.index, sf::Vector2f(point.position.x, point.position.y));
-//
-//		};
-//
-//	};
-//
-//	this->set_position(original_pos);
-//	this->update_center();
-//
-//};
-
 static float get_area_of_circle(const float& radius) {
 
 	return radius * radius * 3.14159265359f;
@@ -1146,5 +1103,95 @@ static float clamp(const float& value, const float& min, const float& max) {
 		return value;
 
 	};
+
+};
+
+static float get_decimal(const float& number) {
+
+	int n = number;
+	return number - n;
+
+};
+
+//these are hashing structs so the vectors can be used easily in maps
+static std::size_t hash_combine(std::size_t seed, std::size_t value) { return seed ^ (value + 0x9e3779b9 + (seed << 6) + (seed >> 2)); };
+struct vec2_hasher {
+
+	std::size_t operator()(const vec2& vec) const {
+
+		std::size_t h1 = std::hash<float>()(vec.x);
+		std::size_t h2 = std::hash<float>()(vec.y);
+
+		std::size_t seed = h1;
+		seed = hash_combine(seed, h2);
+		return seed;
+
+	};
+
+};
+
+struct vec3_hasher {
+
+	std::size_t operator()(const vec3& vec) const {
+
+		std::size_t h1 = std::hash<float>()(vec.x);
+		std::size_t h2 = std::hash<float>()(vec.y);
+		std::size_t h3 = std::hash<float>()(vec.z);
+
+		std::size_t seed = h1;
+		seed = hash_combine(seed, h2);
+		seed = hash_combine(seed, h3);
+		return seed;
+
+	};
+
+};
+
+struct vec4_hasher {
+
+	std::size_t operator()(const vec4& vec) const {
+
+		std::size_t h1 = std::hash<float>()(vec.x);
+		std::size_t h2 = std::hash<float>()(vec.y);
+		std::size_t h3 = std::hash<float>()(vec.z);
+		std::size_t h4 = std::hash<float>()(vec.w);
+
+		std::size_t seed = h1;
+		seed = hash_combine(seed, h2);
+		seed = hash_combine(seed, h3);
+		seed = hash_combine(seed, h4);
+		return seed;
+
+	};
+
+};
+
+//THIS FUNCTION SHOULD ONLY BE USED AS A SHORTCUT TO EMPLACE ALL COMPONENTS OF A VEC2 AT ONCE DIRECTLY INTO AN STD::VECTOR. EXAMPLE AN STD::VECTOR<FLOAT>
+template <typename T>
+static void emplace_back(const vec2& vec, std::vector<T>& storage) {
+
+	storage.emplace_back(vec.x);
+	storage.emplace_back(vec.y);
+
+};
+
+//THIS FUNCTION SHOULD ONLY BE USED AS A SHORTCUT TO EMPLACE ALL COMPONENTS OF A VEC3 AT ONCE DIRECTLY INTO AN STD::VECTOR. EXAMPLE AN STD::VECTOR<FLOAT>
+template <typename T>
+static void emplace_back(const vec3& vec, std::vector<T>& storage) {
+
+	storage.emplace_back(vec.x);
+	storage.emplace_back(vec.y);
+	storage.emplace_back(vec.z);
+
+};
+
+static void print_vec(const vec2& vec) {
+
+	std::cout << vec.x << ", " << vec.y << std::endl;
+
+};
+static void print_vec(const vec3& vec) {
+
+	std::cout << vec.x << ", " << vec.y << ", " << vec.z << std::endl;
 
 };

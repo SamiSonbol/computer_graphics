@@ -1,24 +1,76 @@
 #pragma once
 #include <iostream>
 #include <vector>
+#include <array>
+#include <unordered_map>
 #include "Math.h"
 #include <stb/stb_image.h>
+
+//struct used to hash the unordered_map we are using in our *Mesh* class
+struct vec3_and_vec2_hasher {
+
+	std::size_t operator()(const std::pair<vec3, vec2>& pair) const {
+
+		std::size_t h1 = vec3_hasher()(pair.first);
+		std::size_t h2 = vec2_hasher()(pair.second);
+
+		std::size_t seed = h1;
+		seed = hash_combine(seed, h2);
+		return seed;
+
+	};
+
+};
+
+class Vertex {
+
+public:
+
+	unsigned short index;
+
+	vec3 position;
+	vec3 normal;
+	vec3 tangent;
+	vec3 bitangent;
+	vec2 uv;
+	vec3 color;
+
+	Vertex(const vec3& position);
+	Vertex(const float& x, const float& y, const float& z);
+
+};
+
+class Triangle {
+
+public:
+
+	Vertex A;
+	Vertex B;
+	Vertex C;
+
+	void offset_positions(const vec3& offset);
+
+	std::array<vec3, 3> compute_TBN();
+	void update_TBNs();
+
+	void merge_face(const vec2& mesh_dimensions);
+
+	void set_color(const vec3& color);
+
+	Triangle(const Vertex& A, const Vertex& B, const Vertex& C);
+
+};
 
 class Texture {
 
  public:
 
-	int width, height, n_color_channels;
-
+	int width, height, n_color_channels, index;
 	unsigned int GL_TEXTUREindex;
 
-	int index;
-
-	const char* uniform_name;
-
-	unsigned char* bytes;
-
 	unsigned int texture_ID;//vipNote: dont ever make this a pointer
+	const char* uniform_name;
+	unsigned char* bytes;
 
 	Texture(const std::string& file_path, const char* uniform_name, const unsigned int& GL_TEXTUREindex, const int& index);
 
@@ -32,70 +84,24 @@ class Mesh {
 
  public:
 
-	struct Vertex {
-
-	 public:
-
-		vec3 position;
-		unsigned short index;
-		bool duplicated = false;
-
-		Vertex(const vec3& position, const int& index);
-
-		Vertex(const float& x, const float& y, const float& z, const int& index);
-
-	};
-
-    struct Triangle {
-
-	 public:
-
-		Vertex A;
-		Vertex B;
-		Vertex C;
-
-		vec3 get_triangle_normal();
-
-		Triangle(const Vertex& A, const Vertex& B, const Vertex& C);
-
-	};
-
-	struct Square {
-
-	 public:
-
-		Triangle A;
-		Triangle B;
-
-		Square(const Triangle& A, const Triangle& B);
-
-	};
-
 	Texture texture;
-	std::vector<std::vector<Square>> Grid;
+	vec2 mesh_dimensions;
+	std::unordered_map<std::pair<vec3, vec2>, unsigned short, vec3_and_vec2_hasher> vertices_map;
 
-	std::vector<float> positions;
-	std::vector<float> normals;
 	std::vector<unsigned short> indices;
-	std::vector<float> texture_coordinates;
-	std::vector<float> colors;
+	std::vector<vec3> positions;
+	std::vector<vec3> normals;
+	std::vector<vec3> tangents;
+	std::vector<vec3> bitangents;
+	std::vector<vec2> texture_coordinates;
+	std::vector<vec3> colors;
 
-	//checks if the vertex we have is a duplicate of another vertex on the we are comparing it with triangle, if it is a duplicate then it takes the lower index number of both vertices
-	void update_vertex_indices(Vertex& vertex, Triangle& triangle);
-	void update_vertex_indices(Triangle& A, Triangle& B);
-	void update_vertex_indices(Square& A, Square& B);
+	void check_accumalate_add(Vertex& vertex, int& index_counter);
+	void check_accumalate_add(Triangle& triangle, int& index_counter);
 
-	void check_for_duplicates_and_insert(Triangle& triangle);
-	void check_for_duplicates_and_insert(Square& square);
-
-	//VIMP: THESE HAVE TO BE RAN IN THIS EXACT ORDER OR NULL POINTERS WILL OCCUR; example: exception ocuured novlg64.pdb file not loaded
+	void set_as_single_face(Vertex& top_left, Vertex& bottom_left, Vertex& top_right, Vertex& bottom_right);
+	
 	void init_grid();
-	void get_normals();
-	void get_indices();
-	void get_positions();
-	void get_texture_coordinates();
-	void get_colors();
-
 	void fill_data();
 
 	Mesh(Texture& texture);

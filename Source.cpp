@@ -57,36 +57,29 @@ int main() {
 	Mouse mouse = Mouse(window);
 	//////
 
-	Texture river_pebbles = Texture("test_texture.png", "uTexture", GL_TEXTURE0, 0);
-	Texture river_pebbles_normal_map = Texture("test_texture.png", "uNormal_map", GL_TEXTURE1, 1);
+	//Texture river_pebbles = Texture("resources\\diffuse_maps\\abra.png", "uTexture", GL_TEXTURE0, 0);
+	//Texture river_pebbles_normal_map = Texture("resources\\normal_maps\\abra_normal.png", "uNormal_map", GL_TEXTURE1, 1);
+	//Texture river_pebbles = Texture("resources\\diffuse_maps\\beirut.png", "uTexture", GL_TEXTURE0, 0);
+	//Texture river_pebbles_normal_map = Texture("resources\\normal_maps\\beirut_normal.png", "uNormal_map", GL_TEXTURE1, 1);
+	//Texture river_pebbles = Texture("resources\\diffuse_maps\\emma.png", "uTexture", GL_TEXTURE0, 0);
+	//Texture river_pebbles_normal_map = Texture("resources\\normal_maps\\emma_normal.png", "uNormal_map", GL_TEXTURE1, 1);
+	Texture river_pebbles = Texture("resources\\diffuse_maps\\ganges_river.png", "uTexture", GL_TEXTURE0, 0);
+	Texture river_pebbles_normal_map = Texture("resources\\normal_maps\\ganges_river_normal.png", "uNormal_map", GL_TEXTURE1, 1);
 	Mesh mesh = Mesh(river_pebbles);
-
-	std::vector<float> tangents;
-	std::vector<float> bitangents;
 
 	vec4 material_properties = vec4(0.3, 0.7, 0.1, 10);
 
-	unsigned int vertex_array, positions_buffer, normals_buffer, colors_buffer, indices_buffer, texture_coordinates_buffer, tangents_buffer, bitangents_buffer;
-
+	unsigned int vertex_array;
 	glGenVertexArrays(1, &vertex_array);
 	glBindVertexArray(vertex_array);
 	
 	Shader shader = Shader(vertex_shader, geometry_shader, fragment_shader);
 	glUseProgram(shader.program);
 
-	std::vector<vec3> matrix_vectors = shader.create_standard_matrix_vectors();
-	std::vector<vec3> light_vectors = shader.create_standard_light_vectors();
+	Shader::graphics_vectors_container vectors_container = shader.create_standard_matrix_vectors();
 	std::vector<Texture> textures = { river_pebbles, river_pebbles_normal_map};
-
-	bind_buffer(GL_ARRAY_BUFFER, &positions_buffer, mesh.positions, GL_STATIC_DRAW, 0, 3, true);
-	bind_buffer(GL_ARRAY_BUFFER, &normals_buffer, mesh.normals, GL_STATIC_DRAW, 1, 3, true);
-	bind_buffer(GL_ARRAY_BUFFER, &colors_buffer, mesh.colors, GL_STATIC_DRAW, 2, 3, true);
-	bind_buffer(GL_ELEMENT_ARRAY_BUFFER, &indices_buffer, mesh.indices, GL_STATIC_DRAW, -1, 1, true);
-	bind_buffer(GL_ARRAY_BUFFER, &texture_coordinates_buffer, mesh.texture_coordinates, GL_STATIC_DRAW, 3, 2, true);
-	bind_buffer(GL_ARRAY_BUFFER, &tangents_buffer, tangents, GL_STATIC_DRAW, 4, 3, true);
-	bind_buffer(GL_ARRAY_BUFFER, &bitangents_buffer, bitangents, GL_STATIC_DRAW, 5, 3, true);
-
-	shader.setup(screen_size, matrix_vectors, light_vectors, material_properties, textures);
+	shader.bind_mesh_buffers(mesh);
+	shader.initialize(screen_size, vectors_container, material_properties, textures);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
@@ -97,10 +90,10 @@ int main() {
 		glUseProgram(shader.program);
 		glBindVertexArray(vertex_array);
 
-		mouse.move(matrix_vectors, light_vectors, material_properties);
-		shader.update(matrix_vectors, light_vectors, material_properties);
+		mouse.move(vectors_container, material_properties);
+		shader.update(vectors_container, material_properties);
 
-		//glDrawArrays(GL_TRIANGLES, 0, mesh.positions.size() / 3);
+		//glDrawArrays(GL_TRIANGLES, 0, mesh.positions.size());
 		glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_SHORT, 0);
 		//checkOpenGLError("glDrawElements");
 
@@ -111,9 +104,7 @@ int main() {
 	};
 
 	glDeleteVertexArrays(1, &vertex_array);
-	glDeleteBuffers(1, &positions_buffer);
-	shader.delete_textures();
-	glDeleteProgram(shader.program);
+	shader.delete_all();
 
 	glfwDestroyWindow(window);
 	glfwTerminate();
