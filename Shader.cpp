@@ -105,6 +105,20 @@ void Shader::create_uniform_float(const float& data_variable, const char* unifor
 
 };
 
+void Shader::create_uniform_int(const int& data_variable, const char* uniform_name) {
+
+	unsigned int location = glGetUniformLocation(this->program, uniform_name);
+	glUniform1i(location, data_variable);
+
+};
+
+void Shader::create_uniform_bool(const bool& boolean, const char* uniform_name) {
+
+	unsigned int location = glGetUniformLocation(this->program, uniform_name);
+	glUniform1i(location, boolean);
+
+};
+
 void Shader::create_uniform_2D_texture(const int& index, const char* uniform_name) {
 
 	//VIMP: openGL has to be using glUseProgram(this->program); before this function is called. 
@@ -141,7 +155,7 @@ void Shader::init_matrices(const vec2& screen_size, const vec3& right_vector, co
 
 };
 
-void Shader::init_light(const vec3& light_position, const vec3& light_color, const vec4& material_properties) {
+void Shader::init_light(const vec3& light_position, const vec3& light_color, const vec4& material_properties, const bool& gamma_correction) {
 
 	float ambient = material_properties.x;
 	float diffuse = material_properties.y;
@@ -156,43 +170,44 @@ void Shader::init_light(const vec3& light_position, const vec3& light_color, con
 	create_uniform_float(specular, "specular");
 	create_uniform_float(shininess, "shininess");
 
+	create_uniform_bool(gamma_correction, "gamma_correction");
+
 };
 
-void Shader::add_texture(Texture& texture) {
+void Shader::add_texture(Texture& texture, const bool& gamma_correction) {
 
-	std::vector<int> texture_details = { texture.width, texture.height, texture.n_color_channels };
-
-	bind_texture(&texture.texture_ID, texture.GL_TEXTUREindex, texture.bytes, texture_details);
+	bind_texture(&texture.texture_ID, texture.GL_TEXTUREindex, texture.bytes, texture.width, texture.height, texture.n_color_channels, gamma_correction);
 
 	create_uniform_2D_texture(texture.index, texture.uniform_name);
+	texture.free_bytes();
 
 };
 
-void Shader::add_textures(std::vector<Texture>& textures) {
+void Shader::add_textures(std::vector<Texture>& textures, const bool& gamma_correction) {
 
 	for (int i = 0; i < textures.size(); ++i) {
 
-		add_texture(textures[i]);
+		add_texture(textures[i], gamma_correction);
 
 	};
 
 };
 
 //sets the transformation matrices and light vectors
-void Shader::initialize(const vec2& screen_size, const vec3& right_vector, const vec3& up_vector, const vec3& direction_vector, const vec3& camera_position, const vec3& translation_vector, const vec3& scaling_vector, const vec3& rotation_vector, const vec3& light_position, const vec3& light_color, const vec4& material_properties, std::vector<Texture>& textures) {
+void Shader::initialize(const vec2& screen_size, const vec3& right_vector, const vec3& up_vector, const vec3& direction_vector, const vec3& camera_position, const vec3& translation_vector, const vec3& scaling_vector, const vec3& rotation_vector, const vec3& light_position, const vec3& light_color, const vec4& material_properties, const bool& gamma_correction, std::vector<Texture>& textures) {
 
 	init_matrices(screen_size, right_vector, up_vector, direction_vector, camera_position, translation_vector, scaling_vector, rotation_vector);
-	init_light(light_position, light_color, material_properties);
-	add_textures(textures);
+	init_light(light_position, light_color, material_properties, gamma_correction);
+	add_textures(textures, gamma_correction);
 
 };
 
 //override
-void Shader::initialize(const vec2& screen_size, const graphics_vectors_container& container, const vec4& material_properties, std::vector<Texture>& textures) {
+void Shader::initialize(const vec2& screen_size, const graphics_vectors_container& container, const vec4& material_properties, const bool& gamma_correction, std::vector<Texture>& textures) {
 
 	init_matrices(screen_size, container.right_vector, container.up_vector, container.direction_vector, container.camera_position, container.translation_vector, container.scaling_vector, container.rotation_vector);
-	init_light(container.light_position, container.light_color, material_properties);
-	add_textures(textures);
+	init_light(container.light_position, container.light_color, material_properties, gamma_correction);
+	add_textures(textures, gamma_correction);
 
 };
 

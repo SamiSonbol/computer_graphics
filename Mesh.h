@@ -72,6 +72,7 @@ class Texture {
 	const char* uniform_name;
 	unsigned char* bytes;
 
+	void free_bytes();
 	Texture(const std::string& file_path, const char* uniform_name, const unsigned int& GL_TEXTUREindex, const int& index);
 
 	std::vector<float> generate_normal_map();

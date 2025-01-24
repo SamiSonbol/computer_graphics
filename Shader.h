@@ -93,6 +93,7 @@ uniform float ambient;
 uniform float diffuse;
 uniform float specular;
 uniform float shininess;
+uniform bool gamma_correction;
 uniform sampler2D uTexture;
 uniform sampler2D uNormal_map;
 
@@ -126,9 +127,20 @@ void main() {
     
     vec3 Ca = ambient * texture_color;
     vec3 Cd = diffuse * cos_alpha * texture_color;   
-    vec3 Cs = specular * pow(cos_theta_prime, shininess) * vec3(1.0, 1.0, 1.0);
+    vec3 Cs = specular * pow(cos_theta_prime, shininess) * light_color;
+    
+    float distance = length(light_position - gPosition);
+    float attenuation = 1.0 / (gamma_correction ? pow(distance, 2) : distance);
+    Cd *= attenuation;
+    Cs *= attenuation;
 
-    vec3 phong = (Ca + Cd + Cs) * light_color;
+    vec3 phong = (Ca + Cd + Cs);
+    if (gamma_correction) {
+
+        vec3 gamma = vec3(1.0 / 2.2);
+        phong = pow(phong, gamma);   
+
+     };
 
     gl_FragColor = vec4(phong, 1.0);
 
@@ -160,37 +172,43 @@ static void bind_buffer(const unsigned int& GL_ARRAY_TYPE, unsigned int* buffer,
 
 };
 
-static void bind_texture(unsigned int* texture, const unsigned int& GL_TEXTUREindex, unsigned char* bytes, const std::vector<int>& image_details_vector) {
+static void bind_texture(unsigned int* texture, const unsigned int& GL_TEXTUREindex, unsigned char* bytes, const int& texture_width, const int& texture_height, const int& n_color_channels, const bool& gamma_correction) {
 
 	glGenTextures(1, texture);/////////////////////////////////////
 	glActiveTexture(GL_TEXTUREindex);
 	glBindTexture(GL_TEXTURE_2D, *texture);
-
 	if (*texture == 0) {
 		std::cerr << "Failed to generate texture!" << std::endl;
 		return;//handle the error appropriately
 	};
 
+	GLenum internal_format;
+	GLenum data_format;
+	if (n_color_channels == 4) {//checks if n_color_channels is 3 or 4; RGB or RGBA
+
+		internal_format = gamma_correction ? GL_SRGB_ALPHA : GL_RGBA;
+		data_format = GL_RGBA;
+
+	}
+	else if (n_color_channels == 3) {
+
+		//glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+		internal_format = gamma_correction ? GL_SRGB : GL_RGB;
+		data_format = GL_RGB;
+
+	};
+
+	glTexImage2D(GL_TEXTURE_2D, 0, internal_format, texture_width, texture_height, 0, data_format, GL_UNSIGNED_BYTE, bytes);
+
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-	if (image_details_vector[2] == 4) {//checks if n_color_channels is 3 or 4; RGB or RGBA
-
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_details_vector[0], image_details_vector[1], 0, GL_RGBA, GL_UNSIGNED_BYTE, bytes);
-
-	}
-	else {
-
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image_details_vector[0], image_details_vector[1], 0, GL_RGB, GL_UNSIGNED_BYTE, bytes);
-
-	};
 	
 	glGenerateMipmap(GL_TEXTURE_2D);
 
-	stbi_image_free(bytes);
+	//stbi_image_free(bytes);
 
 };
 
@@ -227,18 +245,20 @@ public:
 	void create_uniform_mat4(const std::vector<float>& data_vector, const char* uniform_name);
 	void create_uniform_vec3(const std::vector<float>& data_vector, const char* uniform_name);
 	void create_uniform_float(const float& data_variable, const char* uniform_name);
+	void create_uniform_int(const int& data_variable, const char* uniform_name);
+	void create_uniform_bool(const bool& boolean, const char* uniform_name);
 	void create_uniform_2D_texture(const int& index, const char* uniform_name);
 
 	graphics_vectors_container create_standard_matrix_vectors();
 	void init_matrices(const vec2& screen_size, const vec3& right_vector, const vec3& up_vector, const vec3& direction_vector, const vec3& camera_position, const vec3& translation_vector, const vec3& scaling_vector, const vec3& rotation_vector);
-	void init_light(const vec3& light_position, const vec3& color, const vec4& material_properties);
+	void init_light(const vec3& light_position, const vec3& color, const vec4& material_properties, const bool& gamma_correction);
 	
-	void add_texture(Texture& texture);
-	void add_textures(std::vector<Texture>& textures);
+	void add_texture(Texture& texture, const bool& gamma_correction);
+	void add_textures(std::vector<Texture>& textures, const bool& gamma_correction);
 
 	//sets the transformation matrices and light vectors
-	void initialize(const vec2& screen_size, const vec3& right_vector, const vec3& up_vector, const vec3& direction_vector, const vec3& camera_position, const vec3& translation_vector, const vec3& scaling_vector, const vec3& rotation_vector, const vec3& light_position, const vec3& light_color, const vec4& material_properties, std::vector<Texture>& textures);
-	void initialize(const vec2& screen_size, const graphics_vectors_container& container, const vec4& material_properties, std::vector<Texture>& textures);
+	void initialize(const vec2& screen_size, const vec3& right_vector, const vec3& up_vector, const vec3& direction_vector, const vec3& camera_position, const vec3& translation_vector, const vec3& scaling_vector, const vec3& rotation_vector, const vec3& light_position, const vec3& light_color, const vec4& material_properties, const bool& gamma_correction, std::vector<Texture>& textures);
+	void initialize(const vec2& screen_size, const graphics_vectors_container& container, const vec4& material_properties, const bool& gamma_correction, std::vector<Texture>& textures);
 
 	void update_matrices(const vec3& right_vector, const vec3& up_vector, const vec3& direction_vector, const vec3& camera_position, const vec3& translation_vector, const vec3& scaling_vector, const vec3& rotation_vector);
 	void update_light(const vec3& light_position, const vec4& material_properties);
@@ -262,7 +282,7 @@ private:
 	GLFWwindow* window;
 
 	float find_angle (vec3& A, vec3& B) {
-
+	
 		A = A.normalize();
 		B = B.normalize();
 
@@ -276,30 +296,32 @@ private:
 
 public:
 
+	vec2 screen_size;
 	double mouse_x, mouse_y;
+	vec2 scroll_wheel_offset;//x = yaw, y = pitch   z, w previous values
 
-	Mouse(GLFWwindow* window) {
-
-		this->window = window;
+	void get_mouse_pos() {
 
 		glfwGetCursorPos(this->window, &this->mouse_x, &this->mouse_y);
 
+	};
+
+	//static void scroll_wheel_callback(GLFWwindow* window, double xoffset, double yoffset);
+
+	Mouse(GLFWwindow* window, const vec2& screen_size) : window(window), screen_size(screen_size), scroll_wheel_offset(-90.0f, 0.0f) {
+
+		//glfwSetScrollCallback(window, scroll_wheel_callback);
+
+		get_mouse_pos();
+
 		this->prev_x = this->mouse_x;
 
-		this->prev_y = this->mouse_y;
-
-	};
-	
-	void get_mouse_pos() {
-
-		glfwGetCursorPos(this->window, &this->mouse_x, &this->mouse_y);	
+		this->prev_y = this->mouse_y;		
 
 	};
 
 	//changes the property of the scene based off the mouse movement or key clicks; used for testing purposes
 	void move(Shader::graphics_vectors_container& container, vec4& material_properties) {
-
-		get_mouse_pos();
 
 		bool translate = false;
 		bool scale = false;
@@ -316,6 +338,21 @@ public:
 		bool shininess = false;
 
 		const float offset = 0.0299;
+
+		if (glfwGetMouseButton(this->window, GLFW_MOUSE_BUTTON_1)) {
+			
+			get_mouse_pos();
+
+			float ndc_x = (2.0f * this->mouse_x) / this->screen_size.x - 1.0f;  // Maps [0, width] -> [-1, 1]
+			float ndc_y = 1.0f - (2.0f * this->mouse_y) / this->screen_size.y; // Maps [0, height] -> [1, -1]
+
+			mat4 inverse_view_projection = create_frustum_projection_matrix(60.0f, screen_size.x, screen_size.y, 0.1f, 100.0f).inverse();
+			vec4 ndc_position(ndc_x, ndc_y, -1.0f, 1.0f); // z = 0 for a position on the near plane
+			vec3 world_position = (inverse_view_projection * ndc_position).xyz();
+
+			container.light_position = world_position;
+
+		};
 
 		if (glfwGetKey(this->window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
 
@@ -393,7 +430,7 @@ public:
 			}
 			else if (zoom) {
 
-				container.camera_position.z += offset;
+				container.camera_position.z += offset * 20;
 
 			}
 			else if (rotate) {
@@ -403,7 +440,16 @@ public:
 			}
 			else if (translate_light) {
 
-				container.light_position.y += offset;
+				if (glfwGetKey(this->window, GLFW_KEY_W) == GLFW_PRESS) {
+					
+					container.light_position.z += offset;
+
+				}
+				else {
+
+					container.light_position.y += offset;
+
+				};	
 
 			}
 			else {
@@ -438,7 +484,7 @@ public:
 			}
 			else if (zoom) {
 
-				container.camera_position.z -= offset;
+				container.camera_position.z -= offset * 20;
 
 			}
 			else if (rotate) {
@@ -448,7 +494,16 @@ public:
 			}
 			else if (translate_light) {
 
-				container.light_position.y -= offset;
+				if (glfwGetKey(this->window, GLFW_KEY_S) == GLFW_PRESS) {
+
+					container.light_position.z -= offset;
+
+				}
+				else {
+
+					container.light_position.y -= offset;
+
+				};
 
 			}
 			else {

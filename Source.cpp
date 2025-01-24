@@ -54,7 +54,7 @@ int main() {
 	glViewport(0, 0, screen_size.x, screen_size.y);
 	glEnable(GL_DEPTH_TEST);
 
-	Mouse mouse = Mouse(window);
+	Mouse mouse = Mouse(window, screen_size);
 	//////
 
 	//Texture river_pebbles = Texture("resources\\diffuse_maps\\abra.png", "uTexture", GL_TEXTURE0, 0);
@@ -79,7 +79,7 @@ int main() {
 	Shader::graphics_vectors_container vectors_container = shader.create_standard_matrix_vectors();
 	std::vector<Texture> textures = { river_pebbles, river_pebbles_normal_map};
 	shader.bind_mesh_buffers(mesh);
-	shader.initialize(screen_size, vectors_container, material_properties, textures);
+	shader.initialize(screen_size, vectors_container, material_properties, true, textures);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);

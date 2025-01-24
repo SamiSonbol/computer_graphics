@@ -106,6 +106,13 @@ std::vector<float> Texture::generate_normal_map() {
 
 };
 
+//freeing the bytes so we wont have memory leeks
+void Texture::free_bytes() {
+
+	stbi_image_free(this->bytes);
+
+};
+
 //*Texture* class constructor
 Texture::Texture(const std::string& file_path, const char* uniform_name, const unsigned int& GL_TEXTUREindex, const int& index) :
 
