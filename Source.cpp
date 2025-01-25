@@ -57,15 +57,22 @@ int main() {
 	Mouse mouse = Mouse(window, screen_size);
 	//////
 
-	//Texture river_pebbles = Texture("resources\\diffuse_maps\\abra.png", "uTexture", GL_TEXTURE0, 0);
-	//Texture river_pebbles_normal_map = Texture("resources\\normal_maps\\abra_normal.png", "uNormal_map", GL_TEXTURE1, 1);
-	//Texture river_pebbles = Texture("resources\\diffuse_maps\\beirut.png", "uTexture", GL_TEXTURE0, 0);
-	//Texture river_pebbles_normal_map = Texture("resources\\normal_maps\\beirut_normal.png", "uNormal_map", GL_TEXTURE1, 1);
-	//Texture river_pebbles = Texture("resources\\diffuse_maps\\emma.png", "uTexture", GL_TEXTURE0, 0);
-	//Texture river_pebbles_normal_map = Texture("resources\\normal_maps\\emma_normal.png", "uNormal_map", GL_TEXTURE1, 1);
-	Texture river_pebbles = Texture("resources\\diffuse_maps\\ganges_river.png", "uTexture", GL_TEXTURE0, 0);
-	Texture river_pebbles_normal_map = Texture("resources\\normal_maps\\ganges_river_normal.png", "uNormal_map", GL_TEXTURE1, 1);
-	Mesh mesh = Mesh(river_pebbles);
+	/*Texture river_pebbles("resources\\diffuse_maps\\abra.png", "uTexture", GL_TEXTURE0, 0);
+	Texture river_pebbles_normal("resources\\normal_maps\\abra_normal.png", "uNormal_map", GL_TEXTURE1, 1);
+	Texture river_pebbles_displacement("resources\\displacement_maps\\abra_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);*/
+	
+	/*Texture river_pebbles("resources\\diffuse_maps\\beirut.png", "uTexture", GL_TEXTURE0, 0);
+	Texture river_pebbles_normal("resources\\normal_maps\\beirut_normal.png", "uNormal_map", GL_TEXTURE1, 1);
+	Texture river_pebbles_displacement("resources\\displacement_maps\\beirut_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);*/
+	
+	/*Texture river_pebbles("resources\\diffuse_maps\\emma.png", "uTexture", GL_TEXTURE0, 0);
+	Texture river_pebbles_normal("resources\\normal_maps\\emma_normal.png", "uNormal_map", GL_TEXTURE1, 1);
+	Texture river_pebbles_displacement("resources\\displacement_maps\\emma_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);*/
+
+	Texture river_pebbles("resources\\diffuse_maps\\ganges_river.png", "uTexture", GL_TEXTURE0, 0);
+	Texture river_pebbles_normal("resources\\normal_maps\\ganges_river_normal.png", "uNormal_map", GL_TEXTURE1, 1);
+	Texture river_pebbles_displacement("resources\\displacement_maps\\ganges_river_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);
+	Mesh mesh(river_pebbles, vec2(200, 200));
 
 	vec4 material_properties = vec4(0.3, 0.7, 0.1, 10);
 
@@ -73,11 +80,11 @@ int main() {
 	glGenVertexArrays(1, &vertex_array);
 	glBindVertexArray(vertex_array);
 	
-	Shader shader = Shader(vertex_shader, geometry_shader, fragment_shader);
+	Shader shader(vertex_shader, geometry_shader, fragment_shader);
 	glUseProgram(shader.program);
 
 	Shader::graphics_vectors_container vectors_container = shader.create_standard_matrix_vectors();
-	std::vector<Texture> textures = { river_pebbles, river_pebbles_normal_map};
+	std::vector<Texture> textures = { river_pebbles, river_pebbles_normal, river_pebbles_displacement };
 	shader.bind_mesh_buffers(mesh);
 	shader.initialize(screen_size, vectors_container, material_properties, true, textures);
 

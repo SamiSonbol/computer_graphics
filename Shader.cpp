@@ -1,71 +1,5 @@
 #include "Shader.h"
 
-unsigned int Shader::compile_shader(const unsigned int& type, const std::string& source) {
-
-	unsigned int id = glCreateShader(type);
-
-	const char* src = source.c_str();//SOURCE HAS TO EXIST TO USE THIS, MAKE SURE IT IS ALIVE AT THE TIME OF THIS COMPILATION
-
-	glShaderSource(id, 1, &src, nullptr);
-
-	glCompileShader(id);
-
-	int result;
-	glGetShaderiv(id, GL_COMPILE_STATUS, &result);
-
-	if (result == GL_FALSE) {
-
-		int length;
-
-		glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
-
-		char* message = (char*)alloca(length * sizeof(char));
-
-		glGetShaderInfoLog(id, length, &length, message);
-
-		std::cout << "Failed to compile "
-			<< (type == GL_VERTEX_SHADER ? "vertex"
-				: type == GL_FRAGMENT_SHADER ? "fragment"
-				: "geometry")
-			<< " shader." << std::endl;
-
-		std::cout << message << std::endl;
-
-		glDeleteShader(id);
-
-		return -1;
-
-	};
-
-	return id;
-
-};
-
-unsigned int Shader::create_shader(const std::string& vertex_shader, const std::string& geometry_shader, const std::string& fragment_shader) {
-
-	unsigned int program = glCreateProgram();
-
-	unsigned int v_shader = compile_shader(GL_VERTEX_SHADER, vertex_shader);
-
-	unsigned int g_shader = compile_shader(GL_GEOMETRY_SHADER, geometry_shader);
-
-	unsigned int f_shader = compile_shader(GL_FRAGMENT_SHADER, fragment_shader);
-
-	glAttachShader(program, v_shader);
-	glAttachShader(program, g_shader);
-	glAttachShader(program, f_shader);
-
-	glLinkProgram(program);
-	glValidateProgram(program);
-
-	glDeleteShader(v_shader);
-	glDeleteShader(g_shader);
-	glDeleteShader(f_shader);
-
-	return program;
-
-};
-
 void Shader::bind_mesh_buffers(Mesh& mesh) {
 
 	bind_buffer(GL_ARRAY_BUFFER, &this->positions_buffer, mesh.positions, GL_STATIC_DRAW, 0, 3, true);
@@ -78,9 +12,43 @@ void Shader::bind_mesh_buffers(Mesh& mesh) {
 
 };
 
-Shader::Shader(const std::string& vertex_shader, const std::string& geometry_shader, const std::string& fragment_shader) :
+Shader::Shader(const std::string& vertex_shader, const std::string& geometry_shader, const std::string& fragment_shader) {
 
-	program(create_shader(vertex_shader, geometry_shader, fragment_shader)) {
+	this->program = glCreateProgram();
+
+	unsigned int v_shader = compile_shader(GL_VERTEX_SHADER, vertex_shader);
+
+	unsigned int g_shader = compile_shader(GL_GEOMETRY_SHADER, geometry_shader);
+
+	unsigned int f_shader = compile_shader(GL_FRAGMENT_SHADER, fragment_shader);
+
+	glAttachShader(this->program, v_shader);
+	glAttachShader(this->program, g_shader);
+	glAttachShader(this->program, f_shader);
+
+	glLinkProgram(this->program);
+	glValidateProgram(this->program);
+
+	glDeleteShader(v_shader);
+	glDeleteShader(g_shader);
+	glDeleteShader(f_shader);
+
+};
+
+Shader::Shader(unsigned int& compiled_vertex_shader, unsigned int& compiled_geometry_shader, unsigned int& compiled_fragment_shader) {
+
+	this->program = glCreateProgram();
+
+	glAttachShader(this->program, compiled_vertex_shader);
+	glAttachShader(this->program, compiled_geometry_shader);
+	glAttachShader(this->program, compiled_fragment_shader);
+
+	glLinkProgram(this->program);
+	glValidateProgram(this->program);
+
+	glDeleteShader(compiled_vertex_shader);
+	glDeleteShader(compiled_geometry_shader);
+	glDeleteShader(compiled_fragment_shader);
 
 };
 
@@ -140,9 +108,9 @@ Shader::graphics_vectors_container Shader::create_standard_matrix_vectors() {
 	vec3 rotation_vector(0, 0, 0);
 
 	vec3 light_position(0, 0, -1);
-	vec3 light_color(1, 1, 1);
+	vec3 light_color(230, 80, 0);
 
-	return { right_vector, up_vector, direction_vector, camera_position, translation_vector, scaling_vector, rotation_vector, light_position, light_color };
+	return { right_vector, up_vector, direction_vector, camera_position, translation_vector, scaling_vector, rotation_vector, light_position, light_color.normalize()};
 
 };
 
@@ -151,7 +119,7 @@ void Shader::init_matrices(const vec2& screen_size, const vec3& right_vector, co
 	create_uniform_vec3(camera_position.to_GL(), "eye_vector");
 	create_uniform_mat4(create_model_transformation_matrix(translation_vector, scaling_vector, rotation_vector).to_GL(), "model_transformation_matrix");
 	create_uniform_mat4(create_view_matrix(right_vector, up_vector, direction_vector, camera_position).to_GL(), "view_matrix");
-	create_uniform_mat4(create_frustum_projection_matrix(60.0f, screen_size.x, screen_size.y, 0.1f, 100.0f).to_GL(), "projection_matrix");
+	create_uniform_mat4(create_frustum_projection_matrix(90.0f, screen_size.x, screen_size.y, 0.1f, 1000.0f).to_GL(), "projection_matrix");
 
 };
 
@@ -177,9 +145,7 @@ void Shader::init_light(const vec3& light_position, const vec3& light_color, con
 void Shader::add_texture(Texture& texture, const bool& gamma_correction) {
 
 	bind_texture(&texture.texture_ID, texture.GL_TEXTUREindex, texture.bytes, texture.width, texture.height, texture.n_color_channels, gamma_correction);
-
 	create_uniform_2D_texture(texture.index, texture.uniform_name);
-	texture.free_bytes();
 
 };
 

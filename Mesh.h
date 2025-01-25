@@ -105,6 +105,6 @@ class Mesh {
 	void init_grid();
 	void fill_data();
 
-	Mesh(Texture& texture);
+	Mesh(Texture& texture, const vec2& mesh_dimensions);
 
 };

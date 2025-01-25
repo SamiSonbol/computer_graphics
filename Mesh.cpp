@@ -191,7 +191,7 @@ void Mesh::init_grid() {
 	|          |
 	|          |
 	b  ------  d */
-	this->mesh_dimensions = vec2(20, 20);
+	//this->mesh_dimensions = vec2(600, 600);
 	vec3 half_size(this->mesh_dimensions/2, 0);
 	vec3 color(1, 1, 1);
 	
@@ -273,7 +273,7 @@ void Mesh::fill_data() {
 
 };//"fill data" bracket
 
-Mesh::Mesh(Texture& texture) : texture(texture), mesh_dimensions(texture.width, texture.height) {
+Mesh::Mesh(Texture& texture, const vec2& mesh_dimensions) : texture(texture), mesh_dimensions(mesh_dimensions) {
 
 	fill_data();
 	std::cout << "filled data\n";

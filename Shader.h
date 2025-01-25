@@ -21,6 +21,7 @@ layout(location = 5) in vec3 aBitangent;
 uniform mat4 model_transformation_matrix;
 uniform mat4 view_matrix;
 uniform mat4 projection_matrix;
+uniform sampler2D uDisplacement_map;
 
 out vec3 vPosition;
 out vec3 vNormal;
@@ -31,8 +32,12 @@ out vec3 vBitangent;
 
 void main() {
 
+    float displacement_scale = 1.0;
+    float displacement_offset = texture(uDisplacement_map, aTexture_coordinates).r;
+    vPosition = aPosition + (aNormal * displacement_offset * displacement_scale); 
+
     mat3 model_matrix = transpose(inverse(mat3(model_transformation_matrix)));
-    vPosition = (model_transformation_matrix * vec4(aPosition, 1)).xyz;
+    vPosition = (model_transformation_matrix * vec4(vPosition, 1)).xyz;
 
     vTexture_coordinates = aTexture_coordinates;
     vTangent = normalize(model_matrix * aTangent);
@@ -106,33 +111,33 @@ in vec3 gBitangent;
 
 void main() {
     
+    vec3 texture_color = texture(uTexture, gTexture_coordinates).rgb;
     vec3 view_vector = normalize(eye_vector - gPosition);
     vec3 light_vector = normalize(light_position - gPosition);
     vec3 half_vector = normalize(view_vector + light_vector);
     vec3 n = gNormal;
 
-    vec3 texture_color = texture(uTexture, gTexture_coordinates).rgb;
+    /////////////////////////////////////////////////////////////////////////////
 
-/////////////////////////////////////////////////////////////////////////////////
-	vec3 sampled_normal = texture(uNormal_map, gTexture_coordinates).rgb * 2.0 - 1.0;//getting the normal from the normal map and making it in the range of [-1, 1]
-    //sampled_normal = -sampled_normal;//since openGL flips this normal in the vertex shader due to texturing reasons, we flip it back.
-   
+    float distance_from_light = length(light_position - gPosition);
+    float initial_light_intensity = 50.0;
+    float constant_attenuation_component = 0.0;//overall light intensity, works like a multiplier to ambient light
+    float linear_attenuation_coefficient = 0.1;//diminishing light intensity over distance
+    float quadratic_attenuation_coefficient = 0.1;//further decreasing intensity with the square of the distance
+    float attenuation = constant_attenuation_component + linear_attenuation_coefficient * distance_from_light + quadratic_attenuation_coefficient * pow(distance_from_light, 2);
+    float light_intensity = initial_light_intensity / attenuation;
+
+    vec3 sampled_normal = texture(uNormal_map, gTexture_coordinates).rgb * 2.0 - 1.0;//getting the normal from the normal map and making it in the range of [-1, 1]
     mat3 TBN = mat3(gTangent, gBitangent, gNormal);
     vec3 map_gNormal = normalize(TBN * sampled_normal);
     n = map_gNormal;
-///////////////////////////////////////////////////////////////////////////////////
 
     float cos_alpha = max(dot(n, light_vector), 0.0);
     float cos_theta_prime = max(dot(n, half_vector), 0.0);
     
     vec3 Ca = ambient * texture_color;
-    vec3 Cd = diffuse * cos_alpha * texture_color;   
-    vec3 Cs = specular * pow(cos_theta_prime, shininess) * light_color;
-    
-    float distance = length(light_position - gPosition);
-    float attenuation = 1.0 / (gamma_correction ? pow(distance, 2) : distance);
-    Cd *= attenuation;
-    Cs *= attenuation;
+    vec3 Cd = diffuse * cos_alpha * texture_color * light_intensity;   
+    vec3 Cs = specular * pow(cos_theta_prime, shininess) * light_color * light_intensity;
 
     vec3 phong = (Ca + Cd + Cs);
     if (gamma_correction) {
@@ -147,7 +152,46 @@ void main() {
 }
 )";
 
+static unsigned int compile_shader(const unsigned int& type, const std::string& source) {
 
+	unsigned int id = glCreateShader(type);
+
+	const char* src = source.c_str();//SOURCE HAS TO EXIST TO USE THIS, MAKE SURE IT IS ALIVE AT THE TIME OF THIS COMPILATION
+
+	glShaderSource(id, 1, &src, nullptr);
+
+	glCompileShader(id);
+
+	int result;
+	glGetShaderiv(id, GL_COMPILE_STATUS, &result);
+
+	if (result == GL_FALSE) {
+
+		int length;
+
+		glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
+
+		char* message = (char*)alloca(length * sizeof(char));
+
+		glGetShaderInfoLog(id, length, &length, message);
+
+		std::cout << "Failed to compile "
+			<< (type == GL_VERTEX_SHADER ? "vertex"
+				: type == GL_FRAGMENT_SHADER ? "fragment"
+				: "geometry")
+			<< " shader." << std::endl;
+
+		std::cout << message << std::endl;
+
+		glDeleteShader(id);
+
+		return -1;
+
+	};
+
+	return id;
+
+};
 
 //generates a buffer from the inputted paramter and binds it OR binds the inputted buffer
 template<typename T>
@@ -197,6 +241,12 @@ static void bind_texture(unsigned int* texture, const unsigned int& GL_TEXTUREin
 		internal_format = gamma_correction ? GL_SRGB : GL_RGB;
 		data_format = GL_RGB;
 
+	}
+	else if (n_color_channels == 1) {
+
+		internal_format = GL_RED;
+		data_format = GL_RED;
+
 	};
 
 	glTexImage2D(GL_TEXTURE_2D, 0, internal_format, texture_width, texture_height, 0, data_format, GL_UNSIGNED_BYTE, bytes);
@@ -208,7 +258,7 @@ static void bind_texture(unsigned int* texture, const unsigned int& GL_TEXTUREin
 	
 	glGenerateMipmap(GL_TEXTURE_2D);
 
-	//stbi_image_free(bytes);
+	stbi_image_free(bytes);
 
 };
 
@@ -236,9 +286,8 @@ public:
 	std::vector<unsigned int> textures;//not used rn
 	unsigned int positions_buffer, normals_buffer, colors_buffer, indices_buffer, texture_coordinates_buffer, tangents_buffer, bitangents_buffer;
 
-	unsigned int compile_shader(const unsigned int& type, const std::string& source);
-	unsigned int create_shader(const std::string& vertex_shader, const std::string& geometry_shader, const std::string& fragment_shader);
 	Shader(const std::string& vertex_shader, const std::string& geometry_shader, const std::string& fragment_shader);
+	Shader(unsigned int& compiled_vertex_shader, unsigned int& compiled_geometry_shader, unsigned int& compiled_fragment_shader);
 
 	//binds all data inside a mesh to the all the buffers inside the shader in a standard way. MADE FOR FAST EASE OF USE.
 	void bind_mesh_buffers(Mesh& mesh);
@@ -447,7 +496,7 @@ public:
 				}
 				else {
 
-					container.light_position.y += offset;
+					container.light_position.y += offset * 50;
 
 				};	
 
@@ -501,7 +550,7 @@ public:
 				}
 				else {
 
-					container.light_position.y -= offset;
+					container.light_position.y -= offset * 50;
 
 				};
 
@@ -525,7 +574,7 @@ public:
 				}
 				else if (translate_light) {
 
-					container.light_position.x += offset;
+					container.light_position.x += offset * 50;
 
 				}
 				else {
@@ -549,7 +598,7 @@ public:
 				}
 				else if (translate_light) {
 
-					container.light_position.x -= offset;
+					container.light_position.x -= offset * 50;
 
 				}
 				else {
