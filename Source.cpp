@@ -80,7 +80,8 @@ int main() {
 	glGenVertexArrays(1, &vertex_array);
 	glBindVertexArray(vertex_array);
 	
-	Shader shader(vertex_shader, geometry_shader, fragment_shader);
+	std::vector<Shader::shader_compile_info> compile_info = { {GL_VERTEX_SHADER, vertex_shader}, {GL_GEOMETRY_SHADER, geometry_shader}, {GL_FRAGMENT_SHADER, fragment_shader} };
+	Shader shader(compile_info);
 	glUseProgram(shader.program);
 
 	Shader::graphics_vectors_container vectors_container = shader.create_standard_matrix_vectors();

@@ -12,14 +12,59 @@ void Shader::bind_mesh_buffers(Mesh& mesh) {
 
 };
 
+Shader::Shader(std::vector<shader_compile_info>& shaders_to_compile) {
+
+	this->program = glCreateProgram();
+
+	for (auto& shader_to_compile : shaders_to_compile) {
+
+		shader_to_compile.id = compile_shader(shader_to_compile.shader_type, shader_to_compile.source);
+		glAttachShader(this->program, shader_to_compile.id);
+
+	};
+
+	glLinkProgram(this->program);
+	glValidateProgram(this->program);
+
+	for (auto& shader_to_compile : shaders_to_compile) {
+
+		glDeleteShader(shader_to_compile.id);
+
+	};
+
+	shaders_to_compile.clear();
+
+};
+
+Shader::Shader(std::vector<unsigned int>& compiled_shaders_ids) {
+
+	this->program = glCreateProgram();
+
+	for (auto& compiled_shader_id : compiled_shaders_ids) {
+
+		glAttachShader(this->program, compiled_shader_id);
+
+	};
+
+	glLinkProgram(this->program);
+	glValidateProgram(this->program);
+
+	for (auto& compiled_shader_id : compiled_shaders_ids) {
+
+		glDeleteShader(compiled_shader_id);
+
+	};
+
+	compiled_shaders_ids.clear();
+
+};
+
 Shader::Shader(const std::string& vertex_shader, const std::string& geometry_shader, const std::string& fragment_shader) {
 
 	this->program = glCreateProgram();
 
 	unsigned int v_shader = compile_shader(GL_VERTEX_SHADER, vertex_shader);
-
 	unsigned int g_shader = compile_shader(GL_GEOMETRY_SHADER, geometry_shader);
-
 	unsigned int f_shader = compile_shader(GL_FRAGMENT_SHADER, fragment_shader);
 
 	glAttachShader(this->program, v_shader);
@@ -32,23 +77,6 @@ Shader::Shader(const std::string& vertex_shader, const std::string& geometry_sha
 	glDeleteShader(v_shader);
 	glDeleteShader(g_shader);
 	glDeleteShader(f_shader);
-
-};
-
-Shader::Shader(unsigned int& compiled_vertex_shader, unsigned int& compiled_geometry_shader, unsigned int& compiled_fragment_shader) {
-
-	this->program = glCreateProgram();
-
-	glAttachShader(this->program, compiled_vertex_shader);
-	glAttachShader(this->program, compiled_geometry_shader);
-	glAttachShader(this->program, compiled_fragment_shader);
-
-	glLinkProgram(this->program);
-	glValidateProgram(this->program);
-
-	glDeleteShader(compiled_vertex_shader);
-	glDeleteShader(compiled_geometry_shader);
-	glDeleteShader(compiled_fragment_shader);
 
 };
 
