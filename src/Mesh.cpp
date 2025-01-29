@@ -285,7 +285,7 @@ void Mesh::fill_data() {
 
 	init_grid();
 
-	std::cout << "width: " << this->texture.width << " height: " << this->texture.height << std::endl;
+	std::cout << "actual texture width: " << this->texture.width << " actual texture height: " << this->texture.height << " model dimensions: "; print_vec(this->mesh_dimensions);
 	std::cout << "n_vertices: " << positions.size() << std::endl;
 	std::cout << "n_indices: " << indices.size() << std::endl;
 	std::cout << "n_uv_coords: " << this->texture_coordinates.size() << std::endl;
