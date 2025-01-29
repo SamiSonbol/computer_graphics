@@ -1,9 +1,9 @@
 #include <iostream>
 #include <vector>
-#include "Math.h"
-#include "Shader.h"
-#include "Mesh.h"
-#include <stb/stb_image.h>
+
+#include "computer_graphics/Math.h"
+#include "computer_graphics/Shader.h"
+#include "computer_graphics/Mesh.h"
 
 void checkOpenGLError(const std::string& operation) {
 	GLenum err;
@@ -57,30 +57,30 @@ int main() {
 	Mouse mouse = Mouse(window, screen_size);
 	//////
 
-	/*Texture river_pebbles("resources\\diffuse_maps\\abra.png", "uTexture", GL_TEXTURE0, 0);
-	Texture river_pebbles_normal("resources\\normal_maps\\abra_normal.png", "uNormal_map", GL_TEXTURE1, 1);
-	Texture river_pebbles_displacement("resources\\displacement_maps\\abra_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);*/
+	/*Texture river_pebbles(RESOURCES_DIR"\\diffuse_maps\\abra.png", "uTexture", GL_TEXTURE0, 0);
+	Texture river_pebbles_normal(RESOURCES_DIR"\\normal_maps\\abra_normal.png", "uNormal_map", GL_TEXTURE1, 1);
+	Texture river_pebbles_displacement(RESOURCES_DIR"\\displacement_maps\\abra_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);*/
 	
-	/*Texture river_pebbles("resources\\diffuse_maps\\beirut.png", "uTexture", GL_TEXTURE0, 0);
-	Texture river_pebbles_normal("resources\\normal_maps\\beirut_normal.png", "uNormal_map", GL_TEXTURE1, 1);
-	Texture river_pebbles_displacement("resources\\displacement_maps\\beirut_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);*/
+	/*Texture river_pebbles(RESOURCES_DIR"\\diffuse_maps\\beirut.png", "uTexture", GL_TEXTURE0, 0);
+	Texture river_pebbles_normal(RESOURCES_DIR"\\normal_maps\\beirut_normal.png", "uNormal_map", GL_TEXTURE1, 1);
+	Texture river_pebbles_displacement(RESOURCES_DIR"\\displacement_maps\\beirut_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);*/
 	
-	/*Texture river_pebbles("resources\\diffuse_maps\\emma.png", "uTexture", GL_TEXTURE0, 0);
-	Texture river_pebbles_normal("resources\\normal_maps\\emma_normal.png", "uNormal_map", GL_TEXTURE1, 1);
-	Texture river_pebbles_displacement("resources\\displacement_maps\\emma_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);*/
+	/*Texture river_pebbles(RESOURCES_DIR"\\diffuse_maps\\emma.png", "uTexture", GL_TEXTURE0, 0);
+	Texture river_pebbles_normal(RESOURCES_DIR"\\normal_maps\\emma_normal.png", "uNormal_map", GL_TEXTURE1, 1);
+	Texture river_pebbles_displacement(RESOURCES_DIR"\\displacement_maps\\emma_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);*/
 
-	Texture river_pebbles("resources\\diffuse_maps\\ganges_river.png", "uTexture", GL_TEXTURE0, 0);
-	Texture river_pebbles_normal("resources\\normal_maps\\ganges_river_normal.png", "uNormal_map", GL_TEXTURE1, 1);
-	Texture river_pebbles_displacement("resources\\displacement_maps\\ganges_river_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);
+	Texture river_pebbles(RESOURCES_DIR"\\diffuse_maps\\ganges_river.png", "uTexture", GL_TEXTURE0, 0);
+	Texture river_pebbles_normal(RESOURCES_DIR"\\normal_maps\\ganges_river_normal.png", "uNormal_map", GL_TEXTURE1, 1);
+	Texture river_pebbles_displacement(RESOURCES_DIR"\\displacement_maps\\ganges_river_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);
 	Mesh mesh(river_pebbles, vec2(200, 200));
 
-	vec4 material_properties = vec4(0.3, 0.7, 0.1, 10);
+	vec4 material_properties = vec4(1.0f, 0.7f, 0.1f, 10);
 
 	unsigned int vertex_array;
 	glGenVertexArrays(1, &vertex_array);
 	glBindVertexArray(vertex_array);
 	
-	std::vector<Shader::shader_compile_info> compile_info = { {GL_VERTEX_SHADER, vertex_shader}, {GL_GEOMETRY_SHADER, geometry_shader}, {GL_FRAGMENT_SHADER, fragment_shader} };
+	std::vector<unsigned int> compile_info = { compile_shader(GL_VERTEX_SHADER, vertex_shader), compile_shader(GL_GEOMETRY_SHADER, geometry_shader), compile_shader(GL_FRAGMENT_SHADER, fragment_shader) };
 	Shader shader(compile_info);
 	glUseProgram(shader.program);
 

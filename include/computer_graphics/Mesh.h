@@ -3,8 +3,10 @@
 #include <vector>
 #include <array>
 #include <unordered_map>
-#include "Math.h"
-#include <stb/stb_image.h>
+#include <filesystem>
+
+#include <stb_image/stb_image.h>
+#include "computer_graphics/Math.h"
 
 //struct used to hash the unordered_map we are using in our *Mesh* class
 struct vec3_and_vec2_hasher {
@@ -73,6 +75,7 @@ class Texture {
 	unsigned char* bytes;
 
 	void free_bytes();
+	bool check_if_file_exists(const std::string& file_path);
 	Texture(const std::string& file_path, const char* uniform_name, const unsigned int& GL_TEXTUREindex, const int& index);
 
 	std::vector<float> generate_normal_map();

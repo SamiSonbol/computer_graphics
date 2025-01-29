@@ -1,0 +1,106 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-.-Debug-d478e6c04342a3904673.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.8"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "computer_graphics",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "Math::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-Math-Debug-ba6c75c2dd7ed8432471.json",
+					"name" : "Math",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "Mesh::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-Mesh-Debug-105db54624f5a321040d.json",
+					"name" : "Mesh",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "Shader::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-Shader-Debug-56db95585ea8caa99ec6.json",
+					"name" : "Shader",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "computer_graphics::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-computer_graphics-Debug-815adad83f102c3b6594.json",
+					"name" : "computer_graphics",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "glad::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-glad-Debug-16874a56b95036150dfe.json",
+					"name" : "glad",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "stb_image::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-stb_image-Debug-dbb30406f1e3b504b98a.json",
+					"name" : "stb_image",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "E:/Tools/Libraries/Repositories/computer_graphics/out/build/x64-debug",
+		"source" : "E:/Tools/Libraries/Repositories/computer_graphics"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 6
+	}
+}

@@ -3,10 +3,10 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <vector>
-#include <stb/stb_image.h>
 
-#include "Math.h"
-#include "Mesh.h"
+#include <stb_image/stb_image.h>
+#include "computer_graphics/Math.h"
+#include "computer_graphics/Mesh.h"
 
 static const std::string vertex_shader = R"(
 #version 330 core
@@ -267,15 +267,6 @@ class Shader {
 
 public:
 
-	//holds the shader type example: GL_VERTEX_SHADER and holds the shader's source code. Used as a parameter to attach alot of shaders on each other in the *Shader* class constructor 
-	struct shader_compile_info {
-
-		unsigned int shader_type;
-		std::string source;
-		unsigned int id;
-
-	};
-
 	//this is a struct that holds the basic vectors needed to update and initialize our image
 	struct graphics_vectors_container {
 
@@ -295,7 +286,6 @@ public:
 	std::vector<unsigned int> textures;//not used rn
 	unsigned int positions_buffer, normals_buffer, colors_buffer, indices_buffer, texture_coordinates_buffer, tangents_buffer, bitangents_buffer;
 
-	Shader(std::vector<shader_compile_info>& shaders_to_compile);
 	Shader(std::vector<unsigned int>& compiled_shaders_ids);
 	Shader(const std::string& vertex_shader, const std::string& geometry_shader, const std::string& fragment_shader);
 	

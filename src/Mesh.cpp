@@ -1,4 +1,4 @@
-#include "Mesh.h"
+#include "computer_graphics/Mesh.h"
 
 //*Vertex* class constructors
 Vertex::Vertex(const vec3& position) : position(position) {};
@@ -113,13 +113,33 @@ void Texture::free_bytes() {
 
 };
 
-//*Texture* class constructor
-Texture::Texture(const std::string& file_path, const char* uniform_name, const unsigned int& GL_TEXTUREindex, const int& index) :
+//checks if file exists
+bool Texture::check_if_file_exists(const std::string& file_path) {
 
-	bytes(stbi_load(file_path.c_str(), &this->width, &this->height, &this->n_color_channels, 0)),
-	uniform_name(uniform_name),
-	GL_TEXTUREindex(GL_TEXTUREindex),
-	index(index) {
+	if (std::filesystem::exists(file_path)) {
+
+		return true;
+
+	};
+
+	return false;
+
+};
+
+//*Texture* class constructor
+Texture::Texture(const std::string& file_path, const char* uniform_name, const unsigned int& GL_TEXTUREindex, const int& index) : uniform_name(uniform_name), GL_TEXTUREindex(GL_TEXTUREindex), index(index) {
+
+	if (check_if_file_exists(file_path)) {
+
+		bytes = stbi_load(file_path.c_str(), &this->width, &this->height, &this->n_color_channels, 0);
+
+	}
+	else {
+
+		std::cerr << "ERROR: FILE DOESNT EXIST";
+		exit(EXIT_FAILURE);
+
+	};
 
 };
 

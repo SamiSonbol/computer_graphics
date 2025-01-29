@@ -1,4 +1,4 @@
-#include "Shader.h"
+#include "computer_graphics/Shader.h"
 
 void Shader::bind_mesh_buffers(Mesh& mesh) {
 
@@ -9,30 +9,6 @@ void Shader::bind_mesh_buffers(Mesh& mesh) {
 	bind_buffer(GL_ARRAY_BUFFER, &this->texture_coordinates_buffer, mesh.texture_coordinates, GL_STATIC_DRAW, 3, 2, true);
 	bind_buffer(GL_ARRAY_BUFFER, &this->tangents_buffer, mesh.tangents, GL_STATIC_DRAW, 4, 3, true);
 	bind_buffer(GL_ARRAY_BUFFER, &this->bitangents_buffer, mesh.bitangents, GL_STATIC_DRAW, 5, 3, true);
-
-};
-
-Shader::Shader(std::vector<shader_compile_info>& shaders_to_compile) {
-
-	this->program = glCreateProgram();
-
-	for (auto& shader_to_compile : shaders_to_compile) {
-
-		shader_to_compile.id = compile_shader(shader_to_compile.shader_type, shader_to_compile.source);
-		glAttachShader(this->program, shader_to_compile.id);
-
-	};
-
-	glLinkProgram(this->program);
-	glValidateProgram(this->program);
-
-	for (auto& shader_to_compile : shaders_to_compile) {
-
-		glDeleteShader(shader_to_compile.id);
-
-	};
-
-	shaders_to_compile.clear();
 
 };
 
