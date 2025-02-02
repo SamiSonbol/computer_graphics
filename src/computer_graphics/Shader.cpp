@@ -100,7 +100,7 @@ void Shader::create_uniform_2D_texture(const int& index, const char* uniform_nam
 
 };
 
-Shader::graphics_vectors_container Shader::create_standard_matrix_vectors() {
+Shader::graphics_vectors_container Shader::create_standard_shader_vectors() {
 
 	vec3 right_vector(1, 0, 0);
 	vec3 up_vector(0, 1, 0);
@@ -113,8 +113,20 @@ Shader::graphics_vectors_container Shader::create_standard_matrix_vectors() {
 
 	vec3 light_position(0, 0, -1);
 	vec3 light_color(230, 80, 0);
+	vec4 material_properties(1.0f, 0.7f, 0.1f, 10);
 
-	return { right_vector, up_vector, direction_vector, camera_position, translation_vector, scaling_vector, rotation_vector, light_position, light_color.normalize()};
+	return { right_vector, up_vector, direction_vector, camera_position, translation_vector, scaling_vector, rotation_vector, light_position, light_color.normalize(), material_properties};
+
+};
+
+Shader::graphics_booleans_container Shader::create_standard_shader_booleans() {
+
+	bool gamma_correction = true;
+	bool texturing = true;
+	bool normal_mapping = true;
+	bool height_mapping = true;
+
+	return { gamma_correction, texturing, normal_mapping, height_mapping };
 
 };
 
@@ -127,7 +139,7 @@ void Shader::init_matrices(const vec2& screen_size, const vec3& right_vector, co
 
 };
 
-void Shader::init_light(const vec3& light_position, const vec3& light_color, const vec4& material_properties, const bool& gamma_correction) {
+void Shader::init_light(const vec3& light_position, const vec3& light_color, const vec4& material_properties) {
 
 	float ambient = material_properties.x;
 	float diffuse = material_properties.y;
@@ -142,7 +154,14 @@ void Shader::init_light(const vec3& light_position, const vec3& light_color, con
 	create_uniform_float(specular, "specular");
 	create_uniform_float(shininess, "shininess");
 
+};
+
+void Shader::init_booleans(const bool& gamma_correction, const bool& texturing, const bool& normal_mapping, const bool& height_mapping) {
+
 	create_uniform_bool(gamma_correction, "gamma_correction");
+	create_uniform_bool(texturing, "texturing");
+	create_uniform_bool(normal_mapping, "normal_mapping");
+	create_uniform_bool(height_mapping, "height_mapping");
 
 };
 
@@ -164,20 +183,22 @@ void Shader::add_textures(std::vector<Texture>& textures, const bool& gamma_corr
 };
 
 //sets the transformation matrices and light vectors
-void Shader::initialize(const vec2& screen_size, const vec3& right_vector, const vec3& up_vector, const vec3& direction_vector, const vec3& camera_position, const vec3& translation_vector, const vec3& scaling_vector, const vec3& rotation_vector, const vec3& light_position, const vec3& light_color, const vec4& material_properties, const bool& gamma_correction, std::vector<Texture>& textures) {
+void Shader::initialize(const vec2& screen_size, const vec3& right_vector, const vec3& up_vector, const vec3& direction_vector, const vec3& camera_position, const vec3& translation_vector, const vec3& scaling_vector, const vec3& rotation_vector, const vec3& light_position, const vec3& light_color, const vec4& material_properties, const bool& gamma_correction, const bool& texturing, const bool& normal_mapping, const bool& height_mapping, std::vector<Texture>& textures) {
 
 	init_matrices(screen_size, right_vector, up_vector, direction_vector, camera_position, translation_vector, scaling_vector, rotation_vector);
-	init_light(light_position, light_color, material_properties, gamma_correction);
+	init_light(light_position, light_color, material_properties);
+	init_booleans(gamma_correction, texturing, normal_mapping, height_mapping);
 	add_textures(textures, gamma_correction);
 
 };
 
 //override
-void Shader::initialize(const vec2& screen_size, const graphics_vectors_container& container, const vec4& material_properties, const bool& gamma_correction, std::vector<Texture>& textures) {
+void Shader::initialize(const vec2& screen_size, const graphics_vectors_container& vectors_container, const graphics_booleans_container& booleans_container, std::vector<Texture>& textures) {
 
-	init_matrices(screen_size, container.right_vector, container.up_vector, container.direction_vector, container.camera_position, container.translation_vector, container.scaling_vector, container.rotation_vector);
-	init_light(container.light_position, container.light_color, material_properties, gamma_correction);
-	add_textures(textures, gamma_correction);
+	init_matrices(screen_size, vectors_container.right_vector, vectors_container.up_vector, vectors_container.direction_vector, vectors_container.camera_position, vectors_container.translation_vector, vectors_container.scaling_vector, vectors_container.rotation_vector);
+	init_light(vectors_container.light_position, vectors_container.light_color, vectors_container.material_properties);
+	init_booleans(booleans_container.gamma_correction, booleans_container.texturing, booleans_container.normal_mapping, booleans_container.height_mapping);
+	add_textures(textures, booleans_container.gamma_correction);
 
 };
 
@@ -189,7 +210,7 @@ void Shader::update_matrices(const vec3& right_vector, const vec3& up_vector, co
 
 };
 
-void Shader::update_light(const vec3& light_position, const vec4& material_properties) {
+void Shader::update_light(const vec3& light_position, const vec3& light_color, const vec4& material_properties) {
 
 	float ambient = material_properties.x;
 	float diffuse = material_properties.y;
@@ -197,6 +218,7 @@ void Shader::update_light(const vec3& light_position, const vec4& material_prope
 	float shininess = material_properties.w;
 
 	create_uniform_vec3(light_position.to_GL(), "light_position");
+	create_uniform_vec3(light_color.to_GL(), "light_color");
 	create_uniform_float(ambient, "ambient");
 	create_uniform_float(diffuse, "diffuse");
 	create_uniform_float(specular, "specular");
@@ -204,18 +226,29 @@ void Shader::update_light(const vec3& light_position, const vec4& material_prope
 
 };
 
-void Shader::update(const vec3& right_vector, const vec3& up_vector, const vec3& direction_vector, const vec3& camera_position, const vec3& translation_vector, const vec3& scaling_vector, const vec3& rotation_vector, const vec3& light_position, const vec3& light_color, const vec4& material_properties) {
+void Shader::update_booleans(const bool& gamma_correction, const bool& texturing, const bool& normal_mapping, const bool& height_mapping) {
+
+	create_uniform_bool(gamma_correction, "gamma_correction");
+	create_uniform_bool(texturing, "texturing");
+	create_uniform_bool(normal_mapping, "normal_mapping");
+	create_uniform_bool(height_mapping, "height_mapping");
+
+};
+
+void Shader::update(const vec3& right_vector, const vec3& up_vector, const vec3& direction_vector, const vec3& camera_position, const vec3& translation_vector, const vec3& scaling_vector, const vec3& rotation_vector, const vec3& light_position, const vec3& light_color, const vec4& material_properties, const bool& gamma_correction, const bool& texturing, const bool& normal_mapping, const bool& height_mapping) {
 
 	update_matrices(right_vector, up_vector, direction_vector, camera_position, translation_vector, scaling_vector, rotation_vector);
-	update_light(light_position, material_properties);
+	update_light(light_position, light_color, material_properties);
+	update_booleans(gamma_correction, texturing, normal_mapping, height_mapping);
 
 };
 
 //override
-void Shader::update(const graphics_vectors_container& container, const vec4& material_properties) {
+void Shader::update(const graphics_vectors_container& vectors_container, const graphics_booleans_container& booleans_container) {
 
-	update_matrices(container.right_vector, container.up_vector, container.direction_vector, container.camera_position, container.translation_vector, container.scaling_vector, container.rotation_vector);
-	update_light(container.light_position, material_properties);
+	update_matrices(vectors_container.right_vector, vectors_container.up_vector, vectors_container.direction_vector, vectors_container.camera_position, vectors_container.translation_vector, vectors_container.scaling_vector, vectors_container.rotation_vector);
+	update_light(vectors_container.light_position, vectors_container.light_color, vectors_container.material_properties);
+	update_booleans(booleans_container.gamma_correction, booleans_container.texturing, booleans_container.normal_mapping, booleans_container.height_mapping);
 
 };
 

@@ -7,7 +7,7 @@
 				{
 					"build" : ".",
 					"hasInstallRule" : true,
-					"jsonFile" : "directory-.-Debug-d478e6c04342a3904673.json",
+					"jsonFile" : "directory-.-Debug-c765d522763183290dfc.json",
 					"minimumCMakeVersion" : 
 					{
 						"string" : "3.8"
@@ -21,7 +21,9 @@
 						2,
 						3,
 						4,
-						5
+						5,
+						6,
+						7
 					]
 				}
 			],
@@ -41,7 +43,9 @@
 						2,
 						3,
 						4,
-						5
+						5,
+						6,
+						7
 					]
 				}
 			],
@@ -50,42 +54,56 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "Math::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-Math-Debug-ba6c75c2dd7ed8432471.json",
+					"jsonFile" : "target-Math-Debug-4c838d5c4a4e620d107d.json",
 					"name" : "Math",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "Mesh::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-Mesh-Debug-105db54624f5a321040d.json",
+					"jsonFile" : "target-Mesh-Debug-f7d230930dd89fc9eb5f.json",
 					"name" : "Mesh",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "Shader::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-Shader-Debug-56db95585ea8caa99ec6.json",
+					"jsonFile" : "target-Shader-Debug-0fe5c68e3ad082a98c11.json",
 					"name" : "Shader",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
+					"id" : "UI::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-UI-Debug-981524ffe947a0490864.json",
+					"name" : "UI",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
 					"id" : "computer_graphics::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-computer_graphics-Debug-b2c949f9b5a5d7bf8499.json",
+					"jsonFile" : "target-computer_graphics-Debug-80e60d060f86cd5ef656.json",
 					"name" : "computer_graphics",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "glad::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-glad-Debug-16874a56b95036150dfe.json",
+					"jsonFile" : "target-glad-Debug-6b42f151f9cd17340db4.json",
 					"name" : "glad",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
+					"id" : "imgui::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-imgui-Debug-fd5c280f76d5f9ba2917.json",
+					"name" : "imgui",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
 					"id" : "stb_image::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-stb_image-Debug-dbb30406f1e3b504b98a.json",
+					"jsonFile" : "target-stb_image-Debug-866906dac8f60d443be6.json",
 					"name" : "stb_image",
 					"projectIndex" : 0
 				}

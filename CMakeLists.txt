@@ -16,47 +16,84 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")#for shared librari
 set(RESOURCES_DIR "${CMAKE_SOURCE_DIR}/resources")
 add_definitions(-DRESOURCES_DIR="${RESOURCES_DIR}")
 
+#setting our project name as a defenition so it can be used in our source files
+set(PROJECT_NAME "${PROJECT_NAME}")
+add_definitions(-DPROJECT_NAME="${PROJECT_NAME}")
+
 #adding libraries
-add_library(glad src/glad.c)
+#glad library
+add_library(glad src/glad/glad.c)
 target_include_directories(glad PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>"
 )
 
-#platform-specific GLFW handling
+#platform-specific GLFW library handling
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
     add_library(glfw3 STATIC IMPORTED)
     set_target_properties(glfw3 PROPERTIES
-        IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/src/glfw3.lib"
+        IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/src/GLFW/glfw3.lib"
     )
     target_include_directories(glfw3 INTERFACE
         "${CMAKE_CURRENT_SOURCE_DIR}/include/GLFW"
     )
 endif()
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-    find_package(glfw3 REQUIRED)
+    add_library(glfw3 STATIC IMPORTED)
+    set_target_properties(glfw3 PROPERTIES
+        IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/src/GLFW/glfw3.a"
+    )
+    target_include_directories(glfw3 INTERFACE
+        "${CMAKE_CURRENT_SOURCE_DIR}/include/GLFW"
+    )
 endif()
 
-add_library(stb_image src/stb_image.cpp)
+#stb_image library
+add_library(stb_image src/stb_image/stb_image.cpp)
 target_include_directories(stb_image PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>"
 )
 
-add_library(Math src/Math.cpp)
+#imgui library
+add_library(imgui
+    src/imgui/imgui.cpp
+    src/imgui/imgui_draw.cpp
+    src/imgui/imgui_widgets.cpp
+    src/imgui/imgui_impl_glfw.cpp
+    src/imgui/imgui_impl_opengl3.cpp
+    src/imgui/imgui_tables.cpp
+)
+target_include_directories(imgui PUBLIC
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+  "$<INSTALL_INTERFACE:include>"
+)
+#target_link_libraries(imgui PUBLIC glfw3 ${OPENGL_LIBRARIES})
+
+#Math library
+add_library(Math src/computer_graphics/Math.cpp)
 target_include_directories(Math PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>"
 )
 
-add_library(Mesh src/Mesh.cpp)
+#Mesh library
+add_library(Mesh src/computer_graphics/Mesh.cpp)
 target_include_directories(Mesh PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>"
 )
 
-add_library(Shader src/Shader.cpp)
+#Shader library
+add_library(Shader src/computer_graphics/Shader.cpp)
 target_include_directories(Shader PUBLIC
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+  "$<INSTALL_INTERFACE:include>"
+)
+
+#UI library
+add_library(UI src/computer_graphics/UI.cpp)
+target_include_directories(UI PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>"
 )
@@ -64,17 +101,19 @@ target_include_directories(Shader PUBLIC
 install(TARGETS 
     glad
     stb_image
+    imgui
     Math 
     Mesh
     Shader
+    UI
     ARCHIVE DESTINATION lib/${PROJECT_NAME}
     LIBRARY DESTINATION lib/${PROJECT_NAME}
     RUNTIME DESTINATION bin/${PROJECT_NAME}
 )
 
 #adding our main executable
-add_executable(${PROJECT_NAME} src/Source.cpp)
-target_link_libraries(${PROJECT_NAME} glad glfw3 stb_image Math Mesh Shader)
+add_executable(${PROJECT_NAME} src/computer_graphics/Main.cpp)
+target_link_libraries(${PROJECT_NAME} glad glfw3 stb_image imgui Math Mesh Shader UI)
 install(TARGETS
   ${PROJECT_NAME}
   DESTINATION lib/${PROJECT_NAME}

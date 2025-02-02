@@ -12,7 +12,7 @@
 	"artifacts" : 
 	[
 		{
-			"path" : "lib/Shader.lib"
+			"path" : "lib/glad.lib"
 		}
 	],
 	"backtrace" : 1,
@@ -37,13 +37,19 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 58,
+				"line" : 25,
 				"parent" : 0
 			},
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 64,
+				"line" : 101,
+				"parent" : 0
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 21,
 				"parent" : 0
 			},
 			{
@@ -55,7 +61,7 @@
 			{
 				"command" : 3,
 				"file" : 0,
-				"line" : 59,
+				"line" : 26,
 				"parent" : 0
 			}
 		]
@@ -66,39 +72,35 @@
 			"compileCommandFragments" : 
 			[
 				{
-					"fragment" : "/DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Ob0 /Od /RTC1 -std:c++17"
+					"fragment" : "/DWIN32 /D_WINDOWS /W3 /MDd /Zi /Ob0 /Od /RTC1"
 				}
 			],
 			"defines" : 
 			[
 				{
 					"backtrace" : 3,
+					"define" : "PROJECT_NAME=\"computer_graphics\""
+				},
+				{
+					"backtrace" : 4,
 					"define" : "RESOURCES_DIR=\"E:/Tools/Libraries/Repositories/computer_graphics/resources\""
 				}
 			],
 			"includes" : 
 			[
 				{
-					"backtrace" : 4,
+					"backtrace" : 5,
 					"path" : "E:/Tools/Libraries/Repositories/computer_graphics/include"
 				}
 			],
-			"language" : "CXX",
-			"languageStandard" : 
-			{
-				"backtraces" : 
-				[
-					1
-				],
-				"standard" : "17"
-			},
+			"language" : "C",
 			"sourceIndexes" : 
 			[
 				0
 			]
 		}
 	],
-	"id" : "Shader::@6890427a1f51a3e7e1df",
+	"id" : "glad::@6890427a1f51a3e7e1df",
 	"install" : 
 	{
 		"destinations" : 
@@ -113,8 +115,8 @@
 			"path" : "E:/Tools/Libraries/Repositories/computer_graphics/out/install/x64-debug"
 		}
 	},
-	"name" : "Shader",
-	"nameOnDisk" : "Shader.lib",
+	"name" : "glad",
+	"nameOnDisk" : "glad.lib",
 	"paths" : 
 	{
 		"build" : ".",
@@ -135,7 +137,7 @@
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "src/Shader.cpp",
+			"path" : "src/glad/glad.c",
 			"sourceGroupIndex" : 0
 		}
 	],

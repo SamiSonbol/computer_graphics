@@ -159,7 +159,7 @@
 				}
 			],
 			"type" : "STRING",
-			"value" : "/MDd /Ob0 /Od /RTC1"
+			"value" : "/MDd /Zi /Ob0 /Od /RTC1"
 		},
 		{
 			"name" : "CMAKE_CXX_FLAGS_MINSIZEREL",
@@ -207,7 +207,7 @@
 				}
 			],
 			"type" : "STRING",
-			"value" : "/MD /O2 /Ob1 /DNDEBUG"
+			"value" : "/MD /Zi /O2 /Ob1 /DNDEBUG"
 		},
 		{
 			"name" : "CMAKE_CXX_STANDARD_LIBRARIES",
@@ -271,7 +271,7 @@
 				}
 			],
 			"type" : "STRING",
-			"value" : "/MDd /Ob0 /Od /RTC1"
+			"value" : "/MDd /Zi /Ob0 /Od /RTC1"
 		},
 		{
 			"name" : "CMAKE_C_FLAGS_MINSIZEREL",
@@ -319,7 +319,7 @@
 				}
 			],
 			"type" : "STRING",
-			"value" : "/MD /O2 /Ob1 /DNDEBUG"
+			"value" : "/MD /Zi /O2 /Ob1 /DNDEBUG"
 		},
 		{
 			"name" : "CMAKE_C_STANDARD_LIBRARIES",
@@ -1100,18 +1100,6 @@
 			],
 			"type" : "STATIC",
 			"value" : "E:/Tools/Libraries/Repositories/computer_graphics"
-		},
-		{
-			"name" : "glfw3_DIR",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : "The directory containing a CMake configuration file for glfw3."
-				}
-			],
-			"type" : "PATH",
-			"value" : "glfw3_DIR-NOTFOUND"
 		}
 	],
 	"kind" : "cache",

@@ -22,6 +22,7 @@ uniform mat4 model_transformation_matrix;
 uniform mat4 view_matrix;
 uniform mat4 projection_matrix;
 uniform sampler2D uDisplacement_map;
+uniform bool height_mapping;
 
 out vec3 vPosition;
 out vec3 vNormal;
@@ -32,13 +33,17 @@ out vec3 vBitangent;
 
 void main() {
 
-    float displacement_scale = 1.0;
-    float displacement_offset = texture(uDisplacement_map, aTexture_coordinates).r;
-    vPosition = aPosition + (aNormal * displacement_offset * displacement_scale); 
-
     mat3 model_matrix = transpose(inverse(mat3(model_transformation_matrix)));
-    vPosition = (model_transformation_matrix * vec4(vPosition, 1)).xyz;
+    vPosition = (model_transformation_matrix * vec4(aPosition, 1)).xyz;
+    if (height_mapping) {
 
+	    float displacement_scale = 1.0;
+		float displacement_offset = texture(uDisplacement_map, aTexture_coordinates).r;
+		vPosition = aPosition + (aNormal * displacement_offset * displacement_scale); 
+        vPosition = (model_transformation_matrix * vec4(vPosition, 1)).xyz;
+
+    };
+    
     vTexture_coordinates = aTexture_coordinates;
     vTangent = normalize(model_matrix * aTangent);
     vBitangent = normalize(model_matrix * aBitangent);
@@ -98,9 +103,11 @@ uniform float ambient;
 uniform float diffuse;
 uniform float specular;
 uniform float shininess;
-uniform bool gamma_correction;
 uniform sampler2D uTexture;
 uniform sampler2D uNormal_map;
+uniform bool gamma_correction;
+uniform bool texturing;
+uniform bool normal_mapping;
 
 in vec3 gColor;
 in vec3 gPosition;
@@ -111,32 +118,40 @@ in vec3 gBitangent;
 
 void main() {
     
-    vec3 texture_color = texture(uTexture, gTexture_coordinates).rgb;
+    vec3 Color = gColor;
+    if (texturing) {
+
+       Color = texture(uTexture, gTexture_coordinates).rgb;
+
+    };
     vec3 view_vector = normalize(eye_vector - gPosition);
     vec3 light_vector = normalize(light_position - gPosition);
     vec3 half_vector = normalize(view_vector + light_vector);
-    vec3 n = gNormal;
 
     /////////////////////////////////////////////////////////////////////////////
 
     float distance_from_light = length(light_position - gPosition);
-    float initial_light_intensity = 50.0;
+    float initial_light_intensity = 100.0;
     float constant_attenuation_component = 0.0;//overall light intensity, works like a multiplier to ambient light
     float linear_attenuation_coefficient = 0.1;//diminishing light intensity over distance
     float quadratic_attenuation_coefficient = 0.1;//further decreasing intensity with the square of the distance
     float attenuation = constant_attenuation_component + linear_attenuation_coefficient * distance_from_light + quadratic_attenuation_coefficient * pow(distance_from_light, 2);
     float light_intensity = initial_light_intensity / attenuation;
 
-    vec3 sampled_normal = texture(uNormal_map, gTexture_coordinates).rgb * 2.0 - 1.0;//getting the normal from the normal map and making it in the range of [-1, 1]
-    mat3 TBN = mat3(gTangent, gBitangent, gNormal);
-    vec3 map_gNormal = normalize(TBN * sampled_normal);
-    n = map_gNormal;
+    vec3 Normal = gNormal;
+    if (normal_mapping) {
 
-    float cos_alpha = max(dot(n, light_vector), 0.0);
-    float cos_theta_prime = max(dot(n, half_vector), 0.0);
+		vec3 sampled_normal = texture(uNormal_map, gTexture_coordinates).rgb * 2.0 - 1.0;//getting the normal from the normal map and making it in the range of [-1, 1]
+		mat3 TBN = mat3(gTangent, gBitangent, gNormal);
+		Normal = normalize(TBN * sampled_normal);
+
+    };
+
+    float cos_alpha = max(dot(Normal, light_vector), 0.0);
+    float cos_theta_prime = max(dot(Normal, half_vector), 0.0);
     
-    vec3 Ca = ambient * texture_color;
-    vec3 Cd = diffuse * cos_alpha * texture_color * light_intensity;   
+    vec3 Ca = ambient * Color;
+    vec3 Cd = diffuse * cos_alpha * Color * light_intensity;   
     vec3 Cs = specular * pow(cos_theta_prime, shininess) * light_color * light_intensity;
 
     vec3 phong = (Ca + Cd + Cs);
@@ -267,7 +282,7 @@ class Shader {
 
 public:
 
-	//this is a struct that holds the basic vectors needed to update and initialize our image
+	//this is a struct that holds the basic vectors needed to update and initialize our image, used this instead of an std::vector<vec3> inorder to attain readability, clarity, and avoid the issue of guessing which index is which vec3.
 	struct graphics_vectors_container {
 
 		vec3 right_vector;
@@ -279,6 +294,17 @@ public:
 		vec3 rotation_vector;
 		vec3 light_position;
 		vec3 light_color;
+		vec4 material_properties;
+
+	};
+
+	//same functionality as *graphics_vectors_container* but for bools
+	struct graphics_booleans_container {
+
+		bool gamma_correction;
+		bool texturing;
+		bool normal_mapping;
+		bool height_mapping;
 
 	};
 
@@ -298,322 +324,28 @@ public:
 	void create_uniform_bool(const bool& boolean, const char* uniform_name);
 	void create_uniform_2D_texture(const int& index, const char* uniform_name);
 
-	graphics_vectors_container create_standard_matrix_vectors();
+	graphics_vectors_container create_standard_shader_vectors();
+	graphics_booleans_container create_standard_shader_booleans();
 	void init_matrices(const vec2& screen_size, const vec3& right_vector, const vec3& up_vector, const vec3& direction_vector, const vec3& camera_position, const vec3& translation_vector, const vec3& scaling_vector, const vec3& rotation_vector);
-	void init_light(const vec3& light_position, const vec3& color, const vec4& material_properties, const bool& gamma_correction);
-	
+	void init_light(const vec3& light_position, const vec3& color, const vec4& material_properties);
+	void init_booleans(const bool& gamma_correction, const bool& texturing, const bool& normal_mapping, const bool& height_mapping);
+
 	void add_texture(Texture& texture, const bool& gamma_correction);
 	void add_textures(std::vector<Texture>& textures, const bool& gamma_correction);
 
 	//sets the transformation matrices and light vectors
-	void initialize(const vec2& screen_size, const vec3& right_vector, const vec3& up_vector, const vec3& direction_vector, const vec3& camera_position, const vec3& translation_vector, const vec3& scaling_vector, const vec3& rotation_vector, const vec3& light_position, const vec3& light_color, const vec4& material_properties, const bool& gamma_correction, std::vector<Texture>& textures);
-	void initialize(const vec2& screen_size, const graphics_vectors_container& container, const vec4& material_properties, const bool& gamma_correction, std::vector<Texture>& textures);
+	void initialize(const vec2& screen_size, const vec3& right_vector, const vec3& up_vector, const vec3& direction_vector, const vec3& camera_position, const vec3& translation_vector, const vec3& scaling_vector, const vec3& rotation_vector, const vec3& light_position, const vec3& light_color, const vec4& material_properties, const bool& gamma_correction, const bool& texturing, const bool& normal_mapping, const bool& height_mapping, std::vector<Texture>& textures);
+	void initialize(const vec2& screen_size, const graphics_vectors_container& vectors_container, const graphics_booleans_container& booleans_container, std::vector<Texture>& textures);
 
 	void update_matrices(const vec3& right_vector, const vec3& up_vector, const vec3& direction_vector, const vec3& camera_position, const vec3& translation_vector, const vec3& scaling_vector, const vec3& rotation_vector);
-	void update_light(const vec3& light_position, const vec4& material_properties);
-	void update(const vec3& right_vector, const vec3& up_vector, const vec3& direction_vector, const vec3& camera_position, const vec3& translation_vector, const vec3& scaling_vector, const vec3& rotation_vector, const vec3& light_position, const vec3& light_color, const vec4& material_properties);
-	void update(const graphics_vectors_container& container, const vec4& material_properties);
+	void update_light(const vec3& light_position, const vec3& light_color, const vec4& material_properties);
+	void update_booleans(const bool& gamma_correction, const bool& texturing, const bool& normal_mapping, const bool& height_mapping);
+	void update(const vec3& right_vector, const vec3& up_vector, const vec3& direction_vector, const vec3& camera_position, const vec3& translation_vector, const vec3& scaling_vector, const vec3& rotation_vector, const vec3& light_position, const vec3& light_color, const vec4& material_properties, const bool& gamma_correction, const bool& texturing, const bool& normal_mapping, const bool& height_mapping);
+	void update(const graphics_vectors_container& vectors_container, const graphics_booleans_container& booleans_container);
 
 	void delete_buffers();
 	void delete_textures();
 	void delete_program();
 	void delete_all();
-
-};
-
-class Mouse {
-
-private:
-
-	double prev_x = 0.0;
-	double prev_y = 0.0;
-
-	GLFWwindow* window;
-
-	float find_angle (vec3& A, vec3& B) {
-	
-		A = A.normalize();
-		B = B.normalize();
-
-		float cos_alpha = A.dot(B);
-
-		float alpha = std::acos(cos_alpha);
-
-		return to_radians(alpha);
-
-	}
-
-public:
-
-	vec2 screen_size;
-	double mouse_x, mouse_y;
-	vec2 scroll_wheel_offset;//x = yaw, y = pitch   z, w previous values
-
-	void get_mouse_pos() {
-
-		glfwGetCursorPos(this->window, &this->mouse_x, &this->mouse_y);
-
-	};
-
-	//static void scroll_wheel_callback(GLFWwindow* window, double xoffset, double yoffset);
-
-	Mouse(GLFWwindow* window, const vec2& screen_size) : window(window), screen_size(screen_size), scroll_wheel_offset(-90.0f, 0.0f) {
-
-		//glfwSetScrollCallback(window, scroll_wheel_callback);
-
-		get_mouse_pos();
-
-		this->prev_x = this->mouse_x;
-
-		this->prev_y = this->mouse_y;		
-
-	};
-
-	//changes the property of the scene based off the mouse movement or key clicks; used for testing purposes
-	void move(Shader::graphics_vectors_container& container, vec4& material_properties) {
-
-		bool translate = false;
-		bool scale = false;
-		bool rotate = false;
-
-		bool translate_camera = false;
-		bool zoom = false;
-
-		bool translate_light = false;
-
-		bool ambient = false;
-		bool diffuse = false;
-		bool specular = false;
-		bool shininess = false;
-
-		const float offset = 0.0299;
-
-		if (glfwGetMouseButton(this->window, GLFW_MOUSE_BUTTON_1)) {
-			
-			get_mouse_pos();
-
-			float ndc_x = (2.0f * this->mouse_x) / this->screen_size.x - 1.0f;  // Maps [0, width] -> [-1, 1]
-			float ndc_y = 1.0f - (2.0f * this->mouse_y) / this->screen_size.y; // Maps [0, height] -> [1, -1]
-
-			mat4 inverse_view_projection = create_frustum_projection_matrix(60.0f, screen_size.x, screen_size.y, 0.1f, 100.0f).inverse();
-			vec4 ndc_position(ndc_x, ndc_y, -1.0f, 1.0f); // z = 0 for a position on the near plane
-			vec3 world_position = (inverse_view_projection * ndc_position).xyz();
-
-			container.light_position = world_position;
-
-		};
-
-		if (glfwGetKey(this->window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
-
-			zoom = true;
-
-		};
-
-		if (glfwGetKey(this->window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
-
-			translate_camera = true;
-
-		}
-		else if (glfwGetKey(this->window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-
-			translate_light = true;
-
-		}
-		else if (glfwGetKey(this->window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS) {
-
-			rotate = true;
-
-		}
-		else if (glfwGetKey(this->window, GLFW_KEY_RIGHT_ALT) == GLFW_PRESS) {
-
-			scale = true;
-
-		}
-		else if (glfwGetKey(this->window, GLFW_KEY_A) == GLFW_PRESS) {
-
-			ambient = true;
-
-		}
-		else if (glfwGetKey(this->window, GLFW_KEY_S) == GLFW_PRESS) {
-
-			shininess = true;
-
-		}
-		else if (glfwGetKey(this->window, GLFW_KEY_D) == GLFW_PRESS) {
-
-			diffuse = true;
-
-		}
-		else if (glfwGetKey(this->window, GLFW_KEY_W) == GLFW_PRESS) {
-
-			specular = true;
-
-		}
-		else {
-
-			translate = true;
-
-		};
-
-		if (glfwGetKey(this->window, GLFW_KEY_UP) == GLFW_PRESS) {
-
-			if (ambient) {
-
-				material_properties.x += offset;
-
-			}
-			else if (diffuse) {
-
-				material_properties.y += offset;
-
-			}
-			else if (specular) {
-
-				material_properties.z += offset;
-
-			}
-			else if (shininess) {
-
-				material_properties.w += offset;
-
-			}
-			else if (zoom) {
-
-				container.camera_position.z += offset * 20;
-
-			}
-			else if (rotate) {
-
-				container.rotation_vector.x -= offset * 20;
-
-			}
-			else if (translate_light) {
-
-				if (glfwGetKey(this->window, GLFW_KEY_W) == GLFW_PRESS) {
-					
-					container.light_position.z += offset;
-
-				}
-				else {
-
-					container.light_position.y += offset * 50;
-
-				};	
-
-			}
-			else {
-
-				container.translation_vector.y -= offset;
-
-			};
-
-		};
-
-		if (glfwGetKey(this->window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-
-			if (ambient) {
-
-				material_properties.x -= offset;
-
-			}
-			else if (diffuse) {
-
-				material_properties.y -= offset;
-
-			}
-			else if (specular) {
-
-				material_properties.z -= offset;
-
-			}
-			else if (shininess) {
-
-				material_properties.w -= offset;
-
-			}
-			else if (zoom) {
-
-				container.camera_position.z -= offset * 20;
-
-			}
-			else if (rotate) {
-
-				container.rotation_vector.x += offset * 20;
-
-			}
-			else if (translate_light) {
-
-				if (glfwGetKey(this->window, GLFW_KEY_S) == GLFW_PRESS) {
-
-					container.light_position.z -= offset;
-
-				}
-				else {
-
-					container.light_position.y -= offset * 50;
-
-				};
-
-			}
-			else {
-
-				container.translation_vector.y += offset;
-
-			};
-
-		};
-
-		if (glfwGetKey(this->window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-
-			if (!ambient && !diffuse && !specular && !shininess) {
-
-				if (rotate) {
-
-					container.rotation_vector.y += offset * 20;
-
-				}
-				else if (translate_light) {
-
-					container.light_position.x += offset * 50;
-
-				}
-				else {
-
-					container.translation_vector.x -= offset;
-
-				};
-
-			};
-
-		};
-
-		if (glfwGetKey(this->window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-
-			if (!ambient && !diffuse && !specular && !shininess) {
-
-				if (rotate) {
-
-					container.rotation_vector.y -= offset * 20;
-
-				}
-				else if (translate_light) {
-
-					container.light_position.x -= offset * 50;
-
-				}
-				else {
-
-					container.translation_vector.x += offset;
-
-				};
-
-			};
-
-		};
-
-		this->prev_x = this->mouse_x;
-		this->prev_y = this->mouse_y;
-
-	};//move bracket
 
 };

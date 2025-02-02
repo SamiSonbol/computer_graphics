@@ -145,10 +145,36 @@ public:
 
 	};
 
+	void operator=(const float array[2]) {
+
+		if (array) {
+
+			this->x = array[0];
+			this->y = array[1];
+
+		}
+		else {
+
+			std::cerr << "WARNING: dynamically allocated array is NULL, no new value was given to this vec2\n";
+
+		};
+
+	};
+
 	vec2 normalize() const {
 
 	    return vec2(this->x, this->y) / this->magnitude();
 
+
+	};
+
+	//VIMP/WARNING: this function is only used WHEN YOU ABSOLUTELY HAVE A REASON TO USE IT, and it the memory allocated from it has to be deallocated afterwards
+	float* to_dynamically_allocated_array() const {
+
+		float* array = new float[2];
+		array[0] = this->x;
+		array[1] = this->y;
+		return array;
 
 	};
 
@@ -299,6 +325,23 @@ public:
 
 	};
 
+	void operator=(const float array[3]) {
+
+		if (array) {
+
+			this->x = array[0];
+			this->y = array[1];
+			this->z = array[2];
+
+		}
+		else {
+
+			std::cerr << "WARNING: dynamically allocated array is NULL, no new value was given to this vec2\n";
+
+		};
+
+	};
+
 	vec3 normalize() const {
 
 		return vec3(this->x, this->y, this->z) / this->magnitude();
@@ -308,6 +351,17 @@ public:
 	vec2 xy() const {
 
 		return vec2(this->x, this->y);
+
+	};
+
+	//VIMP/WARNING: this function is only used WHEN YOU ABSOLUTELY HAVE A REASON TO USE IT, and it the memory allocated from it has to be deallocated afterwards
+	float* to_dynamically_allocated_array() const {
+
+		float* array = new float[3];
+		array[0] = this->x;
+		array[1] = this->y;
+		array[2] = this->z;
+		return array;
 
 	};
 
@@ -460,6 +514,24 @@ public:
 
 	};
 
+	void operator=(const float array[4]) {
+
+		if (array) {
+
+			this->x = array[0];
+			this->y = array[1];
+			this->z = array[2];
+			this->w = array[3];
+
+		}
+		else {
+
+			std::cerr << "WARNING: dynamically allocated array is NULL, no new value was given to this vec2\n";
+
+		};
+
+	};
+
 	vec4 normalize() const {
 
 		return vec4(this->x, this->y, this->z, this->w) / this->magnitude();
@@ -475,6 +547,18 @@ public:
 	vec3 xyz() const {
 
 		return vec3(this->x, this->y, this->z);
+
+	};
+
+	//VIMP/WARNING: this function is only used WHEN YOU ABSOLUTELY HAVE A REASON TO USE IT, and it the memory allocated from it has to be deallocated afterwards
+	float* to_dynamically_allocated_array() const {
+
+		float* array = new float[4];
+		array[0] = this->x;
+		array[1] = this->y;
+		array[2] = this->z;
+		array[3] = this->w;
+		return array;
 
 	};
 
@@ -904,15 +988,22 @@ static mat4 create_rotation_matrix(const float& alpha, const float& theta, const
 
 };
 
+static mat4 create_rotation_matrix(const vec3& vec) {//@override
+
+	return create_rotation_matrix(vec.x, vec.y, vec.z);
+
+};
+
 static mat4 create_model_transformation_matrix(const vec3& T, const vec3& S, const vec3& R) {
 
-	return create_rotation_matrix(R.x, R.y, R.z) * create_scale_matrix(S) * create_translation_matrix(T);
+	//the rotation is done around origin
+	return create_translation_matrix(T) * create_rotation_matrix(R) * create_scale_matrix(S) * create_translation_matrix(0.0f, 0.0f, 0.0f);
 
 };
 
 static mat4 create_model_transformation_matrix(const mat4& T, const mat4& S, const mat4& R) {//@override
 
-	return R * S * T;
+	return T * R * S * create_translation_matrix(0.0f, 0.0f, 0.0f);
 
 };
 
