@@ -1,0 +1,1 @@
+.a is for Linux and .lib is for Windows
