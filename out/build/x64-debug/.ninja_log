@@ -1,0 +1,24 @@
+# ninja log v5
+8	704	7603826970008126	CMakeFiles/stb_image.dir/src/stb_image/stb_image.cpp.obj	ae5ebc9414000ce9
+45	881	7603826973601882	CMakeFiles/Math.dir/src/computer_graphics/Math.cpp.obj	e0b1f8b99cf3bc65
+727	893	7603826973289858	lib/stb_image.lib	b7eae2ba34f4e45a
+35	904	7603826973601882	CMakeFiles/imgui.dir/src/imgui/imgui_impl_opengl3.cpp.obj	119e4413fc54c859
+29	905	7603826973601882	CMakeFiles/imgui.dir/src/imgui/imgui_impl_glfw.cpp.obj	f86a312025bb9117
+40	1071	7603826973758243	CMakeFiles/imgui.dir/src/imgui/imgui_tables.cpp.obj	90d36e6f8c7fe4c8
+3	1072	7603826973601882	CMakeFiles/glad.dir/src/glad/glad.c.obj	4e68f332a1aa579c
+881	1146	7603826975633118	lib/Math.lib	4c6b52c031a89589
+56	1170	7603826976101934	CMakeFiles/Shader.dir/src/computer_graphics/Shader.cpp.obj	70a4fc9f6b4e3187
+24	1189	7603826975633118	CMakeFiles/imgui.dir/src/imgui/imgui_widgets.cpp.obj	2fdbef84b3f7c077
+51	1190	7603826976101934	CMakeFiles/Mesh.dir/src/computer_graphics/Mesh.cpp.obj	5bb5d8862ff4893a
+19	1341	7603826977195634	CMakeFiles/imgui.dir/src/imgui/imgui_draw.cpp.obj	dc902fe590409dc
+13	1343	7603826976883313	CMakeFiles/imgui.dir/src/imgui/imgui.cpp.obj	b496fbc78bff5b29
+1173	1378	7603826977351899	lib/Shader.lib	5ecec99ec60d4496
+1072	1384	7603826977039442	lib/glad.lib	fbbbb793c5ebfde0
+1190	1388	7603826978289361	lib/Mesh.lib	66432921292abe55
+61	1390	7603826978289361	CMakeFiles/UI.dir/src/computer_graphics/UI.cpp.obj	d694cbf05638468c
+67	1432	7603826979070674	CMakeFiles/computer_graphics.dir/src/computer_graphics/Main.cpp.obj	ace8a479a744875
+1390	1529	7603826979383128	lib/UI.lib	f3b8735ba1e7239c
+1343	1529	7603826979070674	lib/imgui.lib	602aabacdbee805c
+1529	2713	7603826990633136	bin/computer_graphics.exe	3125f379d9a62c64
+16	611	7603827150892022	CMakeFiles/computer_graphics.dir/src/computer_graphics/Main.cpp.obj	ace8a479a744875
+611	911	7603827152454534	bin/computer_graphics.exe	3125f379d9a62c64
