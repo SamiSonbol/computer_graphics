@@ -58,13 +58,13 @@ int main() {
 	Texture river_pebbles_normal(RESOURCES_DIR"/normal_maps/emma_normal.png", "uNormal_map", GL_TEXTURE1, 1);
 	Texture river_pebbles_displacement(RESOURCES_DIR"/displacement_maps/emma_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);*/
 
-	Texture river_pebbles(RESOURCES_DIR"/diffuse_maps/osna.png", "uTexture", GL_TEXTURE0, 0);
+	/*Texture river_pebbles(RESOURCES_DIR"/diffuse_maps/osna.png", "uTexture", GL_TEXTURE0, 0);
 	Texture river_pebbles_normal(RESOURCES_DIR"/normal_maps/osna_normal.png", "uNormal_map", GL_TEXTURE1, 1);
-	Texture river_pebbles_displacement(RESOURCES_DIR"/displacement_maps/osna_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);
+	Texture river_pebbles_displacement(RESOURCES_DIR"/displacement_maps/osna_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);*/
 
-	/*Texture river_pebbles(RESOURCES_DIR"/diffuse_maps/mountain_range.png", "uTexture", GL_TEXTURE0, 0);
+	Texture river_pebbles(RESOURCES_DIR"/diffuse_maps/mountain_range.png", "uTexture", GL_TEXTURE0, 0);
 	Texture river_pebbles_normal(RESOURCES_DIR"/normal_maps/osna_normal.png", "uNormal_map", GL_TEXTURE1, 1);
-	Texture river_pebbles_displacement(RESOURCES_DIR"/displacement_maps/mountain_range_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);*/
+	Texture river_pebbles_displacement(RESOURCES_DIR"/displacement_maps/mountain_range_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);
 
 	/*Texture river_pebbles(RESOURCES_DIR"/diffuse_maps/rocky_rivers.png", "uTexture", GL_TEXTURE0, 0);
 	Texture river_pebbles_normal(RESOURCES_DIR"/normal_maps/osna_normal.png", "uNormal_map", GL_TEXTURE1, 1);
