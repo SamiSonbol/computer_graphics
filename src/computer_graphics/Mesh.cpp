@@ -151,6 +151,16 @@ Texture::~Texture() {
 
 };
 
+//sets the 4 inputed vertices as 1 single face on the mesh that represents a whole image, used in tiled meshes. VIP: HAS TO BE USED BEFORE THE INPUTED VERTICES ARE USED TO CONSTRUCT TRIANGLES.
+void Mesh::set_as_single_face(Vertex& top_left, Vertex& bottom_left, Vertex& top_right, Vertex& bottom_right) {
+
+	top_left.uv = vec2(0.0, 1.0);//top left
+	bottom_left.uv = vec2(0.0, 0.0);//bottom left
+	top_right.uv = vec2(1.0, 1.0);//top right
+	bottom_right.uv = vec2(1.0, 0.0);//bottom right
+
+};
+
 //checks if the inputed vertex exists with the same position and uv coords. If yes then the same index of the original vertex will be emplaced again into the *indices* vector and its TBN will be accumalated.
 //If not then it will be inserted into the map and all its data will be emplaced into the respective data vectors
 void Mesh::check_accumalate_add(Vertex& vertex, int& index_counter) {
@@ -194,16 +204,6 @@ void Mesh::check_accumalate_add(Triangle& triangle, int& index_counter) {
 
 };
 
-//sets the 4 inputed vertices as 1 single face on the mesh that represents a whole image, used in tiled meshes. VIP: HAS TO BE USED BEFORE THE INPUTED VERTICES ARE USED TO CONSTRUCT TRIANGLES.
-void Mesh::set_as_single_face(Vertex& top_left, Vertex& bottom_left, Vertex& top_right, Vertex& bottom_right) {
-
-	top_left.uv = vec2(0.0, 1.0);//top left
-	bottom_left.uv = vec2(0.0, 0.0);//bottom left
-	top_right.uv = vec2(1.0, 1.0);//top right
-	bottom_right.uv = vec2(1.0, 0.0);//bottom right
-
-};
-
 void Mesh::init_grid() {
 
 	/*the grid takes the width and height of our texture and fills it up as cells and not as points, hence the n_rows and n_columns is subtracted by 1 inorder to not go out of bounds when reaching the last point on a row or column.
@@ -230,7 +230,7 @@ void Mesh::init_grid() {
 			Vertex c(next_x, next_y, 0);//top right
 			Vertex d(next_x, y, 0);//bottom right
 
-			//creating our 2 triangle that make up the cell. VIP: NEVER CHANGE THE VERTEX ORDER/WINDUP
+			//creating our 2 triangle that make up the cell. VIP: NEVER CHANGE THE VERTEX ORDER/WINDUP  abc  bdc
 			Triangle A(a, b, c); 
 			Triangle B(b, d, c);
 			

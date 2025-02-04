@@ -3,9 +3,9 @@ project(computer_graphics)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
-if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  add_compile_options(-Wall -Wextra -Wpedantic)
-endif()
+#if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  #add_compile_options(-Wall -Wextra -Wpedantic)
+#endif()
 
 #specify output directories for libraries and executables
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")#for executables (.exe)
@@ -113,7 +113,7 @@ install(TARGETS
 
 #adding our main executable
 add_executable(${PROJECT_NAME} src/computer_graphics/Main.cpp)
-target_link_libraries(${PROJECT_NAME} glad glfw3 stb_image imgui Math Mesh Shader UI)
+target_link_libraries(${PROJECT_NAME} Math stb_image Mesh Shader UI imgui glfw3 glad)
 install(TARGETS
   ${PROJECT_NAME}
   DESTINATION lib/${PROJECT_NAME}

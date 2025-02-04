@@ -130,6 +130,16 @@ Shader::graphics_booleans_container Shader::create_standard_shader_booleans() {
 
 };
 
+Shader::graphics_floats_container Shader::create_standard_shader_floats() {
+
+	float tesselation = 1.0f;
+
+	float displacement_scale = 1.0f;
+
+	return { tesselation, displacement_scale };
+
+};
+
 void Shader::init_matrices(const vec2& screen_size, const vec3& right_vector, const vec3& up_vector, const vec3& direction_vector, const vec3& camera_position, const vec3& translation_vector, const vec3& scaling_vector, const vec3& rotation_vector) {
 
 	create_uniform_vec3(camera_position.to_GL(), "eye_vector");
@@ -165,6 +175,13 @@ void Shader::init_booleans(const bool& gamma_correction, const bool& texturing, 
 
 };
 
+void Shader::init_floats(const float& tesselation_multiplier, const float& displacement_scale) {
+
+	create_uniform_float(tesselation_multiplier, "tesselation_multiplier");
+	create_uniform_float(displacement_scale, "displacement_scale");
+
+};
+
 void Shader::add_texture(Texture& texture, const bool& gamma_correction) {
 
 	bind_texture(&texture.texture_ID, texture.GL_TEXTUREindex, texture.bytes, texture.width, texture.height, texture.n_color_channels, gamma_correction);
@@ -183,21 +200,23 @@ void Shader::add_textures(std::vector<Texture>& textures, const bool& gamma_corr
 };
 
 //sets the transformation matrices and light vectors
-void Shader::initialize(const vec2& screen_size, const vec3& right_vector, const vec3& up_vector, const vec3& direction_vector, const vec3& camera_position, const vec3& translation_vector, const vec3& scaling_vector, const vec3& rotation_vector, const vec3& light_position, const vec3& light_color, const vec4& material_properties, const bool& gamma_correction, const bool& texturing, const bool& normal_mapping, const bool& height_mapping, std::vector<Texture>& textures) {
+void Shader::initialize(const vec2& screen_size, const vec3& right_vector, const vec3& up_vector, const vec3& direction_vector, const vec3& camera_position, const vec3& translation_vector, const vec3& scaling_vector, const vec3& rotation_vector, const vec3& light_position, const vec3& light_color, const vec4& material_properties, const bool& gamma_correction, const bool& texturing, const bool& normal_mapping, const bool& height_mapping, const float& tesselation_multiplier, const float& displacement_scale, std::vector<Texture>& textures) {
 
 	init_matrices(screen_size, right_vector, up_vector, direction_vector, camera_position, translation_vector, scaling_vector, rotation_vector);
 	init_light(light_position, light_color, material_properties);
 	init_booleans(gamma_correction, texturing, normal_mapping, height_mapping);
+	init_floats(tesselation_multiplier, displacement_scale);
 	add_textures(textures, gamma_correction);
 
 };
 
 //override
-void Shader::initialize(const vec2& screen_size, const graphics_vectors_container& vectors_container, const graphics_booleans_container& booleans_container, std::vector<Texture>& textures) {
+void Shader::initialize(const vec2& screen_size, const graphics_vectors_container& vectors_container, const graphics_booleans_container& booleans_container, const graphics_floats_container& floats_container, std::vector<Texture>& textures) {
 
 	init_matrices(screen_size, vectors_container.right_vector, vectors_container.up_vector, vectors_container.direction_vector, vectors_container.camera_position, vectors_container.translation_vector, vectors_container.scaling_vector, vectors_container.rotation_vector);
 	init_light(vectors_container.light_position, vectors_container.light_color, vectors_container.material_properties);
 	init_booleans(booleans_container.gamma_correction, booleans_container.texturing, booleans_container.normal_mapping, booleans_container.height_mapping);
+	init_floats(floats_container.tesselation_multiplier, floats_container.displacement_scale);
 	add_textures(textures, booleans_container.gamma_correction);
 
 };
@@ -235,20 +254,29 @@ void Shader::update_booleans(const bool& gamma_correction, const bool& texturing
 
 };
 
-void Shader::update(const vec3& right_vector, const vec3& up_vector, const vec3& direction_vector, const vec3& camera_position, const vec3& translation_vector, const vec3& scaling_vector, const vec3& rotation_vector, const vec3& light_position, const vec3& light_color, const vec4& material_properties, const bool& gamma_correction, const bool& texturing, const bool& normal_mapping, const bool& height_mapping) {
+void Shader::update_floats(const float& tesselation_multiplier, const float& displacement_scale) {
+
+	create_uniform_float(tesselation_multiplier, "tesselation_multiplier");
+	create_uniform_float(displacement_scale, "displacement_scale");
+
+};
+
+void Shader::update(const vec3& right_vector, const vec3& up_vector, const vec3& direction_vector, const vec3& camera_position, const vec3& translation_vector, const vec3& scaling_vector, const vec3& rotation_vector, const vec3& light_position, const vec3& light_color, const vec4& material_properties, const bool& gamma_correction, const bool& texturing, const bool& normal_mapping, const bool& height_mapping, const float& tesselation_multiplier, const float& displacement_scale) {
 
 	update_matrices(right_vector, up_vector, direction_vector, camera_position, translation_vector, scaling_vector, rotation_vector);
 	update_light(light_position, light_color, material_properties);
 	update_booleans(gamma_correction, texturing, normal_mapping, height_mapping);
+	update_floats(tesselation_multiplier, displacement_scale);
 
 };
 
 //override
-void Shader::update(const graphics_vectors_container& vectors_container, const graphics_booleans_container& booleans_container) {
+void Shader::update(const graphics_vectors_container& vectors_container, const graphics_booleans_container& booleans_container, const graphics_floats_container& floats_container) {
 
 	update_matrices(vectors_container.right_vector, vectors_container.up_vector, vectors_container.direction_vector, vectors_container.camera_position, vectors_container.translation_vector, vectors_container.scaling_vector, vectors_container.rotation_vector);
 	update_light(vectors_container.light_position, vectors_container.light_color, vectors_container.material_properties);
 	update_booleans(booleans_container.gamma_correction, booleans_container.texturing, booleans_container.normal_mapping, booleans_container.height_mapping);
+	update_floats(floats_container.tesselation_multiplier, floats_container.displacement_scale);
 
 };
 

@@ -196,7 +196,7 @@ void UI::vec4_color_picker(const std::string& label, vec4& RGBA) {
 
 };
 
-void UI::shader_debug_mode(Shader::graphics_vectors_container& vectors_container, Shader::graphics_booleans_container& booleans_container) {
+void UI::shader_debug_mode(Shader::graphics_vectors_container& vectors_container, Shader::graphics_booleans_container& booleans_container, Shader::graphics_floats_container& floats_container) {
 
 	this->windows.clear();
 	this->add_window("Transformations");
@@ -211,7 +211,11 @@ void UI::shader_debug_mode(Shader::graphics_vectors_container& vectors_container
 			ImGui::SeparatorText("Rotation");
 			this->vec3_float_sliders("Model Rotation", vectors_container.rotation_vector, vec2(0, 360));
 			ImGui::SeparatorText("Scale");
-			this->vec3_vertical_float_sliders("Model Scale", vectors_container.scaling_vector, vec2(-20, 20), vec2(75, 100));
+			this->vec3_vertical_float_sliders("Model Scale", vectors_container.scaling_vector, vec2(-20, 20), vec2(40, 100));
+			ImGui::SameLine();
+			ImGui::VSliderFloat("Tesselation Multiplier", ImVec2(40, 100), &floats_container.tesselation_multiplier, 0.0f, 1000.0f);
+			ImGui::SameLine();
+			ImGui::VSliderFloat("Displacement Scale", ImVec2(40, 100), &floats_container.displacement_scale, 0.0f, 1000.0f);
 
 		};
 
@@ -294,7 +298,5 @@ UI::UI(GLFWwindow* window, const std::string& GLSL_VERSION) {
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init("#version 330 core");
 	ImGui::StyleColorsDark();
-
-	//auto lamb = [&]() { ImGui::SliderFloat("rotation X", &vectors_container.rotation_vector.x, -360.0f, 360.0f); };
 
 };

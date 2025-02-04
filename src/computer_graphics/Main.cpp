@@ -9,8 +9,8 @@
 int main() {
 
 	glfwInit();
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_DEPTH_BITS, 24);
 
@@ -44,22 +44,31 @@ int main() {
 	glfwMakeContextCurrent(window);
 	
 	gladLoadGL();
+	std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
 	glViewport(0, 0, screen_size.x, screen_size.y);
 	glEnable(GL_DEPTH_TEST);
 
 	
 	UI user_interface(window, (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION));
-	/*Texture river_pebbles(RESOURCES_DIR"\\diffuse_maps\\abra.png", "uTexture", GL_TEXTURE0, 0);
-	Texture river_pebbles_normal(RESOURCES_DIR"\\normal_maps\\abra_normal.png", "uNormal_map", GL_TEXTURE1, 1);
-	Texture river_pebbles_displacement(RESOURCES_DIR"\\displacement_maps\\abra_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);*/
+	/*Texture river_pebbles(RESOURCES_DIR"/diffuse_maps/abra.png", "uTexture", GL_TEXTURE0, 0);
+	Texture river_pebbles_normal(RESOURCES_DIR"/normal_maps/abra_normal.png", "uNormal_map", GL_TEXTURE1, 1);
+	Texture river_pebbles_displacement(RESOURCES_DIR"/displacement_maps/abra_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);*/
 	
-	Texture river_pebbles(RESOURCES_DIR"\\diffuse_maps\\beirut.png", "uTexture", GL_TEXTURE0, 0);
-	Texture river_pebbles_normal(RESOURCES_DIR"\\normal_maps\\beirut_normal.png", "uNormal_map", GL_TEXTURE1, 1);
-	Texture river_pebbles_displacement(RESOURCES_DIR"\\displacement_maps\\beirut_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);
-	
-	/*Texture river_pebbles(RESOURCES_DIR"\\diffuse_maps\\emma.png", "uTexture", GL_TEXTURE0, 0);
-	Texture river_pebbles_normal(RESOURCES_DIR"\\normal_maps\\emma_normal.png", "uNormal_map", GL_TEXTURE1, 1);
-	Texture river_pebbles_displacement(RESOURCES_DIR"\\displacement_maps\\emma_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);*/
+	/*Texture river_pebbles(RESOURCES_DIR"/diffuse_maps/emma.png", "uTexture", GL_TEXTURE0, 0);
+	Texture river_pebbles_normal(RESOURCES_DIR"/normal_maps/emma_normal.png", "uNormal_map", GL_TEXTURE1, 1);
+	Texture river_pebbles_displacement(RESOURCES_DIR"/displacement_maps/emma_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);*/
+
+	Texture river_pebbles(RESOURCES_DIR"/diffuse_maps/osna.png", "uTexture", GL_TEXTURE0, 0);
+	Texture river_pebbles_normal(RESOURCES_DIR"/normal_maps/osna_normal.png", "uNormal_map", GL_TEXTURE1, 1);
+	Texture river_pebbles_displacement(RESOURCES_DIR"/displacement_maps/osna_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);
+
+	/*Texture river_pebbles(RESOURCES_DIR"/diffuse_maps/mountain_range.png", "uTexture", GL_TEXTURE0, 0);
+	Texture river_pebbles_normal(RESOURCES_DIR"/normal_maps/osna_normal.png", "uNormal_map", GL_TEXTURE1, 1);
+	Texture river_pebbles_displacement(RESOURCES_DIR"/displacement_maps/mountain_range_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);*/
+
+	/*Texture river_pebbles(RESOURCES_DIR"/diffuse_maps/rocky_rivers.png", "uTexture", GL_TEXTURE0, 0);
+	Texture river_pebbles_normal(RESOURCES_DIR"/normal_maps/osna_normal.png", "uNormal_map", GL_TEXTURE1, 1);
+	Texture river_pebbles_displacement(RESOURCES_DIR"/displacement_maps/rocky_rivers_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);*/
 
 	/*Texture river_pebbles(RESOURCES_DIR"/diffuse_maps/ganges_river.png", "uTexture", GL_TEXTURE0, 0);
 	Texture river_pebbles_normal(RESOURCES_DIR"/normal_maps/ganges_river_normal.png", "uNormal_map", GL_TEXTURE1, 1);
@@ -70,33 +79,36 @@ int main() {
 	glGenVertexArrays(1, &vertex_array);
 	glBindVertexArray(vertex_array);
 	
-	std::vector<unsigned int> compile_info = { compile_shader(GL_VERTEX_SHADER, vertex_shader), compile_shader(GL_GEOMETRY_SHADER, geometry_shader), compile_shader(GL_FRAGMENT_SHADER, fragment_shader) };
+	//std::vector<unsigned int> compile_info = { compile_shader(GL_VERTEX_SHADER, vertex_shader), compile_shader(GL_GEOMETRY_SHADER, geometry_shader), compile_shader(GL_FRAGMENT_SHADER, fragment_shader) };
+	std::vector<unsigned int> compile_info = { compile_shader(GL_VERTEX_SHADER, vertex_shader), compile_shader(GL_TESS_CONTROL_SHADER, tesselation_control_shader), compile_shader(GL_TESS_EVALUATION_SHADER, tesselation_evaluation_shader), compile_shader(GL_FRAGMENT_SHADER, fragment_shader) };
 	Shader shader(compile_info);
 	glUseProgram(shader.program);
 
 	Shader::graphics_vectors_container vectors_container = shader.create_standard_shader_vectors();
 	Shader::graphics_booleans_container booleans_container = shader.create_standard_shader_booleans();
+	Shader::graphics_floats_container floats_container = shader.create_standard_shader_floats();
+
 	std::vector<Texture> textures = { river_pebbles, river_pebbles_normal, river_pebbles_displacement };
 	shader.bind_mesh_buffers(mesh);
-	shader.initialize(screen_size, vectors_container, booleans_container, textures);
-	user_interface.shader_debug_mode(vectors_container, booleans_container);
+	shader.initialize(screen_size, vectors_container, booleans_container, floats_container, textures);
+	user_interface.shader_debug_mode(vectors_container, booleans_container, floats_container);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 
-	
-	
+	glPatchParameteri(GL_PATCH_VERTICES, 3);
 	while (!glfwWindowShouldClose(window) && glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS) {
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glUseProgram(shader.program);
 		glBindVertexArray(vertex_array);
 
-		shader.update(vectors_container, booleans_container);
+		shader.update(vectors_container, booleans_container, floats_container);
 		user_interface.new_frame();
 
 		//glDrawArrays(GL_TRIANGLES, 0, mesh.positions.size());
-		glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_SHORT, 0);
+		//glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_SHORT, 0);
+		glDrawElements(GL_PATCHES, mesh.indices.size(), GL_UNSIGNED_SHORT, 0);
 
 		user_interface.update();
 		user_interface.render();
