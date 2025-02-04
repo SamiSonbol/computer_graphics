@@ -4,7 +4,6 @@
 Vertex::Vertex(const vec3& position) : position(position) {};
 Vertex::Vertex(const float& x, const float& y, const float& z) : position(x, y, z) {};
 
-
 //moves the vertices of the Triangle by the inputted offset
 void Triangle::offset_positions(const vec3& offset) {
 
