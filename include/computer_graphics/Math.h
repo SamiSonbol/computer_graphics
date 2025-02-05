@@ -808,9 +808,9 @@ static mat3 create_translation_matrix(const float& x, const float& y) {
 
 	return mat3(
 
-		1, 0, x,
-		0, 1, y,
-		0, 0, 1
+		1.0f, 0.0f, x,
+		0.0f, 1.0f, y,
+		0.0f, 0.0f, 1.0f
 
 	);
 
@@ -820,9 +820,9 @@ static mat3 create_translation_matrix(const vec2& translation_vector) {//@overri
 
 	return mat3(
 
-		1, 0, translation_vector.x,
-		0, 1, translation_vector.y,
-		0, 0, 1
+		1.0f, 0.0f, translation_vector.x,
+		0.0f, 1.0f, translation_vector.y,
+		0.0f, 0.0f, 1.0f
 
 	);
 
@@ -832,9 +832,9 @@ static mat3 create_scale_matrix(const float& x, const float& y) {
 
 	return mat3(
 
-		x, 0, 0,
-		0, y, 0,
-		0, 0, 1
+		x, 0.0f, 0.0f,
+		0.0f, y, 0.0f,
+		0.0f, 0.0f, 1.0f
 
 	);
 
@@ -844,9 +844,9 @@ static mat3 create_scale_matrix(const vec2& scale_vector) {//@override
 
 	return mat3(
 
-		scale_vector.x, 0, 0,
-		0, scale_vector.y, 0,
-		0, 0, 1
+		scale_vector.x, 0.0f, 0.0f,
+		0.0f, scale_vector.y, 0.0f,
+		0.0f, 0.0f, 1.0f
 
 	);
 
@@ -858,9 +858,9 @@ static mat3 create_rotation_matrix(const float& angle) {
 
 	return mat3(
 
-		std::cos(alpha), -std::sin(alpha), 0,
-		std::sin(alpha), std::cos(alpha), 0,
-		0, 0, 1
+		std::cos(alpha), -std::sin(alpha), 0.0f,
+		std::sin(alpha), std::cos(alpha), 0.0f,
+		0.0f, 0.0f, 1.0f
 
 	);
 
@@ -889,10 +889,10 @@ static mat4 create_translation_matrix(const float& x, const float& y, const floa
 
 	return mat4(
 
-		1, 0, 0, x,
-		0, 1, 0, y,
-		0, 0, 1, z,
-		0, 0, 0, 1
+		1.0f, 0.0f, 0.0f, x,
+		0.0f, 1.0f, 0.0f, y,
+		0.0f, 0.0f, 1.0f, z,
+		0.0f, 0.0f, 0.0f, 1.0f
 
 	);
 
@@ -902,10 +902,10 @@ static mat4 create_translation_matrix(const vec3& translation_vector) {//@overri
 
 	return mat4(
 
-		1, 0, 0, translation_vector.x,
-		0, 1, 0, translation_vector.y,
-		0, 0, 1, translation_vector.z,
-		0, 0, 0, 1
+		1.0f, 0.0f, 0.0f, translation_vector.x,
+		0.0f, 1.0f, 0.0f, translation_vector.y,
+		0.0f, 0.0f, 1.0f, translation_vector.z,
+		0.0f, 0.0f, 0.0f, 1.0f
 
 	);
 
@@ -915,10 +915,10 @@ static mat4 create_scale_matrix(const float& x, const float& y, const float& z) 
 
 	return mat4(
 
-		x, 0, 0, 0,
-		0, y, 0, 0,
-		0, 0, z, 0,
-		0, 0, 0, 1
+		x, 0.0f, 0.0f, 0.0f,
+		0.0f, y, 0.0f, 0.0f,
+		0.0f, 0.0f, z, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f
 
 	);
 
@@ -928,10 +928,10 @@ static mat4 create_scale_matrix(const vec3& scale_vector) {//@override
 
 	return mat4(
 
-		scale_vector.x, 0, 0, 0,
-		0, scale_vector.y, 0, 0,
-		0, 0, scale_vector.z, 0,
-		0, 0, 0, 1
+		scale_vector.x, 0.0f, 0.0f, 0.0f,
+		0.0f, scale_vector.y, 0.0f, 0.0f,
+		0.0f, 0.0f, scale_vector.z, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f
 
 	);
 
@@ -943,10 +943,10 @@ static mat4 create_X_rotation_matrix(const float& angle) {
 
 	return mat4(
 
-		1, 0, 0, 0,
-		0, std::cos(alpha), std::sin(alpha), 0,
-		0, -std::sin(alpha), std::cos(alpha), 0,
-		0, 0, 0, 1
+		1.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, std::cos(alpha), std::sin(alpha), 0.0f,
+		0.0f, -std::sin(alpha), std::cos(alpha), 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f
 
 	);
 
@@ -958,10 +958,10 @@ static mat4 create_Y_rotation_matrix(const float& angle) {
 
 	return mat4(
 
-		std::cos(alpha), 0, -std::sin(alpha), 0,
-		0, 1, 0, 0,
-		std::sin(alpha), 0, std::cos(alpha), 0,
-		0, 0, 0, 1
+		std::cos(alpha), 0.0f, -std::sin(alpha), 0.0f,
+		0.0f, 1.0f, 0.0f, 0.0f,
+		std::sin(alpha), 0.0f, std::cos(alpha), 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f
 
 	);
 
@@ -973,10 +973,10 @@ static mat4 create_Z_rotation_matrix(const float& angle) {
 
 	return mat4(
 
-		std::cos(alpha), std::sin(alpha), 0, 0,
-		-std::sin(alpha), std::cos(alpha), 0, 0,
-		0, 0, 1, 0,
-		0, 0, 0, 1
+		std::cos(alpha), std::sin(alpha), 0.0f, 0.0f,
+		-std::sin(alpha), std::cos(alpha), 0.0f, 0.0f,
+		0.0f, 0.0f, 1.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f
 
 	);
 
@@ -1011,7 +1011,7 @@ static mat4 create_model_transformation_matrix(const mat4& T, const mat4& S, con
 static mat4 create_view_matrix(const vec3& r, const vec3& u, const vec3& d, const vec3& camera) {//also known as lookAtMatrix
 
 	//here am basically taking r as X-axis, u as Y-axis, and d as Z-axis and using them to find the actual right, up, direction vectors
-	vec3 direction = vec3(0, 0, 0) - camera;
+	vec3 direction = vec3(0.0f, 0.0f, 0.0f) - camera;
 	direction = direction.normalize();
 
 	vec3 right = u.cross(direction);
@@ -1024,7 +1024,7 @@ static mat4 create_view_matrix(const vec3& r, const vec3& u, const vec3& d, cons
 		right.x, right.y, right.z, -right.dot(camera),
 		up.x, up.y, up.z, -up.dot(camera),
 		-direction.x, -direction.y, -direction.z, direction.dot(camera),
-		0, 0, 0, 1
+		0.0f, 0.0f, 0.0f, 1.0f
 
 	);
 
@@ -1042,10 +1042,10 @@ static mat4 create_parallel_projection_matrix(const float& fov, const float& scr
 
 	return mat4(
 
-		2 / (right - left), 0, 0, -(right + left) / (right - left),
-		0, 2 / (top - bottom), 0, -(top + bottom) / (top - bottom),
-		0, 0, -2 / (far - near), -(far + near) / (far - near),
-		0, 0, 0, 1
+		2.0f / (right - left), 0.0f, 0.0f, -(right + left) / (right - left),
+		0.0f, 2.0f / (top - bottom), 0.0f, -(top + bottom) / (top - bottom),
+		0.0f, 0.0f, -2.0f / (far - near), -(far + near) / (far - near),
+		0.0f, 0.0f, 0.0f, 1.0f
 
 	);
 
@@ -1063,10 +1063,10 @@ static mat4 create_frustum_projection_matrix(const float& fov, const float& scre
 
 	mat4 frustum = mat4(
 
-		(2 * near) / (right - left), 0, (right + left) / (right - left), 0,
-		0, (2 * near) / (top - bottom), (top + bottom) / (top - bottom), 0,
-		0, 0, (-far - near) / (far - near), (-2 * far * near) / (far - near),
-		0, 0, -1, 0
+		(2.0f * near) / (right - left), 0.0f, (right + left) / (right - left), 0.0f,
+		0.0f, (2.0f * near) / (top - bottom), (top + bottom) / (top - bottom), 0.0f,
+		0.0f, 0.0f, (-far - near) / (far - near), (-2.0f * far * near) / (far - near),
+		0.0f, 0.0f, -1.0f, 0.0f
 
 	);
 
@@ -1087,10 +1087,10 @@ static mat4 create_view_port_matrix(const float& fov, const float& screen_width,
 
 	return mat4(
 
-		screen_width / 2, 0, 0, left + (screen_width / 2),
-		0, screen_height / 2, 0, bottom + (screen_height / 2),
-		0, 0, (far - near) / 2, (far + near) / 2,
-		0, 0, 0, 1
+		screen_width / 2.0f, 0.0f, 0.0f, left + (screen_width / 2.0f),
+		0.0f, screen_height / 2.0f, 0.0f, bottom + (screen_height / 2.0f),
+		0.0f, 0.0f, (far - near) / 2.0f, (far + near) / 2.0f,
+		0.0f, 0.0f, 0.0f, 1.0f
 
 	);
 
@@ -1128,7 +1128,7 @@ static float get_area_of_triangle(const vec2& a, const vec2& b, const vec2& c) {
 	vec2 ab = b - a;
 	vec2 ac = c - a;
 
-	return 0.5 * get_determinant(ab, ac);
+	return 0.5f * get_determinant(ab, ac);
 
 };
 

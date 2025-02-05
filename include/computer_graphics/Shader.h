@@ -45,11 +45,10 @@ void main() {
 
 		float displacement_offset = texture(uDisplacement_map, aTexture_coordinates).r;
 		vPosition = displace(aPosition, aNormal, displacement_offset, displacement_scale); 
-        vPosition = (model_transformation_matrix * vec4(vPosition, 1)).xyz;
          
     } else {
 
-        vPosition = (model_transformation_matrix * vec4(aPosition, 1)).xyz;
+        vPosition = aPosition;
 
     };
     
@@ -60,7 +59,7 @@ void main() {
  
     vColor = aColor;
 
-    gl_Position = projection_matrix * view_matrix * vec4(vPosition, 1);
+    gl_Position = projection_matrix * view_matrix * model_transformation_matrix * vec4(vPosition, 1.0);
 
 };
 )";
@@ -348,7 +347,7 @@ static unsigned int compile_shader(const unsigned int& type, const std::string& 
 
 //generates a buffer from the inputted paramter and binds it OR binds the inputted buffer
 template<typename T>
-static void bind_buffer(const unsigned int& GL_ARRAY_TYPE, unsigned int* buffer, const std::vector<T>& buffer_data, const unsigned int& GL_DRAW_TYPE, const int& attribute_position, const int& attribute_size, const bool generate_buffer = false) {
+static void bind_buffer(const unsigned int& GL_ARRAY_TYPE, const bool& generate_buffer, unsigned int* buffer, const std::vector<T>& buffer_data, const unsigned int& GL_DRAW_TYPE, const int& attribute_position, const int& attribute_size) {
 
 	if (generate_buffer) {
 
@@ -369,9 +368,13 @@ static void bind_buffer(const unsigned int& GL_ARRAY_TYPE, unsigned int* buffer,
 
 };
 
-static void bind_texture(unsigned int* texture, const unsigned int& GL_TEXTUREindex, unsigned char* bytes, const int& texture_width, const int& texture_height, const int& n_color_channels, const bool& gamma_correction) {
+static void bind_texture(unsigned int* texture, const unsigned int& GL_TEXTUREindex, const bool& generate_texture, unsigned char* bytes, const int& texture_width, const int& texture_height, const int& n_color_channels, const bool& gamma_correction) {
 
-	glGenTextures(1, texture);/////////////////////////////////////
+	if (generate_texture) {
+
+		glGenTextures(1, texture);
+
+	};
 	glActiveTexture(GL_TEXTUREindex);
 	glBindTexture(GL_TEXTURE_2D, *texture);
 	if (*texture == 0) {
@@ -410,8 +413,6 @@ static void bind_texture(unsigned int* texture, const unsigned int& GL_TEXTUREin
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	
 	glGenerateMipmap(GL_TEXTURE_2D);
-
-	stbi_image_free(bytes);
 
 };
 
@@ -455,14 +456,11 @@ public:
 	};
 
 	unsigned int program;
-	std::vector<unsigned int> textures;//not used rn
 	unsigned int positions_buffer, normals_buffer, colors_buffer, indices_buffer, texture_coordinates_buffer, tangents_buffer, bitangents_buffer;
 
 	Shader(std::vector<unsigned int>& compiled_shaders_ids);
 	Shader(const std::string& vertex_shader, const std::string& geometry_shader, const std::string& fragment_shader);
 	
-	//binds all data inside a mesh to the all the buffers inside the shader in a standard way. MADE FOR FAST EASE OF USE.
-	void bind_mesh_buffers(Mesh& mesh);
 	void create_uniform_mat4(const std::vector<float>& data_vector, const char* uniform_name);
 	void create_uniform_vec3(const std::vector<float>& data_vector, const char* uniform_name);
 	void create_uniform_float(const float& data_variable, const char* uniform_name);
@@ -479,12 +477,9 @@ public:
 	void init_booleans(const bool& gamma_correction, const bool& texturing, const bool& normal_mapping, const bool& height_mapping);
 	void init_floats(const float& tesselation_multiplier, const float& displacement_scale);
 
-	void add_texture(Texture& texture, const bool& gamma_correction);
-	void add_textures(std::vector<Texture>& textures, const bool& gamma_correction);
-
 	//sets the transformation matrices and light vectors
-	void initialize(const vec2& screen_size, const vec3& right_vector, const vec3& up_vector, const vec3& direction_vector, const vec3& camera_position, const vec3& translation_vector, const vec3& scaling_vector, const vec3& rotation_vector, const vec3& light_position, const vec3& light_color, const vec4& material_properties, const bool& gamma_correction, const bool& texturing, const bool& normal_mapping, const bool& height_mapping, const float& tesselation_multiplier, const float& displacement_scale, std::vector<Texture>& textures);
-	void initialize(const vec2& screen_size, const graphics_vectors_container& vectors_container, const graphics_booleans_container& booleans_container, const graphics_floats_container& floats_container, std::vector<Texture>& textures);
+	void initialize(const vec2& screen_size, const vec3& right_vector, const vec3& up_vector, const vec3& direction_vector, const vec3& camera_position, const vec3& translation_vector, const vec3& scaling_vector, const vec3& rotation_vector, const vec3& light_position, const vec3& light_color, const vec4& material_properties, const bool& gamma_correction, const bool& texturing, const bool& normal_mapping, const bool& height_mapping, const float& tesselation_multiplier, const float& displacement_scale);
+	void initialize(const vec2& screen_size, const graphics_vectors_container& vectors_container, const graphics_booleans_container& booleans_container, const graphics_floats_container& floats_container);
 
 	void update_matrices(const vec3& right_vector, const vec3& up_vector, const vec3& direction_vector, const vec3& camera_position, const vec3& translation_vector, const vec3& scaling_vector, const vec3& rotation_vector);
 	void update_light(const vec3& light_position, const vec3& light_color, const vec4& material_properties);
@@ -494,8 +489,11 @@ public:
 	void update(const vec3& right_vector, const vec3& up_vector, const vec3& direction_vector, const vec3& camera_position, const vec3& translation_vector, const vec3& scaling_vector, const vec3& rotation_vector, const vec3& light_position, const vec3& light_color, const vec4& material_properties, const bool& gamma_correction, const bool& texturing, const bool& normal_mapping, const bool& height_mapping, const float& tesselation_multiplier, const float& displacement_scale);
 	void update(const graphics_vectors_container& vectors_container, const graphics_booleans_container& booleans_container, const graphics_floats_container& floats_container);
 
+	void bind_mesh_buffers(Mesh& mesh, const bool& gamma_correction);
+	void draw_mesh_elements(Mesh& mesh, const bool& gamma_correction, const unsigned int& GL_PRIMITIVE_TYPE);
+
+
 	void delete_buffers();
-	void delete_textures();
 	void delete_program();
 	void delete_all();
 

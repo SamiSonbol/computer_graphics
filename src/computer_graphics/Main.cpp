@@ -50,21 +50,22 @@ int main() {
 
 	
 	UI user_interface(window, (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION));
+	Mouse mouse = Mouse();
 	/*Texture river_pebbles(RESOURCES_DIR"/diffuse_maps/abra.png", "uTexture", GL_TEXTURE0, 0);
 	Texture river_pebbles_normal(RESOURCES_DIR"/normal_maps/abra_normal.png", "uNormal_map", GL_TEXTURE1, 1);
 	Texture river_pebbles_displacement(RESOURCES_DIR"/displacement_maps/abra_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);*/
 	
-	/*Texture river_pebbles(RESOURCES_DIR"/diffuse_maps/emma.png", "uTexture", GL_TEXTURE0, 0);
+	Texture river_pebbles(RESOURCES_DIR"/diffuse_maps/emma.png", "uTexture", GL_TEXTURE0, 0);
 	Texture river_pebbles_normal(RESOURCES_DIR"/normal_maps/emma_normal.png", "uNormal_map", GL_TEXTURE1, 1);
-	Texture river_pebbles_displacement(RESOURCES_DIR"/displacement_maps/emma_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);*/
+	Texture river_pebbles_displacement(RESOURCES_DIR"/displacement_maps/emma_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);
 
 	/*Texture river_pebbles(RESOURCES_DIR"/diffuse_maps/osna.png", "uTexture", GL_TEXTURE0, 0);
 	Texture river_pebbles_normal(RESOURCES_DIR"/normal_maps/osna_normal.png", "uNormal_map", GL_TEXTURE1, 1);
 	Texture river_pebbles_displacement(RESOURCES_DIR"/displacement_maps/osna_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);*/
 
-	Texture river_pebbles(RESOURCES_DIR"/diffuse_maps/mountain_range.png", "uTexture", GL_TEXTURE0, 0);
+	/*Texture river_pebbles(RESOURCES_DIR"/diffuse_maps/mountain_range.png", "uTexture", GL_TEXTURE0, 0);
 	Texture river_pebbles_normal(RESOURCES_DIR"/normal_maps/osna_normal.png", "uNormal_map", GL_TEXTURE1, 1);
-	Texture river_pebbles_displacement(RESOURCES_DIR"/displacement_maps/mountain_range_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);
+	Texture river_pebbles_displacement(RESOURCES_DIR"/displacement_maps/mountain_range_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);*/
 
 	/*Texture river_pebbles(RESOURCES_DIR"/diffuse_maps/rocky_rivers.png", "uTexture", GL_TEXTURE0, 0);
 	Texture river_pebbles_normal(RESOURCES_DIR"/normal_maps/osna_normal.png", "uNormal_map", GL_TEXTURE1, 1);
@@ -73,8 +74,11 @@ int main() {
 	/*Texture river_pebbles(RESOURCES_DIR"/diffuse_maps/ganges_river.png", "uTexture", GL_TEXTURE0, 0);
 	Texture river_pebbles_normal(RESOURCES_DIR"/normal_maps/ganges_river_normal.png", "uNormal_map", GL_TEXTURE1, 1);
 	Texture river_pebbles_displacement(RESOURCES_DIR"/displacement_maps/ganges_river_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);*/
-	Mesh mesh(river_pebbles, vec2(200, 200));
+	
+    Mesh mesh(std::move(river_pebbles), std::move(river_pebbles_normal), std::move(river_pebbles_displacement), vec2(50, 50));
 
+	/*since each object has its own own data buffers and textures inside *Mesh*, we dont need multiple vertex arrays, instead we simply bind said buffers to the shader every time we want to draw said object
+	we do that by using the *Shader::draw_mesh_elements* function, where this function binds the *Mesh* data and draws it directly*/
 	unsigned int vertex_array;
 	glGenVertexArrays(1, &vertex_array);
 	glBindVertexArray(vertex_array);
@@ -87,33 +91,26 @@ int main() {
 	Shader::graphics_vectors_container vectors_container = shader.create_standard_shader_vectors();
 	Shader::graphics_booleans_container booleans_container = shader.create_standard_shader_booleans();
 	Shader::graphics_floats_container floats_container = shader.create_standard_shader_floats();
-
-	std::vector<Texture> textures = { river_pebbles, river_pebbles_normal, river_pebbles_displacement };
-	shader.bind_mesh_buffers(mesh);
-	shader.initialize(screen_size, vectors_container, booleans_container, floats_container, textures);
+	shader.initialize(screen_size, vectors_container, booleans_container, floats_container);
 	user_interface.shader_debug_mode(vectors_container, booleans_container, floats_container);
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
 
 	glPatchParameteri(GL_PATCH_VERTICES, 3);
 	while (!glfwWindowShouldClose(window) && glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS) {
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glUseProgram(shader.program);
-		glBindVertexArray(vertex_array);
 
 		shader.update(vectors_container, booleans_container, floats_container);
 		user_interface.new_frame();
+		mouse.update_position(window);
+		mouse.plot_point(true, window, vectors_container, screen_size, mesh, mesh.colors, mesh.positions);
 
 		//glDrawArrays(GL_TRIANGLES, 0, mesh.positions.size());
-		//glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_SHORT, 0);
-		glDrawElements(GL_PATCHES, mesh.indices.size(), GL_UNSIGNED_SHORT, 0);
+		shader.draw_mesh_elements(mesh, booleans_container.gamma_correction, GL_PATCHES);
 
 		user_interface.update();
 		user_interface.render();
 
-		glBindVertexArray(0);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 

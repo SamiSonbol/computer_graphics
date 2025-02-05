@@ -1,5 +1,77 @@
 #include "computer_graphics/UI.h"
 
+void Mouse::update_position(GLFWwindow* window) {
+
+	glfwGetCursorPos(window, &this->position_x, &this->position_y);
+
+};
+
+bool Mouse::check_for_mouse_click(GLFWwindow* window) {
+
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) == GLFW_PRESS) {
+
+		return true;
+
+	};
+
+	return false;
+
+};
+
+void Mouse::plot_point(const bool& plot, GLFWwindow* window, const Shader::graphics_vectors_container& vectors_container, const vec2& screen_size, const Mesh& mesh, std::vector<vec3>& colors, std::vector<vec3>& positions) {
+
+	if (plot && check_for_mouse_click(window)) {
+		
+		mat4 model_transformation_matrix = create_model_transformation_matrix(vectors_container.translation_vector, vectors_container.scaling_vector, vectors_container.rotation_vector);
+		mat4 view_matrix = create_view_matrix(vectors_container.right_vector, vectors_container.up_vector, vectors_container.direction_vector, vectors_container.camera_position);
+		mat4 projection_matrix = create_frustum_projection_matrix(90.0f, screen_size.x, screen_size.y, 0.1f, 1000.0f);
+		mat4 view_port_matrix = create_view_port_matrix(90.0f, screen_size.x, screen_size.y, 0.1f, 1000.0f);
+		mat4 model_matrix = projection_matrix * view_matrix * model_transformation_matrix;
+
+		/*vec3 test0 = (model_matrix * vec4(this->position_x, this->position_y, 0, 1)).xyz();
+		vec3 test;
+		test.x = (2.0f * test0.x) / screen_size.x - 1.0f;
+		test.y = 1.0f - (2.0f * test0.y) / screen_size.y;
+		vec3 test_backwards = (model_matrix.inverse() * vec4(test0, 1.0f)).xyz();*/
+
+		vec3 pos(this->position_x, this->position_y, 0);
+		pos.x = (2.0f * pos.x) / screen_size.x - 1.0f;
+		pos.y = 1.0f - (2.0f * pos.y) / screen_size.y;
+		pos = pos * (mesh.mesh_dimensions / 2.0f);
+		pos = (model_matrix.inverse() * vec4(pos, 1)).xyz();
+		std::cout << "mouse position: "; print_vec(vec2(this->position_x, this->position_y));
+		std::cout << "position after transformations is: "; print_vec(pos);
+		//std::cout << "position before transformations should be: "; print_vec(pos_backwards);
+
+		for (auto& p : positions) {
+
+			if (p.xy() == pos.xy()) {
+
+				std::cout << "FOUND: "; print_vec(pos); std::cout << "pos of mouse: "; print_vec(vec2(this->position_x, this->position_y));
+
+			};
+
+		};
+		
+		auto key = std::make_pair(pos, pos.xy() / mesh.mesh_dimensions);
+		auto iterator = mesh.vertices_map.find(key);
+		if (iterator != mesh.vertices_map.end()) {
+
+			colors[iterator->second] = vec3(255, 0, 0);
+			std::cout << "pos in container: "; print_vec(pos); std::cout << "pos of mouse: "; print_vec(vec2(this->position_x, this->position_y));
+
+		};
+
+	};
+
+};
+
+void UI::Window::add_function(std::function<void()>&& lambda) {
+
+	this->functions.emplace_back(std::move(lambda));
+
+};
+
 void UI::Window::delete_function(const int& index) {
 
 	if (index < 0 || index > this->functions.size()) {
@@ -211,11 +283,10 @@ void UI::shader_debug_mode(Shader::graphics_vectors_container& vectors_container
 			ImGui::SeparatorText("Rotation");
 			this->vec3_float_sliders("Model Rotation", vectors_container.rotation_vector, vec2(0, 360));
 			ImGui::SeparatorText("Scale");
-			this->vec3_vertical_float_sliders("Model Scale", vectors_container.scaling_vector, vec2(-20, 20), vec2(40, 100));
-			ImGui::SameLine();
-			ImGui::VSliderFloat("Tesselation Multiplier", ImVec2(40, 100), &floats_container.tesselation_multiplier, 0.0f, 1000.0f);
-			ImGui::SameLine();
-			ImGui::VSliderFloat("Displacement Scale", ImVec2(40, 100), &floats_container.displacement_scale, 0.0f, 1000.0f);
+			this->vec3_vertical_float_sliders("Model Scale", vectors_container.scaling_vector, vec2(-20, 20), vec2(75, 100));
+			ImGui::SeparatorText("Tesselation & Displacement");
+			ImGui::SliderFloat("Tesselation Multiplier", &floats_container.tesselation_multiplier, 0.0f, 1000.0f);
+			ImGui::SliderFloat("Displacement Scale", &floats_container.displacement_scale, 0.0f, 100.0f);
 
 		};
 

@@ -105,13 +105,6 @@ std::vector<float> Texture::generate_normal_map() {
 
 };
 
-//freeing the bytes so we wont have memory leeks
-void Texture::free_bytes() {
-
-	stbi_image_free(this->bytes);
-
-};
-
 //checks if file exists
 bool Texture::check_if_file_exists(const std::string& file_path) {
 
@@ -142,11 +135,59 @@ Texture::Texture(const std::string& file_path, const char* uniform_name, const u
 
 };
 
-//*Texture* class destructor
+Texture::Texture(Texture&& other) noexcept : width(other.width), height(other.height), n_color_channels(other.n_color_channels), index(other.index), GL_TEXTUREindex(other.GL_TEXTUREindex), texture_ID(other.texture_ID), uniform_name(other.uniform_name), bytes(other.bytes) {
+
+	//nullify the moved-from object (but DO NOT free it)
+	other.bytes = nullptr;
+	other.uniform_name = nullptr;
+	other.width = 0;
+	other.height = 0;
+	other.n_color_channels = 0;
+
+};
+
+Texture& Texture::operator=(Texture&& other) noexcept {
+
+	if (this != &other) {
+
+		//free existing resources (only if they exist)
+		if (bytes) {
+
+			stbi_image_free(bytes);
+
+		};
+
+		//move resources
+		width = other.width;
+		height = other.height;
+		n_color_channels = other.n_color_channels;
+		index = other.index;
+		GL_TEXTUREindex = other.GL_TEXTUREindex;
+		texture_ID = other.texture_ID;
+		uniform_name = other.uniform_name;
+		bytes = other.bytes;
+
+		//nullify the moved-from object (DO NOT free it)
+		other.bytes = nullptr;
+		other.uniform_name = nullptr;
+		other.width = 0;
+		other.height = 0;
+		other.n_color_channels = 0;
+
+	};
+
+	return *this;
+
+};
+
 Texture::~Texture() {
 
-	this->uniform_name = nullptr;
-	this->bytes = nullptr;
+	if (bytes) {//only free if not null
+
+		stbi_image_free(bytes);
+		bytes = nullptr;
+
+	};
 
 };
 
@@ -212,7 +253,7 @@ void Mesh::init_grid() {
 	b  ------  d */
 	//this->mesh_dimensions = vec2(600, 600);
 	vec3 half_size(this->mesh_dimensions/2, 0);
-	vec3 color(1, 1, 1);
+	vec3 color(0, 255, 0);
 	
 	//we traverse the grid by going to every row where we work on every column on said row.
 	int index_counter = 0;
@@ -284,7 +325,7 @@ void Mesh::fill_data() {
 
 	init_grid();
 
-	std::cout << "actual texture width: " << this->texture.width << " actual texture height: " << this->texture.height << " model dimensions: "; print_vec(this->mesh_dimensions);
+	std::cout << "actual texture width: " << this->diffuse_map.width << " actual texture height: " << this->diffuse_map.height << " model dimensions: "; print_vec(this->mesh_dimensions);
 	std::cout << "n_vertices: " << positions.size() << std::endl;
 	std::cout << "n_indices: " << indices.size() << std::endl;
 	std::cout << "n_uv_coords: " << this->texture_coordinates.size() << std::endl;
@@ -292,12 +333,15 @@ void Mesh::fill_data() {
 
 };//"fill data" bracket
 
-Mesh::Mesh(Texture& texture, const vec2& mesh_dimensions) : texture(texture), mesh_dimensions(mesh_dimensions) {
+Mesh::Mesh(Texture&& diffuse_map, Texture&& normal_map, Texture&& displacement_map, const vec2& mesh_dimensions) : generate_buffers_and_textures(true), diffuse_map(std::move(diffuse_map)), normal_map(std::move(normal_map)), displacement_map(std::move(displacement_map)), mesh_dimensions(mesh_dimensions) {
 
 	fill_data();
 	std::cout << "filled data\n";
 
-	this->vertices_map.clear();
+	//this->vertices_map.clear();
 	std::cout << "cleared Grid\n";
 
+	this->colors[this->colors.size() - 1] = vec3(255, 0, 0);
+
 };
+

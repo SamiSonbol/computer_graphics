@@ -20,6 +20,21 @@ struct label_hasher {
 
 };
 
+class Mouse {
+
+ public:
+
+	 vec2 position;
+	 double position_x;
+	 double position_y;
+
+	 void update_position(GLFWwindow* window);
+	 bool check_for_mouse_click(GLFWwindow* window);
+	 void plot_point(const bool& plot, GLFWwindow* window, const Shader::graphics_vectors_container& vectors_container, const vec2& screen_size, const Mesh& mesh, std::vector<vec3>& colors, std::vector<vec3>& positions);
+
+
+};
+
 class UI {
 
  public:
@@ -31,11 +46,7 @@ class UI {
 		std::string label;
 		std::vector<std::function<void()>> functions;
 
-		void add_function(std::function<void()>&& lambda) {
-			
-			functions.emplace_back(std::move(lambda));
-
-		};
+		void add_function(std::function<void()>&& lambda);
 		void delete_function(const int& index);
 
 		void update();

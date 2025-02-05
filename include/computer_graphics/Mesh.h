@@ -74,12 +74,19 @@ class Texture {
 	const char* uniform_name;
 	unsigned char* bytes;
 
-	void free_bytes();
 	bool check_if_file_exists(const std::string& file_path);
-	Texture(const std::string& file_path, const char* uniform_name, const unsigned int& GL_TEXTUREindex, const int& index);
-
 	std::vector<float> generate_normal_map();
 
+	//since *Texture.bytes* will be used inside openGL and will be moved/copied inside an instance of *Mesh* we need to make sure that there is no 2 copies of *Texture* that hold the same pointer, hence we need to nullify the original instance if it was moved
+	Texture(const std::string& file_path, const char* uniform_name, const unsigned int& GL_TEXTUREindex, const int& index);
+
+	//copy operator
+	Texture(Texture&& other) noexcept;
+
+	//move assignment operator
+	Texture& operator=(Texture&& other) noexcept;
+
+	//destructor
 	~Texture();
 
 };
@@ -88,7 +95,10 @@ class Mesh {
 
  public:
 
-	Texture texture;
+	Texture diffuse_map;
+	Texture normal_map;
+	Texture displacement_map;
+
 	vec2 mesh_dimensions;
 	std::unordered_map<std::pair<vec3, vec2>, unsigned short, vec3_and_vec2_hasher> vertices_map;
 
@@ -100,6 +110,9 @@ class Mesh {
 	std::vector<vec2> texture_coordinates;
 	std::vector<vec3> colors;
 
+	//used as a signal to the shader to decide if buffers and textures of this mesh have been already generated or not
+	bool generate_buffers_and_textures;
+
 	void check_accumalate_add(Vertex& vertex, int& index_counter);
 	void check_accumalate_add(Triangle& triangle, int& index_counter);
 
@@ -108,6 +121,6 @@ class Mesh {
 	void init_grid();
 	void fill_data();
 
-	Mesh(Texture& texture, const vec2& mesh_dimensions);
+	Mesh(Texture&& diffuse_map, Texture&& normal_map, Texture&& displacement_map, const vec2& mesh_dimensions);
 
 };
