@@ -18,32 +18,100 @@ bool Mouse::check_for_mouse_click(GLFWwindow* window) {
 
 };
 
-void Mouse::plot_point(const bool& plot, GLFWwindow* window, const Shader::graphics_vectors_container& vectors_container, const vec2& screen_size, const Mesh& mesh, std::vector<vec3>& colors, std::vector<vec3>& positions) {
+vec2 Mouse::from_screen_to_NDC(const vec2& screen_position, const vec2& screen_size) {
+
+	return vec2((screen_position.x / screen_size.x) * 2.0f - 1.0f, 1.0f - (screen_position.y / screen_size.y) * 2.0f);
+
+};
+
+vec3 Mouse::from_screen_to_model(const vec2& screen_position, const vec2& screen_size, const mat4& projection_matrix, const mat4& view_matrix, const mat4& model_matrix) {
+
+	vec2 pos_ndc = this->from_screen_to_NDC(screen_position, screen_size);
+	vec4 pos_world = (projection_matrix * view_matrix).inverse() * vec4(pos_ndc, -1, 1);
+	pos_world /= pos_world.w;
+	pos_world.w = 1;
+
+	return (model_matrix.inverse() * pos_world).xyz();
+
+};
+
+vec2 Mouse::from_model_to_screen(const vec3& model_position, const vec2& screen_size, const mat4& projection_matrix, const mat4& view_matrix, const mat4& model_matrix) {
+
+	vec4 pos_clip = projection_matrix * view_matrix * model_matrix * vec4(model_position, 1);
+	pos_clip /= pos_clip.w;
+	return vec2((pos_clip.x + 1.0) * 0.5 * screen_size.x, (1.0 - pos_clip.y) * 0.5 * screen_size.y);
+
+};
+
+void Mouse::plot_point(const bool& plot, GLFWwindow* window, const Shader::graphics_vectors_container& vectors_container, const vec2& screen_size, Mesh& mesh, std::vector<vec3>& colors, std::vector<vec3>& positions) {
 
 	if (plot && check_for_mouse_click(window)) {
-		
+
 		mat4 model_transformation_matrix = create_model_transformation_matrix(vectors_container.translation_vector, vectors_container.scaling_vector, vectors_container.rotation_vector);
 		mat4 view_matrix = create_view_matrix(vectors_container.right_vector, vectors_container.up_vector, vectors_container.direction_vector, vectors_container.camera_position);
 		mat4 projection_matrix = create_frustum_projection_matrix(90.0f, screen_size.x, screen_size.y, 0.1f, 1000.0f);
-		mat4 view_port_matrix = create_view_port_matrix(90.0f, screen_size.x, screen_size.y, 0.1f, 1000.0f);
-		mat4 model_matrix = projection_matrix * view_matrix * model_transformation_matrix;
+		mat4 viewport_matrix = create_static_view_port_matrix(screen_size.x, screen_size.y);
 
-		/*vec3 test0 = (model_matrix * vec4(this->position_x, this->position_y, 0, 1)).xyz();
-		vec3 test;
-		test.x = (2.0f * test0.x) / screen_size.x - 1.0f;
-		test.y = 1.0f - (2.0f * test0.y) / screen_size.y;
-		vec3 test_backwards = (model_matrix.inverse() * vec4(test0, 1.0f)).xyz();*/
+		float model_min_x = -mesh.mesh_dimensions.x / 2;
+		float model_max_x = mesh.mesh_dimensions.x / 2;
+		float model_min_y = -mesh.mesh_dimensions.y / 2;
+		float model_max_y = mesh.mesh_dimensions.y / 2;
 
-		vec3 pos(this->position_x, this->position_y, 0);
-		pos.x = (2.0f * pos.x) / screen_size.x - 1.0f;
-		pos.y = 1.0f - (2.0f * pos.y) / screen_size.y;
-		pos = pos * (mesh.mesh_dimensions / 2.0f);
-		pos = (model_matrix.inverse() * vec4(pos, 1)).xyz();
+		for (const vec3& vertex : positions) {
+			vec3 transformed = (model_transformation_matrix * vec4(vertex, 1.0f)).xyz();
+
+			model_min_x = std::min(model_min_x, transformed.x);
+			model_max_x = std::max(model_max_x, transformed.x);
+			model_min_y = std::min(model_min_y, transformed.y);
+			model_max_y = std::max(model_max_y, transformed.y);
+		};
+		vec2 viewport_size = vec2(fabs(model_max_x - model_min_x),fabs(model_max_y - model_min_y));
+
+		vec2 pos(this->position_x, this->position_y);
+		vec3 pos_model = this->from_screen_to_model(pos, screen_size, projection_matrix, view_matrix, model_transformation_matrix);
+		//pos_model *= mesh.mesh_dimensions;
+		std::cout << "mouse position in Screen space: "; print_vec(pos);
+		std::cout << "mouse position in Model space: "; print_vec(pos_model);
+
+		vec3 top_left_pos(positions[positions.size() - 1]);
+		vec3 top_left_pos_screen = this->from_model_to_screen(top_left_pos, screen_size, projection_matrix, view_matrix, model_transformation_matrix);
+		std::cout << "top_left_pos position in Model space: "; print_vec(top_left_pos);
+		std::cout << "top_left_pos position in Screen space: "; print_vec(top_left_pos_screen);
+
+		vec2 uv = (pos_model.xy() - vec2(model_min_x, model_min_y)) / viewport_size;
+		//uv.x = (pos_model.x + mesh.mesh_dimensions.x / 2) / mesh.mesh_dimensions.x;
+		//uv.y = (pos_model.y + mesh.mesh_dimensions.y / 2) / mesh.mesh_dimensions.y;
+		uv *= vec2(mesh.diffuse_map.width, mesh.diffuse_map.height);
+		std::cout << "UV: "; print_vec(uv);
+
+		//vec4 pos(this->position_x, this->position_y, 0);
+		/*pos = vec4((pos.x / screen_size.x) * 2.0f - 1.0f, 1.0f - (pos.y / screen_size.y) * 2.0f, 0, 1);
+		pos = (projection_matrix * view_matrix).inverse() * pos;
+		pos /= pos.w;
+	    pos = model_transformation_matrix.inverse() * pos;*/
+		/*vec4 pos_model = model_transformation_matrix * pos;
+		vec4 pos_world = projection_matrix * view_matrix * pos_model;
+		pos_world /= pos_world.w;
+		vec4 pos_ndc = viewport_matrix * pos_world;
 		std::cout << "mouse position: "; print_vec(vec2(this->position_x, this->position_y));
-		std::cout << "position after transformations is: "; print_vec(pos);
-		//std::cout << "position before transformations should be: "; print_vec(pos_backwards);
+		std::cout << "position: "; print_vec(pos);
+		std::cout << "position at Model space: "; print_vec(pos_model.xyz());
+		std::cout << "position at World space: "; print_vec(pos_world.xyz());
+		std::cout << "position at Screen: "; print_vec(pos_ndc.xyz());	*/
+		//vec2 tetxure_dimensions(mesh.diffuse_map.width, mesh.diffuse_map.height);
+		//mat3 screen_system(vec3(screen_size.x, 0, 0), vec3(0, screen_size.y, 0), vec3(0, 0, 1));
+		//mat3 model_system(vec3(mesh.mesh_dimensions.x, 0, 0), vec3(0, mesh.mesh_dimensions.y, 0), vec3(0, 0, 1));
+		//mat3 texture_system(vec3(tetxure_dimensions.x, 0, 0), vec3(0, tetxure_dimensions.y, 0), vec3(0, 0, 1));
+		////pos *= tetxure_dimensions;
+		//mat3 StM = model_system.inverse() * screen_system;
+		//mat3 MtT = texture_system.inverse() * StM;
+		//vec3 uv = MtT * pos.xyz();
+		//std::cout << "UV: "; print_vec(uv);
+		//uv /= tetxure_dimensions;
+		mesh.diffuse_map.set_pixel_color(uv.x, uv.y, vec4(255, 0, 0, 255));
 
-		for (auto& p : positions) {
+
+		/*for (auto& p : positions) {
 
 			if (p.xy() == pos.xy()) {
 
@@ -51,16 +119,17 @@ void Mouse::plot_point(const bool& plot, GLFWwindow* window, const Shader::graph
 
 			};
 
-		};
+		};*/
 		
-		auto key = std::make_pair(pos, pos.xy() / mesh.mesh_dimensions);
+		/*/auto key = std::make_pair(pos_model.xyz(), pos_model.xy() / mesh.mesh_dimensions);
 		auto iterator = mesh.vertices_map.find(key);
 		if (iterator != mesh.vertices_map.end()) {
 
+			std::cout << "Found\n";
 			colors[iterator->second] = vec3(255, 0, 0);
-			std::cout << "pos in container: "; print_vec(pos); std::cout << "pos of mouse: "; print_vec(vec2(this->position_x, this->position_y));
+			std::cout << "pos in container: "; print_vec(pos_model.xyz());
 
-		};
+		};*/
 
 	};
 
@@ -268,7 +337,7 @@ void UI::vec4_color_picker(const std::string& label, vec4& RGBA) {
 
 };
 
-void UI::shader_debug_mode(Shader::graphics_vectors_container& vectors_container, Shader::graphics_booleans_container& booleans_container, Shader::graphics_floats_container& floats_container) {
+void UI::shader_debug_mode(Shader::graphics_vectors_container& vectors_container, Shader::graphics_booleans_container& booleans_container, Shader::graphics_floats_container& floats_container, bool& plot) {
 
 	this->windows.clear();
 	this->add_window("Transformations");
@@ -285,8 +354,9 @@ void UI::shader_debug_mode(Shader::graphics_vectors_container& vectors_container
 			ImGui::SeparatorText("Scale");
 			this->vec3_vertical_float_sliders("Model Scale", vectors_container.scaling_vector, vec2(-20, 20), vec2(75, 100));
 			ImGui::SeparatorText("Tesselation & Displacement");
-			ImGui::SliderFloat("Tesselation Multiplier", &floats_container.tesselation_multiplier, 0.0f, 1000.0f);
-			ImGui::SliderFloat("Displacement Scale", &floats_container.displacement_scale, 0.0f, 100.0f);
+			ImGui::Checkbox("Height Mapping", &booleans_container.displacement_mapping);
+			ImGui::SliderFloat("Tesselation Multiplier", &floats_container.tesselation_multiplier, 0.0f, 500.0f);
+			ImGui::SliderFloat("Displacement Scale", &floats_container.displacement_scale, 0.0f, 500.0f);
 
 		};
 
@@ -302,8 +372,6 @@ void UI::shader_debug_mode(Shader::graphics_vectors_container& vectors_container
 			ImGui::Checkbox("Texturing", &booleans_container.texturing);
 			ImGui::SameLine();
 			ImGui::Checkbox("Normal Mapping", &booleans_container.normal_mapping);
-			ImGui::SameLine();
-			ImGui::Checkbox("Height Mapping", &booleans_container.height_mapping);
 
 			this->vec3_color_picker("Light Color", vectors_container.light_color);
 			ImGui::SeparatorText("Translation");
@@ -332,6 +400,17 @@ void UI::shader_debug_mode(Shader::graphics_vectors_container& vectors_container
 		};
 
 	});
+
+	this->windows["Transformations"].add_function([&]() {
+
+		if (ImGui::CollapsingHeader("Mouse")) {
+
+			ImGui::SeparatorText("Plotting");
+			ImGui::Checkbox("Plot", &plot);
+
+		};
+
+		});
 
 };
 
@@ -367,7 +446,7 @@ UI::UI(GLFWwindow* window, const std::string& GLSL_VERSION) {
 	this->IO = &ImGui::GetIO();
 
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
-	ImGui_ImplOpenGL3_Init("#version 330 core");
+	ImGui_ImplOpenGL3_Init("#version 440 core");
 	ImGui::StyleColorsDark();
 
 };

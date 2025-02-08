@@ -382,6 +382,8 @@ public:
 
 	vec4(const vec3& vec, const float& w = 1.0f) : x(vec.x), y(vec.y), z(vec.z), w(w) {};//override
 
+	vec4(const vec2& vec, const float z = 0.0f, const float& w = 1.0f) : x(vec.x), y(vec.y), z(z), w(w) {};//override
+
 	float magnitude() const {
 
 		return std::sqrt(this->x * this->x + this->y * this->y + this->z * this->z + this->w * this->w);
@@ -590,15 +592,11 @@ public:
 
 	};
 
-	mat3 transpose() const {
-
-		return mat3(
-
-			this->a11, this->a21, this->a31,
-			this->a12, this->a22, this->a32,
-			this->a13, this->a23, this->a33
-
-		);
+	mat3(const vec3& X, const vec3& Y, const vec3& Z)://override
+	
+		a11(X.x), a12(Y.x), a13(Z.x),
+		a21(X.y), a22(Y.y), a23(Z.y),
+		a31(X.z), a32(Y.z), a33(Z.z) {
 
 	};
 
@@ -638,6 +636,54 @@ public:
 
 	};
 
+	mat3 transpose() const {
+
+		return mat3(
+
+			this->a11, this->a21, this->a31,
+			this->a12, this->a22, this->a32,
+			this->a13, this->a23, this->a33
+
+		);
+
+	};
+
+	mat3 cofactor() const {
+
+		return mat3(
+
+			(this->a22 * this->a33 - this->a23 * this->a32), -(this->a12 * this->a33 - this->a13 * this->a32), (this->a12 * this->a23 - this->a13 * this->a22),
+			-(this->a21 * this->a33 - this->a23 * this->a31), (this->a11 * this->a33 - this->a13 * this->a31), -(this->a11 * this->a23 - this->a13 * this->a21),
+			(this->a21 * this->a32 - this->a22 * this->a31), -(this->a11 * this->a32 - this->a12 * this->a31), (this->a11 * this->a22 - this->a12 * this->a21)
+			
+		);
+
+
+	};
+
+	float determinate() const {
+
+		return   this->a11 * (this->a22 * this->a33 - this->a23 * this->a32)
+		       - this->a12 * (this->a21 * this->a33 - this->a23 * this->a31)
+		       + this->a13 * (this->a21 * this->a32 - this->a22 * this->a31);
+
+	};
+
+	mat3 inverse() const {
+
+		float det = this->determinate();
+		if (det == 0) {
+
+			std::cerr << "Matrix is singular and cannot be inverted\n";
+			return mat3();
+
+		};
+
+		mat3 adjugate = this->cofactor().transpose();
+		return adjugate * (1.0f / det);
+
+	};
+
 	std::vector<float> to_GL() const {
 
 		return {
@@ -674,17 +720,13 @@ public:
 		a41(a41), a42(a42), a43(a43), a44(a44) {
 
 	};
+	
+	mat4(const vec4& X, const vec4& Y, const vec4& Z, const vec4& W) ://override
 
-	mat4 transpose() const {
-
-		return mat4(
-
-			this->a11, this->a21, this->a31, this->a41,
-			this->a12, this->a22, this->a32, this->a42,
-			this->a13, this->a23, this->a33, this->a43,
-			this->a14, this->a24, this->a34, this->a44
-
-		);
+		a11(X.x), a12(Y.x), a13(Z.x), a14(W.x),
+		a21(X.y), a22(Y.y), a23(Z.y), a24(W.y),
+		a31(X.z), a32(Y.z), a33(Z.z), a34(W.z),
+	    a41(X.w), a42(Y.w), a43(Z.w), a44(W.w) {
 
 	};
 
@@ -741,46 +783,111 @@ public:
 
 	};
 
-	mat4 inverse() const {
-
-		float det = a11 * (a22 * (a33 * a44 - a34 * a43) - a23 * (a32 * a44 - a34 * a42) + a24 * (a32 * a43 - a33 * a42))
-			- a12 * (a21 * (a33 * a44 - a34 * a43) - a23 * (a31 * a44 - a34 * a41) + a24 * (a31 * a43 - a33 * a41))
-			+ a13 * (a21 * (a32 * a44 - a34 * a42) - a22 * (a31 * a44 - a34 * a41) + a24 * (a31 * a42 - a32 * a41))
-			- a14 * (a21 * (a32 * a43 - a33 * a42) - a22 * (a31 * a43 - a33 * a41) + a23 * (a31 * a42 - a32 * a41));
-
-		if (det == 0) {
-
-			std::cerr << "Matrix is singular and cannot be inverted." << std::endl;
-			return mat4(); // Return identity or some error indicator
-
-		};
-
-		float inv_det = 1.0f / det;
+	mat4 transpose() const {
 
 		return mat4(
 
-			inv_det * (a22 * (a33 * a44 - a34 * a43) - a23 * (a32 * a44 - a34 * a42) + a24 * (a32 * a43 - a33 * a42)),
-			inv_det * -(a12 * (a33 * a44 - a34 * a43) - a13 * (a32 * a44 - a34 * a42) + a14 * (a32 * a43 - a33 * a42)),
-			inv_det * (a12 * (a23 * a44 - a24 * a43) - a13 * (a22 * a44 - a24 * a42) + a14 * (a22 * a43 - a23 * a42)),
-			inv_det * -(a12 * (a23 * a34 - a24 * a33) - a13 * (a22 * a34 - a24 * a32) + a14 * (a22 * a33 - a23 * a32)),
-
-			inv_det * -(a21 * (a33 * a44 - a34 * a43) - a23 * (a31 * a44 - a34 * a41) + a24 * (a31 * a43 - a33 * a41)),
-			inv_det * (a11 * (a33 * a44 - a34 * a43) - a13 * (a31 * a44 - a34 * a41) + a14 * (a31 * a43 - a33 * a41)),
-			inv_det * -(a11 * (a23 * a44 - a24 * a43) - a13 * (a21 * a44 - a24 * a41) + a14 * (a21 * a43 - a23 * a41)),
-			inv_det * (a11 * (a23 * a34 - a24 * a33) - a13 * (a21 * a34 - a24 * a31) + a14 * (a21 * a33 - a23 * a31)),
-
-			inv_det * (a21 * (a32 * a44 - a34 * a42) - a22 * (a31 * a44 - a34 * a41) + a24 * (a31 * a42 - a32 * a41)),
-			inv_det * -(a11 * (a32 * a44 - a34 * a42) - a12 * (a31 * a44 - a34 * a41) + a14 * (a31 * a42 - a32 * a41)),
-			inv_det * (a11 * (a22 * a44 - a24 * a42) - a12 * (a21 * a44 - a24 * a41) + a14 * (a21 * a42 - a22 * a41)),
-			inv_det * -(a11 * (a22 * a34 - a24 * a32) - a12 * (a21 * a34 - a24 * a31) + a14 * (a21 * a32 - a22 * a31)),
-
-			inv_det * -(a21 * (a32 * a43 - a33 * a42) - a22 * (a31 * a43 - a33 * a41) + a23 * (a31 * a42 - a32 * a41)),
-			inv_det * (a11 * (a32 * a43 - a33 * a42) - a12 * (a31 * a43 - a33 * a41) + a13 * (a31 * a42 - a32 * a41)),
-			inv_det * -(a11 * (a22 * a43 - a23 * a42) - a12 * (a21 * a43 - a23 * a41) + a13 * (a21 * a42 - a22 * a41)),
-			inv_det * (a11 * (a22 * a33 - a23 * a32) - a12 * (a21 * a33 - a23 * a31) + a13 * (a21 * a32 - a22 * a31))
+			this->a11, this->a21, this->a31, this->a41,
+			this->a12, this->a22, this->a32, this->a42,
+			this->a13, this->a23, this->a33, this->a43,
+			this->a14, this->a24, this->a34, this->a44
 
 		);
-	}
+
+	};
+
+	mat4 cofactor() const {
+
+		mat4 cofactor;
+
+		cofactor.a11 = mat3(this->a22, this->a23, this->a24, this->a32, this->a33, this->a34, this->a42, this->a43, this->a44).determinate();
+		cofactor.a12 = -mat3(this->a21, this->a23, this->a24, this->a31, this->a33, this->a34, this->a41, this->a43, this->a44).determinate();
+		cofactor.a13 = mat3(this->a21, this->a22, this->a24, this->a31, this->a32, this->a34, this->a41, this->a42, this->a44).determinate();
+		cofactor.a14 = -mat3(this->a21, this->a22, this->a23, this->a31, this->a32, this->a33, this->a41, this->a42, this->a43).determinate();
+
+		cofactor.a21 = -mat3(this->a12, this->a13, this->a14, this->a32, this->a33, this->a34, this->a42, this->a43, this->a44).determinate();
+		cofactor.a22 = mat3(this->a11, this->a13, this->a14, this->a31, this->a33, this->a34, this->a41, this->a43, this->a44).determinate();
+		cofactor.a23 = -mat3(this->a11, this->a12, this->a14, this->a31, this->a32, this->a34, this->a41, this->a42, this->a44).determinate();
+		cofactor.a24 = mat3(this->a11, this->a12, this->a13, this->a31, this->a32, this->a33, this->a41, this->a42, this->a43).determinate();
+
+		cofactor.a31 = mat3(this->a12, this->a13, this->a14, this->a22, this->a23, this->a24, this->a42, this->a43, this->a44).determinate();
+		cofactor.a32 = -mat3(this->a11, this->a13, this->a14, this->a21, this->a23, this->a24, this->a41, this->a43, this->a44).determinate();
+		cofactor.a33 = mat3(this->a11, this->a12, this->a14, this->a21, this->a22, this->a24, this->a41, this->a42, this->a44).determinate();
+		cofactor.a34 = -mat3(this->a11, this->a12, this->a13, this->a21, this->a22, this->a23, this->a41, this->a42, this->a43).determinate();
+
+		cofactor.a41 = -mat3(this->a12, this->a13, this->a14, this->a22, this->a23, this->a24, this->a32, this->a33, this->a34).determinate();
+		cofactor.a42 = mat3(this->a11, this->a13, this->a14, this->a21, this->a23, this->a24, this->a31, this->a33, this->a34).determinate();
+		cofactor.a43 = -mat3(this->a11, this->a12, this->a14, this->a21, this->a22, this->a24, this->a31, this->a32, this->a34).determinate();
+		cofactor.a44 = mat3(this->a11, this->a12, this->a13, this->a21, this->a22, this->a23, this->a31, this->a32, this->a33).determinate();
+
+		return cofactor;
+
+	};
+
+	//mat4 inverse() const {
+
+	//	float det = a11 * (a22 * (a33 * a44 - a34 * a43) - a23 * (a32 * a44 - a34 * a42) + a24 * (a32 * a43 - a33 * a42))
+	//		- a12 * (a21 * (a33 * a44 - a34 * a43) - a23 * (a31 * a44 - a34 * a41) + a24 * (a31 * a43 - a33 * a41))
+	//		+ a13 * (a21 * (a32 * a44 - a34 * a42) - a22 * (a31 * a44 - a34 * a41) + a24 * (a31 * a42 - a32 * a41))
+	//		- a14 * (a21 * (a32 * a43 - a33 * a42) - a22 * (a31 * a43 - a33 * a41) + a23 * (a31 * a42 - a32 * a41));
+
+	//	if (det == 0) {
+
+	//		std::cerr << "Matrix is singular and cannot be inverted." << std::endl;
+	//		return mat4(); // Return identity or some error indicator
+
+	//	};
+
+	//	float inv_det = 1.0f / det;
+
+	//	return mat4(
+
+	//		inv_det * (a22 * (a33 * a44 - a34 * a43) - a23 * (a32 * a44 - a34 * a42) + a24 * (a32 * a43 - a33 * a42)),
+	//		inv_det * -(a12 * (a33 * a44 - a34 * a43) - a13 * (a32 * a44 - a34 * a42) + a14 * (a32 * a43 - a33 * a42)),
+	//		inv_det * (a12 * (a23 * a44 - a24 * a43) - a13 * (a22 * a44 - a24 * a42) + a14 * (a22 * a43 - a23 * a42)),
+	//		inv_det * -(a12 * (a23 * a34 - a24 * a33) - a13 * (a22 * a34 - a24 * a32) + a14 * (a22 * a33 - a23 * a32)),
+
+	//		inv_det * -(a21 * (a33 * a44 - a34 * a43) - a23 * (a31 * a44 - a34 * a41) + a24 * (a31 * a43 - a33 * a41)),
+	//		inv_det * (a11 * (a33 * a44 - a34 * a43) - a13 * (a31 * a44 - a34 * a41) + a14 * (a31 * a43 - a33 * a41)),
+	//		inv_det * -(a11 * (a23 * a44 - a24 * a43) - a13 * (a21 * a44 - a24 * a41) + a14 * (a21 * a43 - a23 * a41)),
+	//		inv_det * (a11 * (a23 * a34 - a24 * a33) - a13 * (a21 * a34 - a24 * a31) + a14 * (a21 * a33 - a23 * a31)),
+
+	//		inv_det * (a21 * (a32 * a44 - a34 * a42) - a22 * (a31 * a44 - a34 * a41) + a24 * (a31 * a42 - a32 * a41)),
+	//		inv_det * -(a11 * (a32 * a44 - a34 * a42) - a12 * (a31 * a44 - a34 * a41) + a14 * (a31 * a42 - a32 * a41)),
+	//		inv_det * (a11 * (a22 * a44 - a24 * a42) - a12 * (a21 * a44 - a24 * a41) + a14 * (a21 * a42 - a22 * a41)),
+	//		inv_det * -(a11 * (a22 * a34 - a24 * a32) - a12 * (a21 * a34 - a24 * a31) + a14 * (a21 * a32 - a22 * a31)),
+
+	//		inv_det * -(a21 * (a32 * a43 - a33 * a42) - a22 * (a31 * a43 - a33 * a41) + a23 * (a31 * a42 - a32 * a41)),
+	//		inv_det * (a11 * (a32 * a43 - a33 * a42) - a12 * (a31 * a43 - a33 * a41) + a13 * (a31 * a42 - a32 * a41)),
+	//		inv_det * -(a11 * (a22 * a43 - a23 * a42) - a12 * (a21 * a43 - a23 * a41) + a13 * (a21 * a42 - a22 * a41)),
+	//		inv_det * (a11 * (a22 * a33 - a23 * a32) - a12 * (a21 * a33 - a23 * a31) + a13 * (a21 * a32 - a22 * a31))
+
+	//	);
+	//}
+
+	float determinate() const {
+
+		return   this->a11 * mat3(this->a22, this->a23, this->a24, this->a32, this->a33, this->a34, this->a42, this->a43, this->a44).determinate()
+			   - this->a12 * mat3(this->a21, this->a23, this->a24, this->a31, this->a33, this->a34, this->a41, this->a43, this->a44).determinate()
+			   + this->a13 * mat3(this->a21, this->a22, this->a24, this->a31, this->a32, this->a34, this->a41, this->a42, this->a44).determinate()
+			   - this->a14 * mat3(this->a21, this->a22, this->a23, this->a31, this->a32, this->a33, this->a41, this->a42, this->a43).determinate();
+
+	};
+
+	mat4 inverse() const {
+
+		float det = this->determinate();
+		if (det == 0) {
+
+			std::cerr << "Matrix is singular and cannot be inverted\n";
+			return mat4(); // Return a zero matrix
+
+		};
+
+		mat4 adjugate = this->cofactor().transpose();
+		return adjugate * (1.0f / det);
+
+	};
 
 	std::vector<float> to_GL() const {
 
@@ -1074,7 +1181,7 @@ static mat4 create_frustum_projection_matrix(const float& fov, const float& scre
 
 };
 
-//in openGL we dont require a view port matrix since the API transforms our coordinates automatically to NDC, we just need to use the function glViewport() at start of program initialization
+//in openGL we dont require a view port matrix since openGL transforms our coordinates automatically to NDC with its own static view port matrix, we just need to use the function glViewport() at start of program initialization. Moreover if our Projection Matrix handles FOV we can simply use the static view port matrix
 static mat4 create_view_port_matrix(const float& fov, const float& screen_width, const float& screen_height, const float& near, const float& far) {
 
 	float view_angle = to_radians(fov);
@@ -1090,6 +1197,34 @@ static mat4 create_view_port_matrix(const float& fov, const float& screen_width,
 		screen_width / 2.0f, 0.0f, 0.0f, left + (screen_width / 2.0f),
 		0.0f, screen_height / 2.0f, 0.0f, bottom + (screen_height / 2.0f),
 		0.0f, 0.0f, (far - near) / 2.0f, (far + near) / 2.0f,
+		0.0f, 0.0f, 0.0f, 1.0f
+
+	);
+
+};
+
+//openGL uses this matrix implementation as its view port. NOTE: the inverse of this matrix transforms screen coordinates into NDC; HOWEVER, since GLFW has its (0,0) coordiates as top left corner on screen and y-axis scale downwards as we actually go up the screen, we can use the inverse of this matrix to get back NDC coords whilst using glfw
+static mat4 create_static_view_port_matrix(const float& screen_width, const float& screen_height) {
+
+	return mat4(
+
+		screen_width / 2.0f, 0.0f, 0.0f, screen_width / 2.0f,
+		0.0f, screen_height / 2.0f, 0.0f, screen_height / 2.0f,
+		0.0f, 0.0f, 1.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f
+
+	);
+
+};
+
+//this matrix solves the issue of the viewport.inverse combined with GLFW
+static mat4 create_static_screen_to_NDC_matrix(const float& screen_width, const float& screen_height) {
+
+	return mat4(
+
+		-2.0f / screen_width, 0.0f, 0.0f, -1.0f,
+		0.0f, -2.0f / screen_height, 0.0f, 1.0f,
+		0.0f, 0.0f, 1.0f, 0.0f,
 		0.0f, 0.0f, 0.0f, 1.0f
 
 	);
@@ -1278,11 +1413,16 @@ static void emplace_back(const vec3& vec, std::vector<T>& storage) {
 
 static void print_vec(const vec2& vec) {
 
-	std::cout << vec.x << ", " << vec.y << std::endl;
+	std::cout << vec.x << ", " << vec.y << "\n";
 
 };
 static void print_vec(const vec3& vec) {
 
-	std::cout << vec.x << ", " << vec.y << ", " << vec.z << std::endl;
+	std::cout << vec.x << ", " << vec.y << ", " << vec.z << "\n";
+
+};
+static void print_vec(const vec4& vec) {
+
+	std::cout << vec.x << ", " << vec.y << ", " << vec.z << ", " << vec.w << "\n";
 
 };

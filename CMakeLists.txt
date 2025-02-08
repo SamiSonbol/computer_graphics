@@ -16,6 +16,10 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")#for shared librari
 set(RESOURCES_DIR "${CMAKE_SOURCE_DIR}/resources")
 add_definitions(-DRESOURCES_DIR="${RESOURCES_DIR}")
 
+#setting the relative path of our shaders folder (contains our various shader files such as .vert) to be easily used in code
+set(SHADERS_DIR "${CMAKE_SOURCE_DIR}/include/shaders")
+add_definitions(-DSHADERS_DIR="${SHADERS_DIR}")
+
 #setting our project name as a defenition so it can be used in our source files
 set(PROJECT_NAME "${PROJECT_NAME}")
 add_definitions(-DPROJECT_NAME="${PROJECT_NAME}")

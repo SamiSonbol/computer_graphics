@@ -33,7 +33,7 @@ std::array<vec3, 3> Triangle::compute_TBN() {
 
 	vec3 Normal = AB.cross(AC);
 
-	return { Tangent.normalize(), Bitangent.normalize(), Normal.normalize() };
+	return { Tangent, Bitangent, Normal };
 
 };
 
@@ -115,6 +115,64 @@ bool Texture::check_if_file_exists(const std::string& file_path) {
 	};
 
 	return false;
+
+};
+
+vec4 Texture::get_pixel_color(const size_t& x, const size_t& y) {
+
+	if (x >= this->width || y >= this->height) {
+
+		std::cerr << "Error: Pixel coordinates are out of bounds!";
+		exit(EXIT_FAILURE);
+
+	};
+
+	vec4 color;
+	if (this->n_color_channels == 3) {
+	
+		color.x = this->bytes[3 * (y * this->width + x) + 0];
+		color.y = this->bytes[3 * (y * this->width + x) + 1];
+		color.z = this->bytes[3 * (y * this->width + x) + 2];
+		color.w = 255;
+		return color;
+
+	}
+	else if (this->n_color_channels == 4) {
+
+		color.x = this->bytes[4 * (y * this->width + x) + 0];
+		color.y = this->bytes[4 * (y * this->width + x) + 1];
+		color.z = this->bytes[4 * (y * this->width + x) + 2];
+		color.w = this->bytes[4 * (y * this->width + x) + 3];
+		return color;
+
+	};
+
+};
+
+void Texture::set_pixel_color(const size_t& x, const size_t& y, const vec4& color) {
+
+	if (x >= this->width || y >= this->height) {
+
+		std::cerr << "Error: Pixel coordinates are out of bounds!";
+		//exit(EXIT_FAILURE);
+
+	};
+
+	if (this->n_color_channels == 3) {
+
+		this->bytes[3 * (y * this->width + x) + 0] = (unsigned char)color.x;
+		this->bytes[3 * (y * this->width + x) + 1] = (unsigned char)color.y;
+		this->bytes[3 * (y * this->width + x) + 2] = (unsigned char)color.z;
+
+	}
+	else if (this->n_color_channels == 4) {
+
+		this->bytes[4 * (y * this->width + x) + 0] = (unsigned char)color.x;
+		this->bytes[4 * (y * this->width + x) + 1] = (unsigned char)color.y;
+		this->bytes[4 * (y * this->width + x) + 2] = (unsigned char)color.z;
+		this->bytes[4 * (y * this->width + x) + 3] = (unsigned char)color.w;
+
+	};
 
 };
 
@@ -344,4 +402,25 @@ Mesh::Mesh(Texture&& diffuse_map, Texture&& normal_map, Texture&& displacement_m
 	this->colors[this->colors.size() - 1] = vec3(255, 0, 0);
 
 };
+
+Mesh::Mesh(const std::string& diffuse_file_path, const char* diffuse_uniform_name, const unsigned int& diffuse_GL_TEXTUREindex, const int& diffuse_index, const std::string& normal_file_path, const char* normal_uniform_name, const unsigned int& normal_GL_TEXTUREindex, const int& normal_index, const std::string& displacement_file_path, const char* displacement_uniform_name, const unsigned int& displacement_GL_TEXTUREindex, const int& displacement_index, const vec2& mesh_dimensions) :
+
+	generate_buffers_and_textures(true),
+	mesh_dimensions(mesh_dimensions),
+	diffuse_map(diffuse_file_path, diffuse_uniform_name, diffuse_GL_TEXTUREindex, diffuse_index),
+	normal_map(normal_file_path, normal_uniform_name, normal_GL_TEXTUREindex, normal_index),
+	displacement_map(displacement_file_path, displacement_uniform_name, displacement_GL_TEXTUREindex, displacement_index)
+
+{
+
+	fill_data();
+	std::cout << "filled data\n";
+
+	//this->vertices_map.clear();
+	std::cout << "cleared Grid\n";
+
+	this->colors[this->colors.size() - 1] = vec3(255, 0, 0);
+
+};
+
 

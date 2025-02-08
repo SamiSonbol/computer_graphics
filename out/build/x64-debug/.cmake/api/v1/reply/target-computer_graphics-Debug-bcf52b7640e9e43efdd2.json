@@ -30,31 +30,37 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 115,
+				"line" : 119,
 				"parent" : 0
 			},
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 117,
+				"line" : 121,
 				"parent" : 0
 			},
 			{
 				"command" : 2,
 				"file" : 0,
-				"line" : 116,
+				"line" : 120,
 				"parent" : 0
 			},
 			{
 				"command" : 3,
 				"file" : 0,
-				"line" : 21,
+				"line" : 25,
 				"parent" : 0
 			},
 			{
 				"command" : 3,
 				"file" : 0,
 				"line" : 17,
+				"parent" : 0
+			},
+			{
+				"command" : 3,
+				"file" : 0,
+				"line" : 21,
 				"parent" : 0
 			}
 		]
@@ -77,6 +83,10 @@
 				{
 					"backtrace" : 5,
 					"define" : "RESOURCES_DIR=\"E:/Tools/Libraries/Repositories/computer_graphics/resources\""
+				},
+				{
+					"backtrace" : 6,
+					"define" : "SHADERS_DIR=\"E:/Tools/Libraries/Repositories/computer_graphics/include/shaders\""
 				}
 			],
 			"includes" : 

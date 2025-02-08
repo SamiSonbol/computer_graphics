@@ -77,6 +77,9 @@ class Texture {
 	bool check_if_file_exists(const std::string& file_path);
 	std::vector<float> generate_normal_map();
 
+	vec4 get_pixel_color(const size_t& x, const size_t& y);
+	void set_pixel_color(const size_t& x, const size_t& y, const vec4& color);
+
 	//since *Texture.bytes* will be used inside openGL and will be moved/copied inside an instance of *Mesh* we need to make sure that there is no 2 copies of *Texture* that hold the same pointer, hence we need to nullify the original instance if it was moved
 	Texture(const std::string& file_path, const char* uniform_name, const unsigned int& GL_TEXTUREindex, const int& index);
 
@@ -122,5 +125,6 @@ class Mesh {
 	void fill_data();
 
 	Mesh(Texture&& diffuse_map, Texture&& normal_map, Texture&& displacement_map, const vec2& mesh_dimensions);
+	Mesh(const std::string& diffuse_file_path, const char* diffuse_uniform_name, const unsigned int& diffuse_GL_TEXTUREindex, const int& diffuse_index, const std::string& normal_file_path, const char* normal_uniform_name, const unsigned int& normal_GL_TEXTUREindex, const int& normal_index, const std::string& displacement_file_path, const char* displacement_uniform_name, const unsigned int& displacement_GL_TEXTUREindex, const int& displacement_index, const vec2& mesh_dimensions);//override
 
 };

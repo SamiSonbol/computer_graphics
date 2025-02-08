@@ -1,49 +1,5 @@
 #include "computer_graphics/Shader.h"
 
-Shader::Shader(std::vector<unsigned int>& compiled_shaders_ids) {
-
-	this->program = glCreateProgram();
-
-	for (auto& compiled_shader_id : compiled_shaders_ids) {
-
-		glAttachShader(this->program, compiled_shader_id);
-
-	};
-
-	glLinkProgram(this->program);
-	glValidateProgram(this->program);
-
-	for (auto& compiled_shader_id : compiled_shaders_ids) {
-
-		glDeleteShader(compiled_shader_id);
-
-	};
-
-	compiled_shaders_ids.clear();
-
-};
-
-Shader::Shader(const std::string& vertex_shader, const std::string& geometry_shader, const std::string& fragment_shader) {
-
-	this->program = glCreateProgram();
-
-	unsigned int v_shader = compile_shader(GL_VERTEX_SHADER, vertex_shader);
-	unsigned int g_shader = compile_shader(GL_GEOMETRY_SHADER, geometry_shader);
-	unsigned int f_shader = compile_shader(GL_FRAGMENT_SHADER, fragment_shader);
-
-	glAttachShader(this->program, v_shader);
-	glAttachShader(this->program, g_shader);
-	glAttachShader(this->program, f_shader);
-
-	glLinkProgram(this->program);
-	glValidateProgram(this->program);
-
-	glDeleteShader(v_shader);
-	glDeleteShader(g_shader);
-	glDeleteShader(f_shader);
-
-};
-
 void Shader::create_uniform_mat4(const std::vector<float>& data_vector, const char* uniform_name) {
 
 	unsigned int location = glGetUniformLocation(this->program, uniform_name);
@@ -81,8 +37,6 @@ void Shader::create_uniform_bool(const bool& boolean, const char* uniform_name) 
 
 void Shader::create_uniform_2D_texture(const int& index, const char* uniform_name) {
 
-	//VIMP: openGL has to be using glUseProgram(this->program); before this function is called. 
-
 	unsigned int location = glGetUniformLocation(this->program, uniform_name);
 	glUniform1i(location, index);
 
@@ -111,18 +65,18 @@ Shader::graphics_booleans_container Shader::create_standard_shader_booleans() {
 
 	bool gamma_correction = true;
 	bool texturing = true;
-	bool normal_mapping = true;
-	bool height_mapping = true;
+	bool normal_mapping = false;
+	bool displacement_mapping = false;
 
-	return { gamma_correction, texturing, normal_mapping, height_mapping };
+	return { gamma_correction, texturing, normal_mapping, displacement_mapping };
 
 };
 
 Shader::graphics_floats_container Shader::create_standard_shader_floats() {
 
-	float tesselation = 1.0f;
+	float tesselation = 2.0f;
 
-	float displacement_scale = 1.0f;
+	float displacement_scale = 0.1f;
 
 	return { tesselation, displacement_scale };
 
@@ -132,7 +86,7 @@ void Shader::init_matrices(const vec2& screen_size, const vec3& right_vector, co
 
 	create_uniform_vec3(camera_position.to_GL(), "eye_vector");
 	create_uniform_mat4(create_model_transformation_matrix(translation_vector, scaling_vector, rotation_vector).to_GL(), "model_transformation_matrix");
-	create_uniform_mat4(create_view_matrix(right_vector.normalize(), up_vector.normalize(), direction_vector.normalize(), camera_position).to_GL(), "view_matrix");
+	create_uniform_mat4(create_view_matrix(right_vector, up_vector, direction_vector, camera_position).to_GL(), "view_matrix");
 	create_uniform_mat4(create_frustum_projection_matrix(90.0f, screen_size.x, screen_size.y, 0.1f, 1000.0f).to_GL(), "projection_matrix");
 
 };
@@ -154,12 +108,12 @@ void Shader::init_light(const vec3& light_position, const vec3& light_color, con
 
 };
 
-void Shader::init_booleans(const bool& gamma_correction, const bool& texturing, const bool& normal_mapping, const bool& height_mapping) {
+void Shader::init_booleans(const bool& gamma_correction, const bool& texturing, const bool& normal_mapping, const bool& displacement_mapping) {
 
 	create_uniform_bool(gamma_correction, "gamma_correction");
 	create_uniform_bool(texturing, "texturing");
 	create_uniform_bool(normal_mapping, "normal_mapping");
-	create_uniform_bool(height_mapping, "height_mapping");
+	create_uniform_bool(displacement_mapping, "displacement_mapping");
 
 };
 
@@ -171,11 +125,11 @@ void Shader::init_floats(const float& tesselation_multiplier, const float& displ
 };
 
 //sets the transformation matrices and light vectors
-void Shader::initialize(const vec2& screen_size, const vec3& right_vector, const vec3& up_vector, const vec3& direction_vector, const vec3& camera_position, const vec3& translation_vector, const vec3& scaling_vector, const vec3& rotation_vector, const vec3& light_position, const vec3& light_color, const vec4& material_properties, const bool& gamma_correction, const bool& texturing, const bool& normal_mapping, const bool& height_mapping, const float& tesselation_multiplier, const float& displacement_scale) {
+void Shader::initialize(const vec2& screen_size, const vec3& right_vector, const vec3& up_vector, const vec3& direction_vector, const vec3& camera_position, const vec3& translation_vector, const vec3& scaling_vector, const vec3& rotation_vector, const vec3& light_position, const vec3& light_color, const vec4& material_properties, const bool& gamma_correction, const bool& texturing, const bool& normal_mapping, const bool& displacement_mapping, const float& tesselation_multiplier, const float& displacement_scale) {
 
 	init_matrices(screen_size, right_vector, up_vector, direction_vector, camera_position, translation_vector, scaling_vector, rotation_vector);
 	init_light(light_position, light_color, material_properties);
-	init_booleans(gamma_correction, texturing, normal_mapping, height_mapping);
+	init_booleans(gamma_correction, texturing, normal_mapping, displacement_mapping);
 	init_floats(tesselation_multiplier, displacement_scale);
 
 };
@@ -185,7 +139,7 @@ void Shader::initialize(const vec2& screen_size, const graphics_vectors_containe
 
 	init_matrices(screen_size, vectors_container.right_vector, vectors_container.up_vector, vectors_container.direction_vector, vectors_container.camera_position, vectors_container.translation_vector, vectors_container.scaling_vector, vectors_container.rotation_vector);
 	init_light(vectors_container.light_position, vectors_container.light_color, vectors_container.material_properties);
-	init_booleans(booleans_container.gamma_correction, booleans_container.texturing, booleans_container.normal_mapping, booleans_container.height_mapping);
+	init_booleans(booleans_container.gamma_correction, booleans_container.texturing, booleans_container.normal_mapping, booleans_container.displacement_mapping);
 	init_floats(floats_container.tesselation_multiplier, floats_container.displacement_scale);
 
 };
@@ -194,7 +148,7 @@ void Shader::update_matrices(const vec3& right_vector, const vec3& up_vector, co
 
 	create_uniform_vec3(camera_position.to_GL(), "eye_vector");
 	create_uniform_mat4(create_model_transformation_matrix(translation_vector, scaling_vector, rotation_vector).to_GL(), "model_transformation_matrix");
-	create_uniform_mat4(create_view_matrix(right_vector.normalize(), up_vector.normalize(), direction_vector.normalize(), camera_position).to_GL(), "view_matrix");
+	create_uniform_mat4(create_view_matrix(right_vector, up_vector, direction_vector, camera_position).to_GL(), "view_matrix");
 
 };
 
@@ -214,12 +168,12 @@ void Shader::update_light(const vec3& light_position, const vec3& light_color, c
 
 };
 
-void Shader::update_booleans(const bool& gamma_correction, const bool& texturing, const bool& normal_mapping, const bool& height_mapping) {
+void Shader::update_booleans(const bool& gamma_correction, const bool& texturing, const bool& normal_mapping, const bool& displacement_mapping) {
 
 	create_uniform_bool(gamma_correction, "gamma_correction");
 	create_uniform_bool(texturing, "texturing");
 	create_uniform_bool(normal_mapping, "normal_mapping");
-	create_uniform_bool(height_mapping, "height_mapping");
+	create_uniform_bool(displacement_mapping, "displacement_mapping");
 
 };
 
@@ -230,11 +184,11 @@ void Shader::update_floats(const float& tesselation_multiplier, const float& dis
 
 };
 
-void Shader::update(const vec3& right_vector, const vec3& up_vector, const vec3& direction_vector, const vec3& camera_position, const vec3& translation_vector, const vec3& scaling_vector, const vec3& rotation_vector, const vec3& light_position, const vec3& light_color, const vec4& material_properties, const bool& gamma_correction, const bool& texturing, const bool& normal_mapping, const bool& height_mapping, const float& tesselation_multiplier, const float& displacement_scale) {
+void Shader::update(const vec3& right_vector, const vec3& up_vector, const vec3& direction_vector, const vec3& camera_position, const vec3& translation_vector, const vec3& scaling_vector, const vec3& rotation_vector, const vec3& light_position, const vec3& light_color, const vec4& material_properties, const bool& gamma_correction, const bool& texturing, const bool& normal_mapping, const bool& displacement_mapping, const float& tesselation_multiplier, const float& displacement_scale) {
 
 	update_matrices(right_vector, up_vector, direction_vector, camera_position, translation_vector, scaling_vector, rotation_vector);
 	update_light(light_position, light_color, material_properties);
-	update_booleans(gamma_correction, texturing, normal_mapping, height_mapping);
+	update_booleans(gamma_correction, texturing, normal_mapping, displacement_mapping);
 	update_floats(tesselation_multiplier, displacement_scale);
 
 };
@@ -244,30 +198,37 @@ void Shader::update(const graphics_vectors_container& vectors_container, const g
 
 	update_matrices(vectors_container.right_vector, vectors_container.up_vector, vectors_container.direction_vector, vectors_container.camera_position, vectors_container.translation_vector, vectors_container.scaling_vector, vectors_container.rotation_vector);
 	update_light(vectors_container.light_position, vectors_container.light_color, vectors_container.material_properties);
-	update_booleans(booleans_container.gamma_correction, booleans_container.texturing, booleans_container.normal_mapping, booleans_container.height_mapping);
+	update_booleans(booleans_container.gamma_correction, booleans_container.texturing, booleans_container.normal_mapping, booleans_container.displacement_mapping);
 	update_floats(floats_container.tesselation_multiplier, floats_container.displacement_scale);
 
 };
 
 void Shader::bind_mesh_buffers(Mesh& mesh, const bool& gamma_correction) {
 
-	bind_buffer(GL_ARRAY_BUFFER, mesh.generate_buffers_and_textures, &this->positions_buffer, mesh.positions, GL_STATIC_DRAW, 0, 3);
-	bind_buffer(GL_ARRAY_BUFFER, mesh.generate_buffers_and_textures, &this->normals_buffer, mesh.normals, GL_STATIC_DRAW, 1, 3);
-	bind_buffer(GL_ARRAY_BUFFER, mesh.generate_buffers_and_textures, &this->colors_buffer, mesh.colors, GL_STATIC_DRAW, 2, 3);
-	bind_buffer(GL_ELEMENT_ARRAY_BUFFER, mesh.generate_buffers_and_textures, &this->indices_buffer, mesh.indices, GL_STATIC_DRAW, -1, 1);
-	bind_buffer(GL_ARRAY_BUFFER, mesh.generate_buffers_and_textures, &this->texture_coordinates_buffer, mesh.texture_coordinates, GL_STATIC_DRAW, 3, 2);
-	bind_buffer(GL_ARRAY_BUFFER, mesh.generate_buffers_and_textures, &this->tangents_buffer, mesh.tangents, GL_STATIC_DRAW, 4, 3);
-	bind_buffer(GL_ARRAY_BUFFER, mesh.generate_buffers_and_textures, &this->bitangents_buffer, mesh.bitangents, GL_STATIC_DRAW, 5, 3);
+	bind_buffer(mesh.generate_buffers_and_textures, GL_ARRAY_BUFFER, &this->positions_buffer, mesh.positions, GL_STATIC_DRAW, 0, 3);
+	bind_buffer(mesh.generate_buffers_and_textures, GL_ARRAY_BUFFER, &this->normals_buffer, mesh.normals, GL_STATIC_DRAW, 1, 3);
+	bind_buffer(mesh.generate_buffers_and_textures, GL_ARRAY_BUFFER, &this->colors_buffer, mesh.colors, GL_STATIC_DRAW, 2, 3);
+	bind_buffer(mesh.generate_buffers_and_textures, GL_ELEMENT_ARRAY_BUFFER, &this->indices_buffer, mesh.indices, GL_STATIC_DRAW, -1, 1);
+	bind_buffer(mesh.generate_buffers_and_textures, GL_ARRAY_BUFFER, &this->texture_coordinates_buffer, mesh.texture_coordinates, GL_STATIC_DRAW, 3, 2);
+	bind_buffer(mesh.generate_buffers_and_textures, GL_ARRAY_BUFFER, &this->tangents_buffer, mesh.tangents, GL_STATIC_DRAW, 4, 3);
+	bind_buffer(mesh.generate_buffers_and_textures, GL_ARRAY_BUFFER, &this->bitangents_buffer, mesh.bitangents, GL_STATIC_DRAW, 5, 3);
 
-	bind_texture(&mesh.diffuse_map.texture_ID, mesh.diffuse_map.GL_TEXTUREindex, mesh.generate_buffers_and_textures, mesh.diffuse_map.bytes, mesh.diffuse_map.width, mesh.diffuse_map.height, mesh.diffuse_map.n_color_channels, gamma_correction);
-	bind_texture(&mesh.normal_map.texture_ID, mesh.normal_map.GL_TEXTUREindex, mesh.generate_buffers_and_textures, mesh.normal_map.bytes, mesh.normal_map.width, mesh.normal_map.height, mesh.normal_map.n_color_channels, gamma_correction);
-	bind_texture(&mesh.displacement_map.texture_ID, mesh.displacement_map.GL_TEXTUREindex, mesh.generate_buffers_and_textures, mesh.displacement_map.bytes, mesh.displacement_map.width, mesh.displacement_map.height, mesh.displacement_map.n_color_channels, gamma_correction);
+	bind_texture(mesh.generate_buffers_and_textures, &mesh.diffuse_map.texture_ID, mesh.diffuse_map.GL_TEXTUREindex, mesh.diffuse_map.bytes, mesh.diffuse_map.width, mesh.diffuse_map.height, mesh.diffuse_map.n_color_channels, gamma_correction);
+	bind_texture(mesh.generate_buffers_and_textures, &mesh.normal_map.texture_ID, mesh.normal_map.GL_TEXTUREindex, mesh.normal_map.bytes, mesh.normal_map.width, mesh.normal_map.height, mesh.normal_map.n_color_channels, gamma_correction);
+	bind_texture(mesh.generate_buffers_and_textures, &mesh.displacement_map.texture_ID, mesh.displacement_map.GL_TEXTUREindex, mesh.displacement_map.bytes, mesh.displacement_map.width, mesh.displacement_map.height, mesh.displacement_map.n_color_channels, gamma_correction);
 
+	if (mesh.generate_buffers_and_textures) {
+
+		create_uniform_2D_texture(mesh.diffuse_map.index, mesh.diffuse_map.uniform_name);
+		create_uniform_2D_texture(mesh.normal_map.index, mesh.normal_map.uniform_name);
+		create_uniform_2D_texture(mesh.displacement_map.index, mesh.displacement_map.uniform_name);
+
+	};
 	mesh.generate_buffers_and_textures = false;
 
 };
 
-void Shader::draw_mesh_elements(Mesh& mesh, const bool& gamma_correction, const unsigned int& GL_PRIMITIVE_TYPE) {
+void Shader::bind_and_draw_mesh_elements(Mesh& mesh, const bool& gamma_correction, const unsigned int& GL_PRIMITIVE_TYPE) {
 
 	this->bind_mesh_buffers(mesh, gamma_correction);
 	glDrawElements(GL_PRIMITIVE_TYPE, mesh.indices.size(), GL_UNSIGNED_SHORT, 0);
@@ -296,5 +257,28 @@ void Shader::delete_all() {
 
 	delete_buffers();
 	delete_program();
+
+};
+
+Shader::Shader(std::vector<unsigned int>& compiled_shaders_ids) {
+
+	this->program = glCreateProgram();
+
+	for (auto& compiled_shader_id : compiled_shaders_ids) {
+
+		glAttachShader(this->program, compiled_shader_id);
+
+	};
+
+	glLinkProgram(this->program);
+	glValidateProgram(this->program);
+
+	for (auto& compiled_shader_id : compiled_shaders_ids) {
+
+		glDeleteShader(compiled_shader_id);
+
+	};
+
+	compiled_shaders_ids.clear();
 
 };

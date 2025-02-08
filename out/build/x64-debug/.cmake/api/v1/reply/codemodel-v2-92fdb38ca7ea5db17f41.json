@@ -7,7 +7,7 @@
 				{
 					"build" : ".",
 					"hasInstallRule" : true,
-					"jsonFile" : "directory-.-Debug-c765d522763183290dfc.json",
+					"jsonFile" : "directory-.-Debug-44506e6814047c9a7830.json",
 					"minimumCMakeVersion" : 
 					{
 						"string" : "3.8"
@@ -54,56 +54,56 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "Math::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-Math-Debug-4c838d5c4a4e620d107d.json",
+					"jsonFile" : "target-Math-Debug-ced9490d0024a9868fea.json",
 					"name" : "Math",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "Mesh::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-Mesh-Debug-f7d230930dd89fc9eb5f.json",
+					"jsonFile" : "target-Mesh-Debug-c2b9b9c75209decbf321.json",
 					"name" : "Mesh",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "Shader::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-Shader-Debug-0fe5c68e3ad082a98c11.json",
+					"jsonFile" : "target-Shader-Debug-d3b0bb889ae2216704d4.json",
 					"name" : "Shader",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "UI::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-UI-Debug-981524ffe947a0490864.json",
+					"jsonFile" : "target-UI-Debug-0b966e7dff27cbd2a113.json",
 					"name" : "UI",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "computer_graphics::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-computer_graphics-Debug-cbddcbaefc0b09870c0c.json",
+					"jsonFile" : "target-computer_graphics-Debug-bcf52b7640e9e43efdd2.json",
 					"name" : "computer_graphics",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "glad::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-glad-Debug-6b42f151f9cd17340db4.json",
+					"jsonFile" : "target-glad-Debug-c67d840feedaa2da8b0e.json",
 					"name" : "glad",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "imgui::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-imgui-Debug-fd5c280f76d5f9ba2917.json",
+					"jsonFile" : "target-imgui-Debug-a2be7332217e0d30bbe5.json",
 					"name" : "imgui",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "stb_image::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-stb_image-Debug-866906dac8f60d443be6.json",
+					"jsonFile" : "target-stb_image-Debug-947592713b7635633d3d.json",
 					"name" : "stb_image",
 					"projectIndex" : 0
 				}
