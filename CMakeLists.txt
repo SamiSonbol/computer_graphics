@@ -117,7 +117,7 @@ install(TARGETS
 
 #adding our main executable
 add_executable(${PROJECT_NAME} src/computer_graphics/Main.cpp)
-target_link_libraries(${PROJECT_NAME} Math stb_image Mesh Shader UI imgui glfw3 glad)
+target_link_libraries(${PROJECT_NAME} Math Mesh Shader UI stb_image imgui glfw3 glad)
 install(TARGETS
   ${PROJECT_NAME}
   DESTINATION lib/${PROJECT_NAME}

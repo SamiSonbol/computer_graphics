@@ -181,11 +181,6 @@
 			},
 			{
 				"backtrace" : 3,
-				"fragment" : "lib\\stb_image.lib",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 3,
 				"fragment" : "lib\\Mesh.lib",
 				"role" : "libraries"
 			},
@@ -197,6 +192,11 @@
 			{
 				"backtrace" : 3,
 				"fragment" : "lib\\UI.lib",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "lib\\stb_image.lib",
 				"role" : "libraries"
 			},
 			{

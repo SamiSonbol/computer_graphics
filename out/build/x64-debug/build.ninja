@@ -363,10 +363,10 @@ build CMakeFiles\computer_graphics.dir\src\computer_graphics\Main.cpp.obj: CXX_C
 #############################################
 # Link the executable bin\computer_graphics.exe
 
-build bin\computer_graphics.exe: CXX_EXECUTABLE_LINKER__computer_graphics_Debug CMakeFiles\computer_graphics.dir\src\computer_graphics\Main.cpp.obj | lib\Math.lib lib\stb_image.lib lib\Mesh.lib lib\Shader.lib lib\UI.lib lib\imgui.lib E$:\Tools\Libraries\Repositories\computer_graphics\src\GLFW\glfw3.lib lib\glad.lib || lib\Math.lib lib\Mesh.lib lib\Shader.lib lib\UI.lib lib\glad.lib lib\imgui.lib lib\stb_image.lib
+build bin\computer_graphics.exe: CXX_EXECUTABLE_LINKER__computer_graphics_Debug CMakeFiles\computer_graphics.dir\src\computer_graphics\Main.cpp.obj | lib\Math.lib lib\Mesh.lib lib\Shader.lib lib\UI.lib lib\stb_image.lib lib\imgui.lib E$:\Tools\Libraries\Repositories\computer_graphics\src\GLFW\glfw3.lib lib\glad.lib || lib\Math.lib lib\Mesh.lib lib\Shader.lib lib\UI.lib lib\glad.lib lib\imgui.lib lib\stb_image.lib
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1
   LINK_FLAGS = /machine:x64 /debug /INCREMENTAL /subsystem:console
-  LINK_LIBRARIES = lib\Math.lib  lib\stb_image.lib  lib\Mesh.lib  lib\Shader.lib  lib\UI.lib  lib\imgui.lib  E:\Tools\Libraries\Repositories\computer_graphics\src\GLFW\glfw3.lib  lib\glad.lib  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib
+  LINK_LIBRARIES = lib\Math.lib  lib\Mesh.lib  lib\Shader.lib  lib\UI.lib  lib\stb_image.lib  lib\imgui.lib  E:\Tools\Libraries\Repositories\computer_graphics\src\GLFW\glfw3.lib  lib\glad.lib  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib
   OBJECT_DIR = CMakeFiles\computer_graphics.dir
   POST_BUILD = cd .
   PRE_LINK = cd .
