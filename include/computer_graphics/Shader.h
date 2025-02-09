@@ -22,6 +22,14 @@ static std::string read_shader(const std::string& file_path) {
 
 	};
 
+    std::string extension = file_path.substr(file_path.size() - 5);
+	if (extension != ".vert" && extension != ".tesc" && extension != ".tese" && extension != ".geom" && extension != ".comp" && extension != ".frag") {
+
+		std::cerr << "ERROR: no shader extension such as *.vert* was detected, file is not a shader!\n";
+		exit(EXIT_FAILURE);
+
+	};
+
 	shader_data << shader_file.rdbuf();
 	shader_file.close();
 	return shader_data.str();
@@ -55,7 +63,8 @@ static unsigned int compile_shader(const unsigned int& type, const std::string& 
 			<< (type == GL_VERTEX_SHADER ? "Vertex"
 				: type == GL_FRAGMENT_SHADER ? "Fragment"
 				: type == GL_TESS_CONTROL_SHADER ? "Tesselation Control"
-				: "Tesselation Evaluation")
+				: type == GL_TESS_EVALUATION_SHADER ? "Tesselation Evaluation"
+				: "Compute")
 			<< " Shader." << std::endl;
 
 		std::cout << message << std::endl;
@@ -147,6 +156,38 @@ static void bind_texture(const bool& generate_texture, unsigned int* texture_ID,
 
 };
 
+static void update_texture(unsigned int* texture_ID, const unsigned int& GL_TEXTUREindex, unsigned char* bytes, const int& texture_width, const int& texture_height, const int& n_color_channels) {
+
+	glActiveTexture(GL_TEXTUREindex);
+	glBindTexture(GL_TEXTURE_2D, *texture_ID);
+	if (*texture_ID == 0) {
+
+		std::cerr << "ERORR: failed to update texture!\n";
+		exit(EXIT_FAILURE);
+
+	};
+
+	GLenum data_format;
+	if (n_color_channels == 4) {//checks if n_color_channels is 3 or 4; RGB or RGBA
+
+		data_format = GL_RGBA;
+
+	}
+	else if (n_color_channels == 3) {
+
+		data_format = GL_RGB;
+
+	}
+	else if (n_color_channels == 1) {
+
+		data_format = GL_RED;
+
+	};
+
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, texture_width, texture_height, data_format, GL_UNSIGNED_BYTE, bytes);
+
+};
+
 class Shader {
 
 public:
@@ -225,5 +266,6 @@ public:
 	void delete_all();
 
 	Shader(std::vector<unsigned int>& compiled_shaders_ids);
+	Shader(const std::string& shader_directory);
 
 };

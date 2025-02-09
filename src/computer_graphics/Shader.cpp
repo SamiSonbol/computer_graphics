@@ -54,7 +54,7 @@ Shader::graphics_vectors_container Shader::create_standard_shader_vectors() {
 	vec3 rotation_vector(0, 0, 0);
 
 	vec3 light_position(0, 0, -1);
-	vec3 light_color(230, 80, 0);
+	vec3 light_color(255, 0, 0);
 	vec4 material_properties(1.0f, 0.7f, 0.1f, 10);
 
 	return { right_vector, up_vector, direction_vector, camera_position, translation_vector, scaling_vector, rotation_vector, light_position, light_color, material_properties};
@@ -280,5 +280,131 @@ Shader::Shader(std::vector<unsigned int>& compiled_shaders_ids) {
 	};
 
 	compiled_shaders_ids.clear();
+
+};
+
+Shader::Shader(const std::string& shader_directory) {
+
+	//checking if the directory is correct
+	if (!std::filesystem::exists(shader_directory)) {
+
+		std::cerr << "ERROR: shader directory doesnt exist!\n";
+		exit(EXIT_FAILURE);
+
+	};
+	if (!std::filesystem::is_directory(shader_directory)) {
+
+		std::cerr << "ERROR: path to shader location isn't a directory!\n";
+		exit(EXIT_FAILURE);
+
+	};
+
+	//extracting the data from the shader files and compiling them then storing them in a vector next to their own shader type. Will be used to deduct correct shader order
+	std::vector<std::pair<unsigned int, unsigned int>> shaders;//holds the shader data and its type
+	std::filesystem::path directory(shader_directory);
+	for (const auto& file : std::filesystem::directory_iterator(directory)) {
+
+		if (file.is_regular_file()) {
+
+			std::string shader_data = read_shader(file.path().string());
+			std::string shader_type = file.path().extension().string();
+			if (shader_type == ".vert") {
+
+				shaders.emplace_back(compile_shader(GL_VERTEX_SHADER, shader_data), GL_VERTEX_SHADER);
+
+			}
+			else if (shader_type == ".tesc") {
+
+				shaders.emplace_back(compile_shader(GL_TESS_CONTROL_SHADER, shader_data), GL_TESS_CONTROL_SHADER);
+
+			}
+			else if (shader_type == ".tese") {
+
+				shaders.emplace_back(compile_shader(GL_TESS_EVALUATION_SHADER, shader_data), GL_TESS_EVALUATION_SHADER);
+
+			}
+			else if (shader_type == ".geom") {
+
+				shaders.emplace_back(compile_shader(GL_GEOMETRY_SHADER, shader_data), GL_GEOMETRY_SHADER);
+
+			}
+			else if (shader_type == ".comp") {
+
+				shaders.emplace_back(compile_shader(GL_COMPUTE_SHADER, shader_data), GL_COMPUTE_SHADER);
+
+			}
+			else if (shader_type == ".frag") {
+
+				shaders.emplace_back(compile_shader(GL_FRAGMENT_SHADER, shader_data), GL_FRAGMENT_SHADER);
+
+			}
+			else {
+
+				std::cerr << "ERROR: Unknown shader type: " << shader_type << "\n";
+
+			};
+
+		};
+
+	};
+
+	//initializing the order sequence of our shaders based off of the number of shaders that exist
+	int n_shaders = shaders.size();
+	std::vector<unsigned int> ordered_shaders;
+	std::vector<unsigned int> order;
+	if (n_shaders == 2) {
+
+		order = { GL_VERTEX_SHADER, GL_FRAGMENT_SHADER };
+
+	}
+	else if (n_shaders == 3) {
+
+		order = { GL_VERTEX_SHADER, GL_GEOMETRY_SHADER, GL_FRAGMENT_SHADER };
+
+	}
+	else if (n_shaders == 4) {
+
+		order = { GL_VERTEX_SHADER, GL_TESS_CONTROL_SHADER, GL_TESS_EVALUATION_SHADER, GL_FRAGMENT_SHADER };
+
+	}
+	else if (n_shaders == 5) {
+
+		order = { GL_VERTEX_SHADER, GL_TESS_CONTROL_SHADER, GL_TESS_EVALUATION_SHADER, GL_GEOMETRY_SHADER, GL_FRAGMENT_SHADER };
+
+	};//compute shader still not implemented
+
+	//cross comparing the current shader type from our *shaders* vector with the current shader type found in our order sequence. If we find a hit then the shader is added to our *ordered_shaders* vector
+	for (auto& shader : shaders) {
+
+		for (auto& shader_type : order) {
+
+			if (shader.second == shader_type) {
+
+				ordered_shaders.emplace_back(shader.first);
+				break;
+
+			};
+
+		};
+
+	};
+	
+	//using the *ordered_shaders* vector to create our *Shader* object using the same logic found in the first *Shader* constructor
+	this->program = glCreateProgram();
+	for (auto& compiled_shader_id : ordered_shaders) {
+
+		glAttachShader(this->program, compiled_shader_id);
+
+	};
+
+	glLinkProgram(this->program);
+	glValidateProgram(this->program);
+
+	for (auto& compiled_shader_id : ordered_shaders) {
+
+		glDeleteShader(compiled_shader_id);
+
+	};
+	ordered_shaders.clear();
 
 };

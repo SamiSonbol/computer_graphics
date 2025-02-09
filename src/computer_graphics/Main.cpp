@@ -47,17 +47,9 @@ int main() {
 	glViewport(0, 0, screen_size.x, screen_size.y);
 	glEnable(GL_DEPTH_TEST);
 
-	unsigned int g_vertex_shader = compile_shader(GL_VERTEX_SHADER, read_shader(SHADERS_DIR"/normal_mapping_and_displacement_mapping_and_geometry/vertex_shader.vert"));
-	unsigned int g_fragment_shader = compile_shader(GL_FRAGMENT_SHADER, read_shader(SHADERS_DIR"/normal_mapping_and_displacement_mapping_and_geometry/fragment_shader.frag"));
-	unsigned int geometry_shader = compile_shader(GL_GEOMETRY_SHADER, read_shader(SHADERS_DIR"/normal_mapping_and_displacement_mapping_and_geometry/geometry_shader.geom"));
-	std::vector<unsigned int> normal_mapping_and_displacement_mapping_and_geometry = { g_vertex_shader, geometry_shader, g_fragment_shader };
-
-	unsigned int t_vertex_shader = compile_shader(GL_VERTEX_SHADER, read_shader(SHADERS_DIR"/normal_mapping_and_displacement_mapping_and_tesselation/vertex_shader.vert"));
-	unsigned int tesselation_control_shader = compile_shader(GL_TESS_CONTROL_SHADER, read_shader(SHADERS_DIR"/normal_mapping_and_displacement_mapping_and_tesselation/tesselation_control_shader.tesc"));
-	unsigned int tesselation_evaluation_shader = compile_shader(GL_TESS_EVALUATION_SHADER, read_shader(SHADERS_DIR"/normal_mapping_and_displacement_mapping_and_tesselation/tesselation_evaluation_shader.tese"));
-	unsigned int t_fragment_shader = compile_shader(GL_FRAGMENT_SHADER, read_shader(SHADERS_DIR"/normal_mapping_and_displacement_mapping_and_tesselation/fragment_shader.frag"));
-	std::vector<unsigned int> normal_mapping_and_displacement_mapping_and_tesselation = { t_vertex_shader, tesselation_control_shader, tesselation_evaluation_shader, t_fragment_shader };
 	
+	std::string normal_mapping_and_displacement_mapping_and_geometry = SHADERS_DIR"/normal_mapping_and_displacement_mapping_and_geometry";
+	std::string normal_mapping_and_displacement_mapping_and_tesselation = SHADERS_DIR"/normal_mapping_and_displacement_mapping_and_tesselation";
 	Shader shader(normal_mapping_and_displacement_mapping_and_tesselation);
 	glUseProgram(shader.program);
 	Shader::graphics_vectors_container vectors_container = shader.create_standard_shader_vectors();
@@ -78,17 +70,17 @@ int main() {
 	Texture normal_map(RESOURCES_DIR"/normal_maps/emma_normal.png", "uNormal_map", GL_TEXTURE1, 1);
 	Texture displacement_map(RESOURCES_DIR"/displacement_maps/emma_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);*/
 
-	/*Texture diffuse_map(RESOURCES_DIR"/diffuse_maps/osna.png", "uTexture", GL_TEXTURE0, 0);
+	Texture diffuse_map(RESOURCES_DIR"/diffuse_maps/osna.png", "uTexture", GL_TEXTURE0, 0);
 	Texture normal_map(RESOURCES_DIR"/normal_maps/osna_normal.png", "uNormal_map", GL_TEXTURE1, 1);
-	Texture displacement_map(RESOURCES_DIR"/displacement_maps/osna_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);*/
+	Texture displacement_map(RESOURCES_DIR"/displacement_maps/osna_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);
 
 	/*Texture diffuse_map(RESOURCES_DIR"/diffuse_maps/rocky_rivers.png", "uTexture", GL_TEXTURE0, 0);
 	Texture normal_map(RESOURCES_DIR"/normal_maps/osna_normal.png", "uNormal_map", GL_TEXTURE1, 1);
 	Texture displacement_map(RESOURCES_DIR"/displacement_maps/rocky_rivers_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);*/
 
-	Texture diffuse_map(RESOURCES_DIR"/diffuse_maps/ganges_river.png", "uTexture", GL_TEXTURE0, 0);
+	/*Texture diffuse_map(RESOURCES_DIR"/diffuse_maps/ganges_river.png", "uTexture", GL_TEXTURE0, 0);
 	Texture normal_map(RESOURCES_DIR"/normal_maps/ganges_river_normal.png", "uNormal_map", GL_TEXTURE1, 1);
-	Texture displacement_map(RESOURCES_DIR"/displacement_maps/ganges_river_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);
+	Texture displacement_map(RESOURCES_DIR"/displacement_maps/ganges_river_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);*/
 
 	/*Texture diffuse_map(RESOURCES_DIR"/diffuse_maps/mountain_range.png", "uTexture", GL_TEXTURE0, 0);
 	Texture normal_map(RESOURCES_DIR"/normal_maps/emma_normal.png", "uNormal_map", GL_TEXTURE1, 1);
@@ -110,7 +102,7 @@ int main() {
 		shader.update(vectors_container, booleans_container, floats_container);
 		user_interface.new_frame();
 		mouse.update_position(window);
-		//mouse.plot_point(plot, window, vectors_container, screen_size, mesh, mesh.colors, mesh.positions);
+		mouse.plot_point(plot, window, vectors_container, screen_size, mesh, mesh.colors, mesh.positions);
 
 		shader.bind_and_draw_mesh_elements(mesh, booleans_container.gamma_correction, GL_PATCHES);
 

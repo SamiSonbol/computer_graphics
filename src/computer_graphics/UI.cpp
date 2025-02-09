@@ -79,25 +79,26 @@ void Mouse::plot_point(const bool& plot, GLFWwindow* window, const Shader::graph
 		std::cout << "top_left_pos position in Screen space: "; print_vec(top_left_pos_screen);
 
 		vec2 uv = (pos_model.xy() - vec2(model_min_x, model_min_y)) / viewport_size;
+		//vec2 uv;
 		//uv.x = (pos_model.x + mesh.mesh_dimensions.x / 2) / mesh.mesh_dimensions.x;
 		//uv.y = (pos_model.y + mesh.mesh_dimensions.y / 2) / mesh.mesh_dimensions.y;
 		uv *= vec2(mesh.diffuse_map.width, mesh.diffuse_map.height);
 		std::cout << "UV: "; print_vec(uv);
 
 		//vec4 pos(this->position_x, this->position_y, 0);
-		/*pos = vec4((pos.x / screen_size.x) * 2.0f - 1.0f, 1.0f - (pos.y / screen_size.y) * 2.0f, 0, 1);
-		pos = (projection_matrix * view_matrix).inverse() * pos;
-		pos /= pos.w;
-	    pos = model_transformation_matrix.inverse() * pos;*/
-		/*vec4 pos_model = model_transformation_matrix * pos;
-		vec4 pos_world = projection_matrix * view_matrix * pos_model;
-		pos_world /= pos_world.w;
-		vec4 pos_ndc = viewport_matrix * pos_world;
-		std::cout << "mouse position: "; print_vec(vec2(this->position_x, this->position_y));
-		std::cout << "position: "; print_vec(pos);
-		std::cout << "position at Model space: "; print_vec(pos_model.xyz());
-		std::cout << "position at World space: "; print_vec(pos_world.xyz());
-		std::cout << "position at Screen: "; print_vec(pos_ndc.xyz());	*/
+		///*pos = vec4((pos.x / screen_size.x) * 2.0f - 1.0f, 1.0f - (pos.y / screen_size.y) * 2.0f, 0, 1);
+		//pos = (projection_matrix * view_matrix).inverse() * pos;
+		//pos /= pos.w;
+	 //   pos = model_transformation_matrix.inverse() * pos;
+		//vec4 pos_model = model_transformation_matrix * pos;
+		//vec4 pos_world = projection_matrix * view_matrix * pos_model;
+		//pos_world /= pos_world.w;
+		//vec4 pos_ndc = viewport_matrix * pos_world;*/
+		///*std::cout << "mouse position: "; print_vec(vec2(this->position_x, this->position_y));
+		//std::cout << "position: "; print_vec(pos);
+		//std::cout << "position at Model space: "; print_vec(pos_model.xyz());
+		//std::cout << "position at World space: "; print_vec(pos_world.xyz());
+		//std::cout << "position at Screen: "; print_vec(pos_ndc.xyz());	*/
 		//vec2 tetxure_dimensions(mesh.diffuse_map.width, mesh.diffuse_map.height);
 		//mat3 screen_system(vec3(screen_size.x, 0, 0), vec3(0, screen_size.y, 0), vec3(0, 0, 1));
 		//mat3 model_system(vec3(mesh.mesh_dimensions.x, 0, 0), vec3(0, mesh.mesh_dimensions.y, 0), vec3(0, 0, 1));
@@ -107,8 +108,15 @@ void Mouse::plot_point(const bool& plot, GLFWwindow* window, const Shader::graph
 		//mat3 MtT = texture_system.inverse() * StM;
 		//vec3 uv = MtT * pos.xyz();
 		//std::cout << "UV: "; print_vec(uv);
-		//uv /= tetxure_dimensions;
+		////uv /= tetxure_dimensions;
 		mesh.diffuse_map.set_pixel_color(uv.x, uv.y, vec4(255, 0, 0, 255));
+		mesh.diffuse_map.set_pixel_color(uv.x + 1, uv.y + 1, vec4(255, 0, 0, 255));
+		mesh.diffuse_map.set_pixel_color(uv.x - 1, uv.y - 1, vec4(255, 0, 0, 255));
+		mesh.diffuse_map.set_pixel_color(uv.x + 1, uv.y, vec4(255, 0, 0, 255));
+		mesh.diffuse_map.set_pixel_color(uv.x, uv.y + 1, vec4(255, 0, 0, 255));
+		mesh.diffuse_map.set_pixel_color(uv.x - 1, uv.y, vec4(255, 0, 0, 255));
+		mesh.diffuse_map.set_pixel_color(uv.x, uv.y - 1, vec4(255, 0, 0, 255));
+		update_texture(&mesh.diffuse_map.texture_ID, mesh.diffuse_map.GL_TEXTUREindex, mesh.diffuse_map.bytes, mesh.diffuse_map.width, mesh.diffuse_map.height, mesh.diffuse_map.n_color_channels);
 
 
 		/*for (auto& p : positions) {
