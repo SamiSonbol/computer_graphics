@@ -1,5 +1,42 @@
 #include "computer_graphics/UI.h"
 
+void Mouse::load_cursor_texture(GLFWwindow* window, const std::string& file_path) {
+
+	if (!std::filesystem::exists(file_path)) {
+
+		std::cerr << "ERROR: cursor texture file doesnt exist!\n";
+		exit(EXIT_FAILURE);
+
+	} else if (std::filesystem::path(file_path).extension().string() != ".ani" && std::filesystem::path(file_path).extension().string() != ".cur" && std::filesystem::path(file_path).extension().string() != ".png") {
+
+		std::cerr << "ERROR: no correct file extension such as *.ani* or *.cur* or *.png* was detected, file isnt a cursor texture!\n";
+		exit(EXIT_FAILURE);
+
+	};
+
+	int n_color_channels;
+	GLFWimage cursor_texture;
+	cursor_texture.pixels = stbi_load(file_path.c_str(), &cursor_texture.width, &cursor_texture.height, &n_color_channels, 0);
+	if (!cursor_texture.pixels) {
+
+		std::cerr << "ERROR: failed to load cursor texture!\n";
+		exit(EXIT_FAILURE);
+
+	};
+
+	this->cursor = glfwCreateCursor(&cursor_texture, 0, 0);
+	if (!this->cursor) {
+
+		std::cerr << "ERROR: failed to create cursor!\n";
+		stbi_image_free(cursor_texture.pixels);
+		exit(EXIT_FAILURE);
+
+	};
+
+	stbi_image_free(cursor_texture.pixels);
+
+};
+
 void Mouse::update_position(GLFWwindow* window) {
 
 	glfwGetCursorPos(window, &this->position_x, &this->position_y);
@@ -116,7 +153,7 @@ void Mouse::plot_point(const bool& plot, GLFWwindow* window, const Shader::graph
 		mesh.diffuse_map.set_pixel_color(uv.x, uv.y + 1, vec4(255, 0, 0, 255));
 		mesh.diffuse_map.set_pixel_color(uv.x - 1, uv.y, vec4(255, 0, 0, 255));
 		mesh.diffuse_map.set_pixel_color(uv.x, uv.y - 1, vec4(255, 0, 0, 255));
-		update_texture(&mesh.diffuse_map.texture_ID, mesh.diffuse_map.GL_TEXTUREindex, mesh.diffuse_map.bytes, mesh.diffuse_map.width, mesh.diffuse_map.height, mesh.diffuse_map.n_color_channels);
+		//update_texture(&mesh.diffuse_map.texture_ID, mesh.diffuse_map.GL_TEXTUREindex, mesh.diffuse_map.bytes, mesh.diffuse_map.width, mesh.diffuse_map.height, mesh.diffuse_map.n_color_channels);
 
 
 		/*for (auto& p : positions) {
@@ -140,6 +177,19 @@ void Mouse::plot_point(const bool& plot, GLFWwindow* window, const Shader::graph
 		};*/
 
 	};
+
+};
+
+void Mouse::update(GLFWwindow* window) {
+
+	update_position(window);
+	//glfwSetCursor(window, this->cursor);
+
+};
+
+Mouse::Mouse(GLFWwindow* window, const std::string& texture_file_path) {
+
+	load_cursor_texture(window, texture_file_path);
 
 };
 
@@ -177,7 +227,6 @@ void UI::Window::delete_function(const int& index) {
 void UI::Window::update() {
 
 	ImGui::Begin(this->label.c_str());
-
 	for (auto& function : this->functions) {
 
 		function();

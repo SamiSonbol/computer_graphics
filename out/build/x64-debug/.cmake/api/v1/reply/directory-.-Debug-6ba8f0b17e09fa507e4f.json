@@ -17,13 +17,13 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 105,
+				"line" : 112,
 				"parent" : 0
 			},
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 121,
+				"line" : 129,
 				"parent" : 0
 			}
 		]
@@ -39,7 +39,7 @@
 				"lib/glad.lib"
 			],
 			"targetId" : "glad::@6890427a1f51a3e7e1df",
-			"targetIndex" : 5,
+			"targetIndex" : 6,
 			"type" : "target"
 		},
 		{
@@ -51,7 +51,7 @@
 				"lib/stb_image.lib"
 			],
 			"targetId" : "stb_image::@6890427a1f51a3e7e1df",
-			"targetIndex" : 7,
+			"targetIndex" : 8,
 			"type" : "target"
 		},
 		{
@@ -63,7 +63,19 @@
 				"lib/imgui.lib"
 			],
 			"targetId" : "imgui::@6890427a1f51a3e7e1df",
-			"targetIndex" : 6,
+			"targetIndex" : 7,
+			"type" : "target"
+		},
+		{
+			"backtrace" : 1,
+			"component" : "Unspecified",
+			"destination" : "lib/computer_graphics",
+			"paths" : 
+			[
+				"lib/File.lib"
+			],
+			"targetId" : "File::@6890427a1f51a3e7e1df",
+			"targetIndex" : 0,
 			"type" : "target"
 		},
 		{
@@ -75,7 +87,7 @@
 				"lib/Math.lib"
 			],
 			"targetId" : "Math::@6890427a1f51a3e7e1df",
-			"targetIndex" : 0,
+			"targetIndex" : 1,
 			"type" : "target"
 		},
 		{
@@ -87,7 +99,7 @@
 				"lib/Mesh.lib"
 			],
 			"targetId" : "Mesh::@6890427a1f51a3e7e1df",
-			"targetIndex" : 1,
+			"targetIndex" : 2,
 			"type" : "target"
 		},
 		{
@@ -99,7 +111,7 @@
 				"lib/Shader.lib"
 			],
 			"targetId" : "Shader::@6890427a1f51a3e7e1df",
-			"targetIndex" : 2,
+			"targetIndex" : 3,
 			"type" : "target"
 		},
 		{
@@ -111,7 +123,7 @@
 				"lib/UI.lib"
 			],
 			"targetId" : "UI::@6890427a1f51a3e7e1df",
-			"targetIndex" : 3,
+			"targetIndex" : 4,
 			"type" : "target"
 		},
 		{
@@ -123,7 +135,7 @@
 				"bin/computer_graphics.exe"
 			],
 			"targetId" : "computer_graphics::@6890427a1f51a3e7e1df",
-			"targetIndex" : 4,
+			"targetIndex" : 5,
 			"type" : "target"
 		},
 		{
@@ -132,7 +144,7 @@
 			"cxxModuleBmiTarget" : 
 			{
 				"id" : "computer_graphics::@6890427a1f51a3e7e1df",
-				"index" : 4
+				"index" : 5
 			},
 			"destination" : "lib/computer_graphics",
 			"type" : "cxxModuleBmi"

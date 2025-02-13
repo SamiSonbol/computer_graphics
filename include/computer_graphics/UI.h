@@ -24,9 +24,12 @@ class Mouse {
 
  public:
 
+	 GLFWcursor* cursor;
 	 vec2 position;
 	 double position_x;
 	 double position_y;
+
+	 void load_cursor_texture(GLFWwindow* window, const std::string& file_path);
 
 	 void update_position(GLFWwindow* window);
 	 bool check_for_mouse_click(GLFWwindow* window);
@@ -36,6 +39,9 @@ class Mouse {
 
 	 void plot_point(const bool& plot, GLFWwindow* window, const Shader::graphics_vectors_container& vectors_container, const vec2& screen_size, Mesh& mesh, std::vector<vec3>& colors, std::vector<vec3>& positions);
 
+	 void update(GLFWwindow* window);
+
+	 Mouse(GLFWwindow* window, const std::string& texture_file_path);
 
 };
 

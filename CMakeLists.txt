@@ -74,6 +74,13 @@ target_include_directories(imgui PUBLIC
 )
 #target_link_libraries(imgui PUBLIC glfw3 ${OPENGL_LIBRARIES})
 
+#File library
+add_library(File src/computer_graphics/File.cpp)
+target_include_directories(File PUBLIC
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+  "$<INSTALL_INTERFACE:include>"
+)
+
 #Math library
 add_library(Math src/computer_graphics/Math.cpp)
 target_include_directories(Math PUBLIC
@@ -106,6 +113,7 @@ install(TARGETS
     glad
     stb_image
     imgui
+    File
     Math 
     Mesh
     Shader
@@ -117,7 +125,7 @@ install(TARGETS
 
 #adding our main executable
 add_executable(${PROJECT_NAME} src/computer_graphics/Main.cpp)
-target_link_libraries(${PROJECT_NAME} Math Mesh Shader UI stb_image imgui glfw3 glad)
+target_link_libraries(${PROJECT_NAME} Mesh Shader UI Math File imgui stb_image glfw3 glad)
 install(TARGETS
   ${PROJECT_NAME}
   DESTINATION lib/${PROJECT_NAME}

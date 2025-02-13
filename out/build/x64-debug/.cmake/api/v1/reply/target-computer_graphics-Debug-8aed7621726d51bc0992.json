@@ -30,19 +30,19 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 119,
+				"line" : 127,
 				"parent" : 0
 			},
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 121,
+				"line" : 129,
 				"parent" : 0
 			},
 			{
 				"command" : 2,
 				"file" : 0,
-				"line" : 120,
+				"line" : 128,
 				"parent" : 0
 			},
 			{
@@ -132,6 +132,10 @@
 		},
 		{
 			"backtrace" : 3,
+			"id" : "File::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 3,
 			"id" : "Math::@6890427a1f51a3e7e1df"
 		},
 		{
@@ -176,11 +180,6 @@
 			},
 			{
 				"backtrace" : 3,
-				"fragment" : "lib\\Math.lib",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 3,
 				"fragment" : "lib\\Mesh.lib",
 				"role" : "libraries"
 			},
@@ -196,12 +195,22 @@
 			},
 			{
 				"backtrace" : 3,
-				"fragment" : "lib\\stb_image.lib",
+				"fragment" : "lib\\Math.lib",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "lib\\File.lib",
 				"role" : "libraries"
 			},
 			{
 				"backtrace" : 3,
 				"fragment" : "lib\\imgui.lib",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "lib\\stb_image.lib",
 				"role" : "libraries"
 			},
 			{

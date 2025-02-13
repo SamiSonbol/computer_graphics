@@ -75,6 +75,7 @@ void Triangle::set_color(const vec3& color) {
 
 //*Triangle* class constructor
 Triangle::Triangle(const Vertex& A, const Vertex& B, const Vertex& C) : A(A), B(B), C(C) {};
+Triangle::Triangle(const vec3& A, const vec3& B, const vec3& C) : A(A), B(B), C(C) {};
 
 std::vector<float> Texture::generate_normal_map() {
 
@@ -102,19 +103,6 @@ std::vector<float> Texture::generate_normal_map() {
  };
 
  return normals;
-
-};
-
-//checks if file exists
-bool Texture::check_if_file_exists(const std::string& file_path) {
-
-	if (std::filesystem::exists(file_path)) {
-
-		return true;
-
-	};
-
-	return false;
 
 };
 
@@ -177,19 +165,20 @@ void Texture::set_pixel_color(const size_t& x, const size_t& y, const vec4& colo
 };
 
 //*Texture* class constructor
-Texture::Texture(const std::string& file_path, const char* uniform_name, const unsigned int& GL_TEXTUREindex, const int& index) : uniform_name(uniform_name), GL_TEXTUREindex(GL_TEXTUREindex), index(index) {
+Texture::Texture(const std::string& file_path, const char* uniform_name, const unsigned int& GL_TEXTUREindex, const int& index) : 
+	
+	uniform_name(uniform_name), 
+	GL_TEXTUREindex(GL_TEXTUREindex), 
+	index(index) {
 
-	if (check_if_file_exists(file_path)) {
+	if (!std::filesystem::exists(file_path)) {
 
-		bytes = stbi_load(file_path.c_str(), &this->width, &this->height, &this->n_color_channels, 0);
-
-	}
-	else {
-
-		std::cerr << "ERROR: FILE DOESNT EXIST";
+		std::cerr << "ERROR: texture file doesnt exist!\n";
 		exit(EXIT_FAILURE);
 
 	};
+
+	bytes = stbi_load(file_path.c_str(), &this->width, &this->height, &this->n_color_channels, 0);
 
 };
 
@@ -263,7 +252,7 @@ void Mesh::set_as_single_face(Vertex& top_left, Vertex& bottom_left, Vertex& top
 //If not then it will be inserted into the map and all its data will be emplaced into the respective data vectors
 void Mesh::check_accumalate_add(Vertex& vertex, int& index_counter) {
 
-	auto key = std::make_pair(vertex.position, vertex.uv);
+	auto key = std::make_tuple(vertex.position, vertex.normal, vertex.uv);
 	auto iterator = this->vertices_map.find(key);
 	if (iterator != this->vertices_map.end()) {
 
@@ -302,7 +291,7 @@ void Mesh::check_accumalate_add(Triangle& triangle, int& index_counter) {
 
 };
 
-void Mesh::init_grid() {
+void Mesh::generate_terrain() {
 
 	/*the grid takes the width and height of our texture and fills it up as cells and not as points, hence the n_rows and n_columns is subtracted by 1 inorder to not go out of bounds when reaching the last point on a row or column.
 	a  ------  c
@@ -379,48 +368,198 @@ void Mesh::init_grid() {
 
 };
 
-void Mesh::fill_data() {
+void Mesh::extract_from_obj_file(const std::string& file_path, const bool& uv_mapped) {
 
-	init_grid();
+	std::vector<vec3> temp_positions;
+	std::vector<vec3> temp_normals;
+	std::vector<vec2> temp_uv;
+	int index_counter = 0;
+	vec3 vec(0, 0, 0);
+	Vertex a(0, 0, 0), b(0, 0, 0), c(0, 0, 0), d(0, 0, 0); std::array<Vertex, 4> vertices = { a, b, c, d };
+	Vertex vertex(0, 0, 0);
 
+	std::vector<std::string> lines = read_file_by_line(file_path);
+	std::vector<std::string> line_tokens;
+	std::vector<std::string> face_tokens;
+	std::string attribute_type1;
+	std::string attribute_type2;
+	
+	if (!uv_mapped) {
+
+		std::regex expression(R"((\d+)//(\d+))");
+		for (auto& line : lines) {
+
+			attribute_type1 = line.substr(0, 1);
+			attribute_type2 = line.substr(0, 2);
+
+			if (attribute_type2 == "vn") {
+
+				line_tokens.clear();
+				line_tokens = tokenise_data(line.substr(3), ' ');
+				vec.x = std::stof(line_tokens[0].c_str());
+				vec.y = std::stof(line_tokens[1].c_str());
+				vec.z = std::stof(line_tokens[2].c_str());
+				temp_normals.emplace_back(vec);
+
+			}
+			else if (attribute_type1 == "v") {
+
+				line_tokens.clear();
+				line_tokens = tokenise_data(line.substr(2), ' ');
+				vec.x = std::stof(line_tokens[0].c_str());
+				vec.y = std::stof(line_tokens[1].c_str());
+				vec.z = std::stof(line_tokens[2].c_str());
+				temp_positions.emplace_back(vec);
+
+				vec.x = 0.0;
+				vec.y = 0.0;
+				temp_uv.emplace_back(vec.x, vec.y);
+
+			}
+			else if (attribute_type1 == "f") {
+
+				line_tokens.clear();
+				line_tokens = tokenise_data(line.substr(2), ' ');
+				for (int i = 0; i < line_tokens.size(); i++) {
+
+					face_tokens.clear();
+					face_tokens = tokenise_data(line_tokens[i], expression);
+					int v_index = std::stoi(face_tokens[0].c_str()) - 1;
+					int vn_index = std::stoi(face_tokens[1].c_str()) - 1;
+
+					vertices[i].position = temp_positions[v_index];
+					vertices[i].normal = temp_normals[vn_index];
+					vertices[i].tangent = vec3(1, 0, 0);
+					vertices[i].bitangent = vec3(0, 1, 0);
+					vertices[i].color = vec3(255, 0, 0);				
+
+				};
+
+				set_as_single_face(vertices[0], vertices[1], vertices[2], vertices[3]);
+				Triangle A(vertices[0], vertices[1], vertices[2]);
+				Triangle B(vertices[0], vertices[2], vertices[3]);
+				check_accumalate_add(A, index_counter);
+				check_accumalate_add(B, index_counter);
+
+			};
+
+		};
+
+	}
+	else {
+
+		std::regex expression(R"((\d+)/(\d*)/(\d+))");
+		for (auto& line : lines) {
+
+			attribute_type1 = line.substr(0, 1);
+			attribute_type2 = line.substr(0, 2);
+
+			if (attribute_type2 == "vn") {
+
+				line_tokens.clear();
+				line_tokens = tokenise_data(line.substr(3), ' ');
+				vec.x = std::stof(line_tokens[0].c_str());
+				vec.y = std::stof(line_tokens[1].c_str());
+				vec.z = std::stof(line_tokens[2].c_str());
+				temp_normals.emplace_back(vec.x, vec.y, vec.z);
+
+			}
+			else if (attribute_type2 == "vt") {
+
+				line_tokens.clear();
+				line_tokens = tokenise_data(line.substr(3), ' ');
+				vec.x = std::stof(line_tokens[0].c_str());
+				vec.y = std::stof(line_tokens[1].c_str());
+				temp_uv.emplace_back(vec.x, vec.y);
+
+			}
+			else if (attribute_type1 == "v") {
+
+				line_tokens.clear();
+				line_tokens = tokenise_data(line.substr(2), ' ');
+				vec.x = std::stof(line_tokens[0].c_str());
+				vec.y = std::stof(line_tokens[1].c_str());
+				vec.z = std::stof(line_tokens[2].c_str());
+				temp_positions.emplace_back(vec.x, vec.y, vec.z);
+
+			}
+			else if (attribute_type1 == "f") {
+
+				line_tokens.clear();
+				line_tokens = tokenise_data(line.substr(2), ' ');
+				for (int i = 0; i < line_tokens.size(); i++) {
+
+					face_tokens.clear();
+					face_tokens = tokenise_data(line_tokens[i], expression);
+					int v_index = std::stoi(face_tokens[0].c_str()) - 1;
+					int vt_index = std::stoi(face_tokens[1].c_str()) - 1;
+					int vn_index = std::stoi(face_tokens[2].c_str()) - 1;
+
+					vertices[i].position = temp_positions[v_index];
+					vertices[i].normal = temp_normals[vn_index];
+					vertices[i].tangent = vec3(1, 0, 0);
+					vertices[i].bitangent = vec3(0, 1, 0);
+					vertices[i].uv = temp_uv[vt_index];
+					vertices[i].color = vec3(255, 0, 0);
+
+				};
+
+				Triangle A(vertices[0], vertices[1], vertices[2]);
+				Triangle B(vertices[0], vertices[2], vertices[3]);
+				check_accumalate_add(A, index_counter);
+				check_accumalate_add(B, index_counter);
+
+			};
+
+		};
+
+	};
+
+	//normalizing the TBN of each vertex after it was accumalated
+	for (int i = 0; i < this->positions.size(); i++) {
+
+		this->normals[i].normalize();
+		this->tangents[i].normalize();
+		this->bitangents[i].normalize();
+
+	};
+
+};
+
+Mesh::Mesh(const vec2& mesh_dimensions, Texture diffuse_map, Texture normal_map, Texture displacement_map) :
+
+	mesh_dimensions(mesh_dimensions),
+	diffuse_map(std::move(diffuse_map)),
+	normal_map(std::move(normal_map)),
+	displacement_map(std::move(displacement_map)) {
+
+	generate_terrain();
 	std::cout << "actual texture width: " << this->diffuse_map.width << " actual texture height: " << this->diffuse_map.height << " model dimensions: "; print_vec(this->mesh_dimensions);
 	std::cout << "n_vertices: " << positions.size() << std::endl;
 	std::cout << "n_indices: " << indices.size() << std::endl;
 	std::cout << "n_uv_coords: " << this->texture_coordinates.size() << std::endl;
 	std::cout << "n_TBNs: " << this->normals.size() << std::endl;
-
-};//"fill data" bracket
-
-Mesh::Mesh(Texture&& diffuse_map, Texture&& normal_map, Texture&& displacement_map, const vec2& mesh_dimensions) : generate_buffers_and_textures(true), diffuse_map(std::move(diffuse_map)), normal_map(std::move(normal_map)), displacement_map(std::move(displacement_map)), mesh_dimensions(mesh_dimensions) {
-
-	fill_data();
-	std::cout << "filled data\n";
-
-	//this->vertices_map.clear();
-	std::cout << "cleared Grid\n";
-
-	this->colors[this->colors.size() - 1] = vec3(255, 0, 0);
+	
+	this->vertices_map.clear();
+	std::cout << "cleared map\n";
 
 };
 
-Mesh::Mesh(const std::string& diffuse_file_path, const char* diffuse_uniform_name, const unsigned int& diffuse_GL_TEXTUREindex, const int& diffuse_index, const std::string& normal_file_path, const char* normal_uniform_name, const unsigned int& normal_GL_TEXTUREindex, const int& normal_index, const std::string& displacement_file_path, const char* displacement_uniform_name, const unsigned int& displacement_GL_TEXTUREindex, const int& displacement_index, const vec2& mesh_dimensions) :
+Mesh::Mesh(const std::string& obj_file_path, const bool& uv_mapped, Texture diffuse_map, Texture normal_map, Texture displacement_map) :
 
-	generate_buffers_and_textures(true),
-	mesh_dimensions(mesh_dimensions),
-	diffuse_map(diffuse_file_path, diffuse_uniform_name, diffuse_GL_TEXTUREindex, diffuse_index),
-	normal_map(normal_file_path, normal_uniform_name, normal_GL_TEXTUREindex, normal_index),
-	displacement_map(displacement_file_path, displacement_uniform_name, displacement_GL_TEXTUREindex, displacement_index)
+	diffuse_map(std::move(diffuse_map)),
+	normal_map(std::move(normal_map)),
+	displacement_map(std::move(displacement_map)) {
 
-{
-
-	fill_data();
-	std::cout << "filled data\n";
-
-	//this->vertices_map.clear();
-	std::cout << "cleared Grid\n";
-
-	this->colors[this->colors.size() - 1] = vec3(255, 0, 0);
+	extract_from_obj_file(obj_file_path, uv_mapped);
+	std::cout << "actual texture width: " << this->diffuse_map.width << " actual texture height: " << this->diffuse_map.height << " model dimensions: "; print_vec(this->mesh_dimensions);
+	std::cout << "n_vertices: " << positions.size() << std::endl;
+	std::cout << "n_indices: " << indices.size() << std::endl;
+	std::cout << "n_uv_coords: " << this->texture_coordinates.size() << std::endl;
+	std::cout << "n_TBNs: " << this->normals.size() << std::endl;
+	
+	this->vertices_map.clear();
+	std::cout << "cleared map\n";
 
 };
-
 

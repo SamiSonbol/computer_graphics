@@ -3,21 +3,24 @@
 #include <vector>
 #include <array>
 #include <unordered_map>
-#include <filesystem>
 
+#include <glad/glad.h>
 #include <stb_image/stb_image.h>
 #include "computer_graphics/Math.h"
+#include "computer_graphics/File.h"
 
 //struct used to hash the unordered_map we are using in our *Mesh* class
-struct vec3_and_vec2_hasher {
+struct vec3_vec3_vec2_hasher {
 
-	std::size_t operator()(const std::pair<vec3, vec2>& pair) const {
+	std::size_t operator()(const std::tuple<vec3, vec3, vec2>& tuple) const {
 
-		std::size_t h1 = vec3_hasher()(pair.first);
-		std::size_t h2 = vec2_hasher()(pair.second);
+		std::size_t h1 = vec3_hasher()(std::get<0>(tuple));
+		std::size_t h2 = vec3_hasher()(std::get<1>(tuple));
+		std::size_t h3 = vec2_hasher()(std::get<2>(tuple));
 
 		std::size_t seed = h1;
 		seed = hash_combine(seed, h2);
+		seed = hash_combine(seed, h3);
 		return seed;
 
 	};
@@ -60,6 +63,7 @@ public:
 	void set_color(const vec3& color);
 
 	Triangle(const Vertex& A, const Vertex& B, const Vertex& C);
+	Triangle(const vec3& A, const vec3& B, const vec3& C);
 
 };
 
@@ -74,7 +78,6 @@ class Texture {
 	const char* uniform_name;
 	unsigned char* bytes;
 
-	bool check_if_file_exists(const std::string& file_path);
 	std::vector<float> generate_normal_map();
 
 	vec4 get_pixel_color(const size_t& x, const size_t& y);
@@ -103,7 +106,7 @@ class Mesh {
 	Texture displacement_map;
 
 	vec2 mesh_dimensions;
-	std::unordered_map<std::pair<vec3, vec2>, unsigned short, vec3_and_vec2_hasher> vertices_map;
+	std::unordered_map<std::tuple<vec3, vec3, vec2>, unsigned short, vec3_vec3_vec2_hasher> vertices_map;
 
 	std::vector<unsigned short> indices;
 	std::vector<vec3> positions;
@@ -121,10 +124,20 @@ class Mesh {
 
 	void set_as_single_face(Vertex& top_left, Vertex& bottom_left, Vertex& top_right, Vertex& bottom_right);
 	
-	void init_grid();
-	void fill_data();
+	void generate_terrain();
+	void extract_from_obj_file(const std::string& file_path, const bool& uv_mapped);
+	
+	Mesh(const vec2& mesh_dimensions, 
+		 Texture diffuse_map = Texture(RESOURCES_DIR"/diffuse_maps/default_diffuse.png", "uTexture", GL_TEXTURE0, 0), 
+		 Texture normal_map = Texture(RESOURCES_DIR"/normal_maps/default_normal.png", "uNormal_map", GL_TEXTURE1, 1), 
+		 Texture displacement_map = Texture(RESOURCES_DIR"/displacement_maps/default_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2)
+	);
 
-	Mesh(Texture&& diffuse_map, Texture&& normal_map, Texture&& displacement_map, const vec2& mesh_dimensions);
-	Mesh(const std::string& diffuse_file_path, const char* diffuse_uniform_name, const unsigned int& diffuse_GL_TEXTUREindex, const int& diffuse_index, const std::string& normal_file_path, const char* normal_uniform_name, const unsigned int& normal_GL_TEXTUREindex, const int& normal_index, const std::string& displacement_file_path, const char* displacement_uniform_name, const unsigned int& displacement_GL_TEXTUREindex, const int& displacement_index, const vec2& mesh_dimensions);//override
+	
+	Mesh(const std::string& obj_file_path, const bool& uv_mapped,
+		 Texture diffuse_map = Texture(RESOURCES_DIR"/diffuse_maps/default_diffuse.png", "uTexture", GL_TEXTURE0, 0),
+		 Texture normal_map = Texture(RESOURCES_DIR"/normal_maps/default_normal.png", "uNormal_map", GL_TEXTURE1, 1),
+		 Texture displacement_map = Texture(RESOURCES_DIR"/displacement_maps/default_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2)
+	);
 
 };

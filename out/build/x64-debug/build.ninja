@@ -194,6 +194,42 @@ build lib\imgui.lib: CXX_STATIC_LIBRARY_LINKER__imgui_Debug CMakeFiles\imgui.dir
   TARGET_PDB = lib\imgui.pdb
 
 # =============================================================================
+# Object build statements for STATIC_LIBRARY target File
+
+
+#############################################
+# Order-only phony target for File
+
+build cmake_object_order_depends_target_File: phony || CMakeFiles\File.dir
+
+build CMakeFiles\File.dir\src\computer_graphics\File.cpp.obj: CXX_COMPILER__File_unscanned_Debug E$:\Tools\Libraries\Repositories\computer_graphics\src\computer_graphics\File.cpp || cmake_object_order_depends_target_File
+  DEFINES = -DPROJECT_NAME=\"computer_graphics\" -DRESOURCES_DIR=\"E:/Tools/Libraries/Repositories/computer_graphics/resources\" -DSHADERS_DIR=\"E:/Tools/Libraries/Repositories/computer_graphics/include/shaders\"
+  FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17
+  INCLUDES = -IE:\Tools\Libraries\Repositories\computer_graphics\include
+  OBJECT_DIR = CMakeFiles\File.dir
+  OBJECT_FILE_DIR = CMakeFiles\File.dir\src\computer_graphics
+  TARGET_COMPILE_PDB = CMakeFiles\File.dir\File.pdb
+  TARGET_PDB = lib\File.pdb
+
+
+# =============================================================================
+# Link build statements for STATIC_LIBRARY target File
+
+
+#############################################
+# Link the static library lib\File.lib
+
+build lib\File.lib: CXX_STATIC_LIBRARY_LINKER__File_Debug CMakeFiles\File.dir\src\computer_graphics\File.cpp.obj
+  LANGUAGE_COMPILE_FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1
+  LINK_FLAGS = /machine:x64
+  OBJECT_DIR = CMakeFiles\File.dir
+  POST_BUILD = cd .
+  PRE_LINK = cd .
+  TARGET_COMPILE_PDB = CMakeFiles\File.dir\File.pdb
+  TARGET_FILE = lib\File.lib
+  TARGET_PDB = lib\File.pdb
+
+# =============================================================================
 # Object build statements for STATIC_LIBRARY target Math
 
 
@@ -344,7 +380,7 @@ build lib\UI.lib: CXX_STATIC_LIBRARY_LINKER__UI_Debug CMakeFiles\UI.dir\src\comp
 #############################################
 # Order-only phony target for computer_graphics
 
-build cmake_object_order_depends_target_computer_graphics: phony || cmake_object_order_depends_target_Math cmake_object_order_depends_target_Mesh cmake_object_order_depends_target_Shader cmake_object_order_depends_target_UI cmake_object_order_depends_target_glad cmake_object_order_depends_target_imgui cmake_object_order_depends_target_stb_image
+build cmake_object_order_depends_target_computer_graphics: phony || cmake_object_order_depends_target_File cmake_object_order_depends_target_Math cmake_object_order_depends_target_Mesh cmake_object_order_depends_target_Shader cmake_object_order_depends_target_UI cmake_object_order_depends_target_glad cmake_object_order_depends_target_imgui cmake_object_order_depends_target_stb_image
 
 build CMakeFiles\computer_graphics.dir\src\computer_graphics\Main.cpp.obj: CXX_COMPILER__computer_graphics_unscanned_Debug E$:\Tools\Libraries\Repositories\computer_graphics\src\computer_graphics\Main.cpp || cmake_object_order_depends_target_computer_graphics
   DEFINES = -DPROJECT_NAME=\"computer_graphics\" -DRESOURCES_DIR=\"E:/Tools/Libraries/Repositories/computer_graphics/resources\" -DSHADERS_DIR=\"E:/Tools/Libraries/Repositories/computer_graphics/include/shaders\"
@@ -363,10 +399,10 @@ build CMakeFiles\computer_graphics.dir\src\computer_graphics\Main.cpp.obj: CXX_C
 #############################################
 # Link the executable bin\computer_graphics.exe
 
-build bin\computer_graphics.exe: CXX_EXECUTABLE_LINKER__computer_graphics_Debug CMakeFiles\computer_graphics.dir\src\computer_graphics\Main.cpp.obj | lib\Math.lib lib\Mesh.lib lib\Shader.lib lib\UI.lib lib\stb_image.lib lib\imgui.lib E$:\Tools\Libraries\Repositories\computer_graphics\src\GLFW\glfw3.lib lib\glad.lib || lib\Math.lib lib\Mesh.lib lib\Shader.lib lib\UI.lib lib\glad.lib lib\imgui.lib lib\stb_image.lib
+build bin\computer_graphics.exe: CXX_EXECUTABLE_LINKER__computer_graphics_Debug CMakeFiles\computer_graphics.dir\src\computer_graphics\Main.cpp.obj | lib\Mesh.lib lib\Shader.lib lib\UI.lib lib\Math.lib lib\File.lib lib\imgui.lib lib\stb_image.lib E$:\Tools\Libraries\Repositories\computer_graphics\src\GLFW\glfw3.lib lib\glad.lib || lib\File.lib lib\Math.lib lib\Mesh.lib lib\Shader.lib lib\UI.lib lib\glad.lib lib\imgui.lib lib\stb_image.lib
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1
   LINK_FLAGS = /machine:x64 /debug /INCREMENTAL /subsystem:console
-  LINK_LIBRARIES = lib\Math.lib  lib\Mesh.lib  lib\Shader.lib  lib\UI.lib  lib\stb_image.lib  lib\imgui.lib  E:\Tools\Libraries\Repositories\computer_graphics\src\GLFW\glfw3.lib  lib\glad.lib  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib
+  LINK_LIBRARIES = lib\Mesh.lib  lib\Shader.lib  lib\UI.lib  lib\Math.lib  lib\File.lib  lib\imgui.lib  lib\stb_image.lib  E:\Tools\Libraries\Repositories\computer_graphics\src\GLFW\glfw3.lib  lib\glad.lib  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib
   OBJECT_DIR = CMakeFiles\computer_graphics.dir
   POST_BUILD = cd .
   PRE_LINK = cd .
@@ -431,6 +467,10 @@ build install\local: phony CMakeFiles\install\local.util
 # =============================================================================
 # Target aliases.
 
+build File: phony lib\File.lib
+
+build File.lib: phony lib\File.lib
+
 build Math: phony lib\Math.lib
 
 build Math.lib: phony lib\Math.lib
@@ -471,7 +511,7 @@ build stb_image.lib: phony lib\stb_image.lib
 #############################################
 # Folder: E:/Tools/Libraries/Repositories/computer_graphics/out/build/x64-debug
 
-build all: phony lib\glad.lib lib\stb_image.lib lib\imgui.lib lib\Math.lib lib\Mesh.lib lib\Shader.lib lib\UI.lib bin\computer_graphics.exe
+build all: phony lib\glad.lib lib\stb_image.lib lib\imgui.lib lib\File.lib lib\Math.lib lib\Mesh.lib lib\Shader.lib lib\UI.lib bin\computer_graphics.exe
 
 # =============================================================================
 # Built-in targets

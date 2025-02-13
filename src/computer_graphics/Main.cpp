@@ -8,45 +8,8 @@
 
 int main() {
 
-	glfwInit();
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_DEPTH_BITS, 24);
-
-	GLFWmonitor* primary_monitor = glfwGetPrimaryMonitor();
-	if (!primary_monitor) {
-
-		std::cerr << "Failed to get primary monitor\n";
-		glfwTerminate();
-		return -1;
-
-	};
-
-	const GLFWvidmode* video_mode = glfwGetVideoMode(primary_monitor);
-	if (!video_mode) {
-
-		std::cerr << "Failed to get video mode\n";
-		glfwTerminate();
-		return -1;
-
-	};
-	 
-	vec2 screen_size (video_mode->width, video_mode->height);
-	GLFWwindow* window = glfwCreateWindow(screen_size.x, screen_size.y, PROJECT_NAME, NULL, NULL);
-	if (window == NULL) {
-
-		std::cout << "failed";
-		glfwTerminate();
-		return -1;
-
-	};
-	glfwMakeContextCurrent(window);
-	gladLoadGL();
-	std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
-	glViewport(0, 0, screen_size.x, screen_size.y);
-	glEnable(GL_DEPTH_TEST);
-
+	vec2 screen_size; 
+	GLFWwindow* window = INIT_GLFW_GLAD_WINDOW(screen_size, vec3(0.478f, 0.647f, 0.702f));
 	
 	std::string normal_mapping_and_displacement_mapping_and_geometry = SHADERS_DIR"/normal_mapping_and_displacement_mapping_and_geometry";
 	std::string normal_mapping_and_displacement_mapping_and_tesselation = SHADERS_DIR"/normal_mapping_and_displacement_mapping_and_tesselation";
@@ -58,7 +21,7 @@ int main() {
 	shader.initialize(screen_size, vectors_container, booleans_container, floats_container);
 
 	UI user_interface(window, (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION));
-	Mouse mouse = Mouse();
+	Mouse mouse = Mouse(window, RESOURCES_DIR"/cursor_textures/test.png");
 	bool plot = false;
 	user_interface.shader_debug_mode(vectors_container, booleans_container, floats_container, plot);
 
@@ -70,9 +33,9 @@ int main() {
 	Texture normal_map(RESOURCES_DIR"/normal_maps/emma_normal.png", "uNormal_map", GL_TEXTURE1, 1);
 	Texture displacement_map(RESOURCES_DIR"/displacement_maps/emma_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);*/
 
-	Texture diffuse_map(RESOURCES_DIR"/diffuse_maps/osna.png", "uTexture", GL_TEXTURE0, 0);
+	/*Texture diffuse_map(RESOURCES_DIR"/diffuse_maps/osna.png", "uTexture", GL_TEXTURE0, 0);
 	Texture normal_map(RESOURCES_DIR"/normal_maps/osna_normal.png", "uNormal_map", GL_TEXTURE1, 1);
-	Texture displacement_map(RESOURCES_DIR"/displacement_maps/osna_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);
+	Texture displacement_map(RESOURCES_DIR"/displacement_maps/osna_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);*/
 
 	/*Texture diffuse_map(RESOURCES_DIR"/diffuse_maps/rocky_rivers.png", "uTexture", GL_TEXTURE0, 0);
 	Texture normal_map(RESOURCES_DIR"/normal_maps/osna_normal.png", "uNormal_map", GL_TEXTURE1, 1);
@@ -86,7 +49,11 @@ int main() {
 	Texture normal_map(RESOURCES_DIR"/normal_maps/emma_normal.png", "uNormal_map", GL_TEXTURE1, 1);
 	Texture displacement_map(RESOURCES_DIR"/displacement_maps/mountain_range_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);*/
 
-	Mesh mesh(std::move(diffuse_map), std::move(normal_map), std::move(displacement_map), vec2(100, 100));
+	Texture diffuse_map(RESOURCES_DIR"/diffuse_maps/cat.jpg", "uTexture", GL_TEXTURE0, 0);
+	Texture normal_map(RESOURCES_DIR"/normal_maps/emma_normal.png", "uNormal_map", GL_TEXTURE1, 1);
+	Texture displacement_map(RESOURCES_DIR"/displacement_maps/cat_displacement.jpg", "uDisplacement_map", GL_TEXTURE2, 2);
+
+	Mesh mesh(RESOURCES_DIR"/3D models/cottage.obj", true, std::move(diffuse_map));
 
 	/*since each object has its own own data buffers and textures inside *Mesh*, we dont need multiple vertex arrays, instead we simply bind said buffers to the shader every time we want to draw said object
 	we do that by using the *Shader::draw_mesh_elements* function, where this function binds the *Mesh* data and draws it directly*/
@@ -101,8 +68,9 @@ int main() {
 
 		shader.update(vectors_container, booleans_container, floats_container);
 		user_interface.new_frame();
-		mouse.update_position(window);
+		mouse.update(window);
 		mouse.plot_point(plot, window, vectors_container, screen_size, mesh, mesh.colors, mesh.positions);
+		
 
 		shader.bind_and_draw_mesh_elements(mesh, booleans_container.gamma_correction, GL_PATCHES);
 
