@@ -121,23 +121,41 @@ class Mesh {
 
 	void check_accumalate_add(Vertex& vertex, int& index_counter);
 	void check_accumalate_add(Triangle& triangle, int& index_counter);
-
+	
 	void set_as_single_face(Vertex& top_left, Vertex& bottom_left, Vertex& top_right, Vertex& bottom_right);
 	
 	void generate_terrain();
-	void extract_from_obj_file(const std::string& file_path, const bool& uv_mapped);
-	
-	Mesh(const vec2& mesh_dimensions, 
-		 Texture diffuse_map = Texture(RESOURCES_DIR"/diffuse_maps/default_diffuse.png", "uTexture", GL_TEXTURE0, 0), 
-		 Texture normal_map = Texture(RESOURCES_DIR"/normal_maps/default_normal.png", "uNormal_map", GL_TEXTURE1, 1), 
-		 Texture displacement_map = Texture(RESOURCES_DIR"/displacement_maps/default_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2)
+	void extract_from_obj_file(const std::string& file_path);
+
+ private:
+
+	Mesh(const vec2& mesh_dimensions, Texture&& diffuse_map, Texture&& normal_map, Texture&& displacement_map);
+	Mesh(const std::string& obj_file_path, Texture&& diffuse_map, Texture&& normal_map, Texture&& displacement_map);
+
+	Mesh(const vec2& mesh_dimensions, const std::string& path_diffuse_map_file, const std::string& path_normal_map_file, const std::string& path_displacement_map_file);
+	Mesh(const std::string& obj_file_path, const std::string& path_diffuse_map_file, const std::string& path_normal_map_file, const std::string& path_displacement_map_file);
+
+	Mesh(const vec2& mesh_dimensions, const std::string& path_maps_folder);
+	Mesh(const std::string& obj_file_path, const std::string& path_maps_folder);
+
+
+ public:
+
+	static Mesh from_procedural_Texture(const vec2& mesh_dimensions,
+		Texture&& diffuse_map = Texture(RESOURCES_DIR"/texture_maps/default/default_diffuse.png", "uTexture", GL_TEXTURE0, 0),
+		Texture&& normal_map = Texture(RESOURCES_DIR"/texture_maps/default/default_normal.png", "uNormal_map", GL_TEXTURE1, 1),
+		Texture&& displacement_map = Texture(RESOURCES_DIR"/texture_maps/default/default_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2)
+	);
+	static Mesh from_obj_Texture(const std::string& obj_file_path,
+		Texture&& diffuse_map = Texture(RESOURCES_DIR"/texture_maps/default/default_diffuse.png", "uTexture", GL_TEXTURE0, 0),
+		Texture&& normal_map = Texture(RESOURCES_DIR"/texture_maps/default/default_normal.png", "uNormal_map", GL_TEXTURE1, 1),
+		Texture&& displacement_map = Texture(RESOURCES_DIR"/texture_maps/default/default_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2)
 	);
 
-	
-	Mesh(const std::string& obj_file_path, const bool& uv_mapped,
-		 Texture diffuse_map = Texture(RESOURCES_DIR"/diffuse_maps/default_diffuse.png", "uTexture", GL_TEXTURE0, 0),
-		 Texture normal_map = Texture(RESOURCES_DIR"/normal_maps/default_normal.png", "uNormal_map", GL_TEXTURE1, 1),
-		 Texture displacement_map = Texture(RESOURCES_DIR"/displacement_maps/default_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2)
-	);
+	static Mesh from_procedural_files(const vec2& mesh_dimensions, const std::string& path_diffuse_map_file, const std::string& path_normal_map_file = RESOURCES_DIR"/texture_maps/default/default_normal.png", const std::string& path_displacement_map_file = RESOURCES_DIR"/texture_maps/default/default_displacement.png");
+	static Mesh from_obj_files(const std::string& obj_file_path, const std::string& path_diffuse_map_file, const std::string& path_normal_map_file = RESOURCES_DIR"/texture_maps/default/default_normal.png", const std::string& path_displacement_map_file = RESOURCES_DIR"/texture_maps/default/default_displacement.png");
+
+	static Mesh from_procedural_folder(const vec2& mesh_dimensions, const std::string& path_maps_folder);
+	static Mesh from_obj_folder(const std::string& obj_file_path, const std::string& path_maps_folder);
 
 };

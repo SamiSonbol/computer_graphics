@@ -87,7 +87,7 @@ build cmake_object_order_depends_target_stb_image: phony || CMakeFiles\stb_image
 
 build CMakeFiles\stb_image.dir\src\stb_image\stb_image.cpp.obj: CXX_COMPILER__stb_image_unscanned_Debug E$:\Tools\Libraries\Repositories\computer_graphics\src\stb_image\stb_image.cpp || cmake_object_order_depends_target_stb_image
   DEFINES = -DPROJECT_NAME=\"computer_graphics\" -DRESOURCES_DIR=\"E:/Tools/Libraries/Repositories/computer_graphics/resources\" -DSHADERS_DIR=\"E:/Tools/Libraries/Repositories/computer_graphics/include/shaders\"
-  FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17
+  FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++latest
   INCLUDES = -IE:\Tools\Libraries\Repositories\computer_graphics\include
   OBJECT_DIR = CMakeFiles\stb_image.dir
   OBJECT_FILE_DIR = CMakeFiles\stb_image.dir\src\stb_image
@@ -123,7 +123,7 @@ build cmake_object_order_depends_target_imgui: phony || CMakeFiles\imgui.dir
 
 build CMakeFiles\imgui.dir\src\imgui\imgui.cpp.obj: CXX_COMPILER__imgui_unscanned_Debug E$:\Tools\Libraries\Repositories\computer_graphics\src\imgui\imgui.cpp || cmake_object_order_depends_target_imgui
   DEFINES = -DPROJECT_NAME=\"computer_graphics\" -DRESOURCES_DIR=\"E:/Tools/Libraries/Repositories/computer_graphics/resources\" -DSHADERS_DIR=\"E:/Tools/Libraries/Repositories/computer_graphics/include/shaders\"
-  FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17
+  FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++latest
   INCLUDES = -IE:\Tools\Libraries\Repositories\computer_graphics\include
   OBJECT_DIR = CMakeFiles\imgui.dir
   OBJECT_FILE_DIR = CMakeFiles\imgui.dir\src\imgui
@@ -132,7 +132,7 @@ build CMakeFiles\imgui.dir\src\imgui\imgui.cpp.obj: CXX_COMPILER__imgui_unscanne
 
 build CMakeFiles\imgui.dir\src\imgui\imgui_draw.cpp.obj: CXX_COMPILER__imgui_unscanned_Debug E$:\Tools\Libraries\Repositories\computer_graphics\src\imgui\imgui_draw.cpp || cmake_object_order_depends_target_imgui
   DEFINES = -DPROJECT_NAME=\"computer_graphics\" -DRESOURCES_DIR=\"E:/Tools/Libraries/Repositories/computer_graphics/resources\" -DSHADERS_DIR=\"E:/Tools/Libraries/Repositories/computer_graphics/include/shaders\"
-  FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17
+  FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++latest
   INCLUDES = -IE:\Tools\Libraries\Repositories\computer_graphics\include
   OBJECT_DIR = CMakeFiles\imgui.dir
   OBJECT_FILE_DIR = CMakeFiles\imgui.dir\src\imgui
@@ -141,7 +141,7 @@ build CMakeFiles\imgui.dir\src\imgui\imgui_draw.cpp.obj: CXX_COMPILER__imgui_uns
 
 build CMakeFiles\imgui.dir\src\imgui\imgui_widgets.cpp.obj: CXX_COMPILER__imgui_unscanned_Debug E$:\Tools\Libraries\Repositories\computer_graphics\src\imgui\imgui_widgets.cpp || cmake_object_order_depends_target_imgui
   DEFINES = -DPROJECT_NAME=\"computer_graphics\" -DRESOURCES_DIR=\"E:/Tools/Libraries/Repositories/computer_graphics/resources\" -DSHADERS_DIR=\"E:/Tools/Libraries/Repositories/computer_graphics/include/shaders\"
-  FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17
+  FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++latest
   INCLUDES = -IE:\Tools\Libraries\Repositories\computer_graphics\include
   OBJECT_DIR = CMakeFiles\imgui.dir
   OBJECT_FILE_DIR = CMakeFiles\imgui.dir\src\imgui
@@ -150,7 +150,7 @@ build CMakeFiles\imgui.dir\src\imgui\imgui_widgets.cpp.obj: CXX_COMPILER__imgui_
 
 build CMakeFiles\imgui.dir\src\imgui\imgui_impl_glfw.cpp.obj: CXX_COMPILER__imgui_unscanned_Debug E$:\Tools\Libraries\Repositories\computer_graphics\src\imgui\imgui_impl_glfw.cpp || cmake_object_order_depends_target_imgui
   DEFINES = -DPROJECT_NAME=\"computer_graphics\" -DRESOURCES_DIR=\"E:/Tools/Libraries/Repositories/computer_graphics/resources\" -DSHADERS_DIR=\"E:/Tools/Libraries/Repositories/computer_graphics/include/shaders\"
-  FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17
+  FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++latest
   INCLUDES = -IE:\Tools\Libraries\Repositories\computer_graphics\include
   OBJECT_DIR = CMakeFiles\imgui.dir
   OBJECT_FILE_DIR = CMakeFiles\imgui.dir\src\imgui
@@ -159,7 +159,7 @@ build CMakeFiles\imgui.dir\src\imgui\imgui_impl_glfw.cpp.obj: CXX_COMPILER__imgu
 
 build CMakeFiles\imgui.dir\src\imgui\imgui_impl_opengl3.cpp.obj: CXX_COMPILER__imgui_unscanned_Debug E$:\Tools\Libraries\Repositories\computer_graphics\src\imgui\imgui_impl_opengl3.cpp || cmake_object_order_depends_target_imgui
   DEFINES = -DPROJECT_NAME=\"computer_graphics\" -DRESOURCES_DIR=\"E:/Tools/Libraries/Repositories/computer_graphics/resources\" -DSHADERS_DIR=\"E:/Tools/Libraries/Repositories/computer_graphics/include/shaders\"
-  FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17
+  FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++latest
   INCLUDES = -IE:\Tools\Libraries\Repositories\computer_graphics\include
   OBJECT_DIR = CMakeFiles\imgui.dir
   OBJECT_FILE_DIR = CMakeFiles\imgui.dir\src\imgui
@@ -168,7 +168,7 @@ build CMakeFiles\imgui.dir\src\imgui\imgui_impl_opengl3.cpp.obj: CXX_COMPILER__i
 
 build CMakeFiles\imgui.dir\src\imgui\imgui_tables.cpp.obj: CXX_COMPILER__imgui_unscanned_Debug E$:\Tools\Libraries\Repositories\computer_graphics\src\imgui\imgui_tables.cpp || cmake_object_order_depends_target_imgui
   DEFINES = -DPROJECT_NAME=\"computer_graphics\" -DRESOURCES_DIR=\"E:/Tools/Libraries/Repositories/computer_graphics/resources\" -DSHADERS_DIR=\"E:/Tools/Libraries/Repositories/computer_graphics/include/shaders\"
-  FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17
+  FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++latest
   INCLUDES = -IE:\Tools\Libraries\Repositories\computer_graphics\include
   OBJECT_DIR = CMakeFiles\imgui.dir
   OBJECT_FILE_DIR = CMakeFiles\imgui.dir\src\imgui
@@ -204,7 +204,7 @@ build cmake_object_order_depends_target_File: phony || CMakeFiles\File.dir
 
 build CMakeFiles\File.dir\src\computer_graphics\File.cpp.obj: CXX_COMPILER__File_unscanned_Debug E$:\Tools\Libraries\Repositories\computer_graphics\src\computer_graphics\File.cpp || cmake_object_order_depends_target_File
   DEFINES = -DPROJECT_NAME=\"computer_graphics\" -DRESOURCES_DIR=\"E:/Tools/Libraries/Repositories/computer_graphics/resources\" -DSHADERS_DIR=\"E:/Tools/Libraries/Repositories/computer_graphics/include/shaders\"
-  FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17
+  FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++latest
   INCLUDES = -IE:\Tools\Libraries\Repositories\computer_graphics\include
   OBJECT_DIR = CMakeFiles\File.dir
   OBJECT_FILE_DIR = CMakeFiles\File.dir\src\computer_graphics
@@ -240,7 +240,7 @@ build cmake_object_order_depends_target_Math: phony || CMakeFiles\Math.dir
 
 build CMakeFiles\Math.dir\src\computer_graphics\Math.cpp.obj: CXX_COMPILER__Math_unscanned_Debug E$:\Tools\Libraries\Repositories\computer_graphics\src\computer_graphics\Math.cpp || cmake_object_order_depends_target_Math
   DEFINES = -DPROJECT_NAME=\"computer_graphics\" -DRESOURCES_DIR=\"E:/Tools/Libraries/Repositories/computer_graphics/resources\" -DSHADERS_DIR=\"E:/Tools/Libraries/Repositories/computer_graphics/include/shaders\"
-  FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17
+  FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++latest
   INCLUDES = -IE:\Tools\Libraries\Repositories\computer_graphics\include
   OBJECT_DIR = CMakeFiles\Math.dir
   OBJECT_FILE_DIR = CMakeFiles\Math.dir\src\computer_graphics
@@ -276,7 +276,7 @@ build cmake_object_order_depends_target_Mesh: phony || CMakeFiles\Mesh.dir
 
 build CMakeFiles\Mesh.dir\src\computer_graphics\Mesh.cpp.obj: CXX_COMPILER__Mesh_unscanned_Debug E$:\Tools\Libraries\Repositories\computer_graphics\src\computer_graphics\Mesh.cpp || cmake_object_order_depends_target_Mesh
   DEFINES = -DPROJECT_NAME=\"computer_graphics\" -DRESOURCES_DIR=\"E:/Tools/Libraries/Repositories/computer_graphics/resources\" -DSHADERS_DIR=\"E:/Tools/Libraries/Repositories/computer_graphics/include/shaders\"
-  FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17
+  FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++latest
   INCLUDES = -IE:\Tools\Libraries\Repositories\computer_graphics\include
   OBJECT_DIR = CMakeFiles\Mesh.dir
   OBJECT_FILE_DIR = CMakeFiles\Mesh.dir\src\computer_graphics
@@ -312,7 +312,7 @@ build cmake_object_order_depends_target_Shader: phony || CMakeFiles\Shader.dir
 
 build CMakeFiles\Shader.dir\src\computer_graphics\Shader.cpp.obj: CXX_COMPILER__Shader_unscanned_Debug E$:\Tools\Libraries\Repositories\computer_graphics\src\computer_graphics\Shader.cpp || cmake_object_order_depends_target_Shader
   DEFINES = -DPROJECT_NAME=\"computer_graphics\" -DRESOURCES_DIR=\"E:/Tools/Libraries/Repositories/computer_graphics/resources\" -DSHADERS_DIR=\"E:/Tools/Libraries/Repositories/computer_graphics/include/shaders\"
-  FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17
+  FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++latest
   INCLUDES = -IE:\Tools\Libraries\Repositories\computer_graphics\include
   OBJECT_DIR = CMakeFiles\Shader.dir
   OBJECT_FILE_DIR = CMakeFiles\Shader.dir\src\computer_graphics
@@ -348,7 +348,7 @@ build cmake_object_order_depends_target_UI: phony || CMakeFiles\UI.dir
 
 build CMakeFiles\UI.dir\src\computer_graphics\UI.cpp.obj: CXX_COMPILER__UI_unscanned_Debug E$:\Tools\Libraries\Repositories\computer_graphics\src\computer_graphics\UI.cpp || cmake_object_order_depends_target_UI
   DEFINES = -DPROJECT_NAME=\"computer_graphics\" -DRESOURCES_DIR=\"E:/Tools/Libraries/Repositories/computer_graphics/resources\" -DSHADERS_DIR=\"E:/Tools/Libraries/Repositories/computer_graphics/include/shaders\"
-  FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17
+  FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++latest
   INCLUDES = -IE:\Tools\Libraries\Repositories\computer_graphics\include
   OBJECT_DIR = CMakeFiles\UI.dir
   OBJECT_FILE_DIR = CMakeFiles\UI.dir\src\computer_graphics
@@ -384,7 +384,7 @@ build cmake_object_order_depends_target_computer_graphics: phony || cmake_object
 
 build CMakeFiles\computer_graphics.dir\src\computer_graphics\Main.cpp.obj: CXX_COMPILER__computer_graphics_unscanned_Debug E$:\Tools\Libraries\Repositories\computer_graphics\src\computer_graphics\Main.cpp || cmake_object_order_depends_target_computer_graphics
   DEFINES = -DPROJECT_NAME=\"computer_graphics\" -DRESOURCES_DIR=\"E:/Tools/Libraries/Repositories/computer_graphics/resources\" -DSHADERS_DIR=\"E:/Tools/Libraries/Repositories/computer_graphics/include/shaders\"
-  FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17
+  FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++latest
   INCLUDES = -IE:\Tools\Libraries\Repositories\computer_graphics\include -external:IE:\Tools\Libraries\Repositories\computer_graphics\include\GLFW -external:W0
   OBJECT_DIR = CMakeFiles\computer_graphics.dir
   OBJECT_FILE_DIR = CMakeFiles\computer_graphics.dir\src\computer_graphics

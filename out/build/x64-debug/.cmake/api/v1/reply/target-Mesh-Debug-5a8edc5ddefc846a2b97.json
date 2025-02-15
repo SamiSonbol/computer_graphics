@@ -12,7 +12,7 @@
 	"artifacts" : 
 	[
 		{
-			"path" : "lib/Math.lib"
+			"path" : "lib/Mesh.lib"
 		}
 	],
 	"backtrace" : 1,
@@ -37,7 +37,7 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 85,
+				"line" : 92,
 				"parent" : 0
 			},
 			{
@@ -67,7 +67,7 @@
 			{
 				"command" : 3,
 				"file" : 0,
-				"line" : 86,
+				"line" : 93,
 				"parent" : 0
 			}
 		]
@@ -78,7 +78,7 @@
 			"compileCommandFragments" : 
 			[
 				{
-					"fragment" : "/DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17"
+					"fragment" : "/DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++latest"
 				}
 			],
 			"defines" : 
@@ -110,7 +110,7 @@
 				[
 					1
 				],
-				"standard" : "17"
+				"standard" : "23"
 			},
 			"sourceIndexes" : 
 			[
@@ -118,7 +118,7 @@
 			]
 		}
 	],
-	"id" : "Math::@6890427a1f51a3e7e1df",
+	"id" : "Mesh::@6890427a1f51a3e7e1df",
 	"install" : 
 	{
 		"destinations" : 
@@ -133,8 +133,8 @@
 			"path" : "E:/Tools/Libraries/Repositories/computer_graphics/out/install/x64-debug"
 		}
 	},
-	"name" : "Math",
-	"nameOnDisk" : "Math.lib",
+	"name" : "Mesh",
+	"nameOnDisk" : "Mesh.lib",
 	"paths" : 
 	{
 		"build" : ".",
@@ -155,7 +155,7 @@
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "src/computer_graphics/Math.cpp",
+			"path" : "src/computer_graphics/Mesh.cpp",
 			"sourceGroupIndex" : 0
 		}
 	],

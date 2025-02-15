@@ -171,13 +171,7 @@ Texture::Texture(const std::string& file_path, const char* uniform_name, const u
 	GL_TEXTUREindex(GL_TEXTUREindex), 
 	index(index) {
 
-	if (!std::filesystem::exists(file_path)) {
-
-		std::cerr << "ERROR: texture file doesnt exist!\n";
-		exit(EXIT_FAILURE);
-
-	};
-
+	exit_if_file_doesnt_exist(file_path);
 	bytes = stbi_load(file_path.c_str(), &this->width, &this->height, &this->n_color_channels, 0);
 
 };
@@ -267,8 +261,8 @@ void Mesh::check_accumalate_add(Vertex& vertex, int& index_counter) {
 
 		vertex.index = index_counter;
 		this->vertices_map[key] = index_counter;
-		this->indices.emplace_back(index_counter);	
-		
+		this->indices.emplace_back(index_counter);
+
 		this->positions.emplace_back(vertex.position);
 		this->normals.emplace_back(vertex.normal);
 		this->tangents.emplace_back(vertex.tangent);
@@ -276,7 +270,7 @@ void Mesh::check_accumalate_add(Vertex& vertex, int& index_counter) {
 		this->texture_coordinates.emplace_back(vertex.uv);
 		this->colors.emplace_back(vertex.color);
 
-		index_counter++;	
+		index_counter++;
 
 	};
 	
@@ -368,146 +362,90 @@ void Mesh::generate_terrain() {
 
 };
 
-void Mesh::extract_from_obj_file(const std::string& file_path, const bool& uv_mapped) {
+//VIPNOTE: since alot of .obj files use quads instead of triangles whilst am using triangles, the number of vertices in the *positions* buffer will be more than the number of extracted vertices due to the transition from 4 vertices to 6 vertices.
+void Mesh::extract_from_obj_file(const std::string& file_path) {
 
 	std::vector<vec3> temp_positions;
 	std::vector<vec3> temp_normals;
 	std::vector<vec2> temp_uv;
 	int index_counter = 0;
 	vec3 vec(0, 0, 0);
-	Vertex a(0, 0, 0), b(0, 0, 0), c(0, 0, 0), d(0, 0, 0); std::array<Vertex, 4> vertices = { a, b, c, d };
+	
+	std::vector<Vertex> vertices;
 	Vertex vertex(0, 0, 0);
 
 	std::vector<std::string> lines = read_file_by_line(file_path);
 	std::vector<std::string> line_tokens;
-	std::vector<std::string> face_tokens;
-	std::string attribute_type1;
-	std::string attribute_type2;
+	std::string attribute_type;
+
+	int v_index;
+	int vn_index;
+	int vt_index;
+
+	for (auto& line : lines) {
+
+		attribute_type = line.substr(0, 2);
+
+		if (attribute_type == "vn") {
 	
-	if (!uv_mapped) {
+			safe_sscanf(line.c_str() + 3, "%f %f %f", 3, &vec.x, &vec.y, &vec.z);
+			temp_normals.emplace_back(vec.x, vec.y, vec.z);		
 
-		std::regex expression(R"((\d+)//(\d+))");
-		for (auto& line : lines) {
+		}
+		else if (attribute_type == "vt") {
 
-			attribute_type1 = line.substr(0, 1);
-			attribute_type2 = line.substr(0, 2);
+			safe_sscanf(line.c_str() + 3, "%f %f", 2, &vec.x, &vec.y);
+			temp_uv.emplace_back(vec.x, vec.y);
 
-			if (attribute_type2 == "vn") {
+		}
+		else if (attribute_type == "v ") {
 
-				line_tokens.clear();
-				line_tokens = tokenise_data(line.substr(3), ' ');
-				vec.x = std::stof(line_tokens[0].c_str());
-				vec.y = std::stof(line_tokens[1].c_str());
-				vec.z = std::stof(line_tokens[2].c_str());
-				temp_normals.emplace_back(vec);
+			safe_sscanf(line.c_str() + 2, "%f %f %f", 3, &vec.x, &vec.y, &vec.z);
+			temp_positions.emplace_back(vec.x, vec.y, vec.z);
 
-			}
-			else if (attribute_type1 == "v") {
+		}
+		else if (attribute_type == "f ") {
+			
+			vertices.clear();
+			line_tokens.clear();
+			line_tokens = tokenise_data(line.substr(2), ' ');
+			for (auto& line_token : line_tokens) {
 
-				line_tokens.clear();
-				line_tokens = tokenise_data(line.substr(2), ' ');
-				vec.x = std::stof(line_tokens[0].c_str());
-				vec.y = std::stof(line_tokens[1].c_str());
-				vec.z = std::stof(line_tokens[2].c_str());
-				temp_positions.emplace_back(vec);
+				//searches first for *//* to check if we are working with the format: v//vn; otherwise the face command will have the format v/vt/vn
+				if (line_token.find("//") != std::string::npos) {
 
-				vec.x = 0.0;
-				vec.y = 0.0;
-				temp_uv.emplace_back(vec.x, vec.y);
+					safe_sscanf(line_token.c_str(), "%d//%d", 2, &v_index, &vn_index);
+					vertex.uv = vec2(0.0f, 0.0f);
 
-			}
-			else if (attribute_type1 == "f") {
+				}
+				else {//format: v/vt/vn
 
-				line_tokens.clear();
-				line_tokens = tokenise_data(line.substr(2), ' ');
-				for (int i = 0; i < line_tokens.size(); i++) {
-
-					face_tokens.clear();
-					face_tokens = tokenise_data(line_tokens[i], expression);
-					int v_index = std::stoi(face_tokens[0].c_str()) - 1;
-					int vn_index = std::stoi(face_tokens[1].c_str()) - 1;
-
-					vertices[i].position = temp_positions[v_index];
-					vertices[i].normal = temp_normals[vn_index];
-					vertices[i].tangent = vec3(1, 0, 0);
-					vertices[i].bitangent = vec3(0, 1, 0);
-					vertices[i].color = vec3(255, 0, 0);				
+					safe_sscanf(line_token.c_str(), "%d/%d/%d", 3, &v_index, &vt_index, &vn_index);
+					vertex.uv = temp_uv[vt_index - 1];
 
 				};
+	
+				vertex.position = temp_positions[v_index - 1];
+				vertex.normal = temp_normals[vn_index - 1];
+				vertex.tangent = vec3(1, 0, 0);
+				vertex.bitangent = vec3(0, 1, 0);
+				vertex.color = vec3(255, 0, 0);				
 
-				set_as_single_face(vertices[0], vertices[1], vertices[2], vertices[3]);
-				Triangle A(vertices[0], vertices[1], vertices[2]);
-				Triangle B(vertices[0], vertices[2], vertices[3]);
-				check_accumalate_add(A, index_counter);
-				check_accumalate_add(B, index_counter);
+				vertices.emplace_back(vertex);
 
 			};
 
-		};
+			//creating triangles based off of the number of vertices we extracted from the face command as a triangle fan. Example: a,b,c,d = abc and acd. Example: a,b,c,d,e = abc and acd and ade.
+			for (int i = 1; i < vertices.size() - 1; i++) {
 
-	}
-	else {
+				int A = 0;
+				int B = i;
+				int C = i + 1;
 
-		std::regex expression(R"((\d+)/(\d*)/(\d+))");
-		for (auto& line : lines) {
-
-			attribute_type1 = line.substr(0, 1);
-			attribute_type2 = line.substr(0, 2);
-
-			if (attribute_type2 == "vn") {
-
-				line_tokens.clear();
-				line_tokens = tokenise_data(line.substr(3), ' ');
-				vec.x = std::stof(line_tokens[0].c_str());
-				vec.y = std::stof(line_tokens[1].c_str());
-				vec.z = std::stof(line_tokens[2].c_str());
-				temp_normals.emplace_back(vec.x, vec.y, vec.z);
-
-			}
-			else if (attribute_type2 == "vt") {
-
-				line_tokens.clear();
-				line_tokens = tokenise_data(line.substr(3), ' ');
-				vec.x = std::stof(line_tokens[0].c_str());
-				vec.y = std::stof(line_tokens[1].c_str());
-				temp_uv.emplace_back(vec.x, vec.y);
-
-			}
-			else if (attribute_type1 == "v") {
-
-				line_tokens.clear();
-				line_tokens = tokenise_data(line.substr(2), ' ');
-				vec.x = std::stof(line_tokens[0].c_str());
-				vec.y = std::stof(line_tokens[1].c_str());
-				vec.z = std::stof(line_tokens[2].c_str());
-				temp_positions.emplace_back(vec.x, vec.y, vec.z);
-
-			}
-			else if (attribute_type1 == "f") {
-
-				line_tokens.clear();
-				line_tokens = tokenise_data(line.substr(2), ' ');
-				for (int i = 0; i < line_tokens.size(); i++) {
-
-					face_tokens.clear();
-					face_tokens = tokenise_data(line_tokens[i], expression);
-					int v_index = std::stoi(face_tokens[0].c_str()) - 1;
-					int vt_index = std::stoi(face_tokens[1].c_str()) - 1;
-					int vn_index = std::stoi(face_tokens[2].c_str()) - 1;
-
-					vertices[i].position = temp_positions[v_index];
-					vertices[i].normal = temp_normals[vn_index];
-					vertices[i].tangent = vec3(1, 0, 0);
-					vertices[i].bitangent = vec3(0, 1, 0);
-					vertices[i].uv = temp_uv[vt_index];
-					vertices[i].color = vec3(255, 0, 0);
-
-				};
-
-				Triangle A(vertices[0], vertices[1], vertices[2]);
-				Triangle B(vertices[0], vertices[2], vertices[3]);
-				check_accumalate_add(A, index_counter);
-				check_accumalate_add(B, index_counter);
+				//Triangle triangle(vertices[A], vertices[B], vertices[C]);
+				check_accumalate_add(vertices[A], index_counter);
+				check_accumalate_add(vertices[B], index_counter);
+				check_accumalate_add(vertices[C], index_counter);
 
 			};
 
@@ -524,9 +462,11 @@ void Mesh::extract_from_obj_file(const std::string& file_path, const bool& uv_ma
 
 	};
 
+	std::cout << "n_extracted vertices = " << temp_positions.size() << "\n";
+
 };
 
-Mesh::Mesh(const vec2& mesh_dimensions, Texture diffuse_map, Texture normal_map, Texture displacement_map) :
+Mesh::Mesh(const vec2& mesh_dimensions, Texture&& diffuse_map, Texture&& normal_map, Texture&& displacement_map) :
 
 	mesh_dimensions(mesh_dimensions),
 	diffuse_map(std::move(diffuse_map)),
@@ -544,14 +484,14 @@ Mesh::Mesh(const vec2& mesh_dimensions, Texture diffuse_map, Texture normal_map,
 	std::cout << "cleared map\n";
 
 };
+Mesh::Mesh(const std::string& obj_file_path, Texture&& diffuse_map, Texture&& normal_map, Texture&& displacement_map) :
 
-Mesh::Mesh(const std::string& obj_file_path, const bool& uv_mapped, Texture diffuse_map, Texture normal_map, Texture displacement_map) :
-
+	mesh_dimensions(100, 100),
 	diffuse_map(std::move(diffuse_map)),
 	normal_map(std::move(normal_map)),
 	displacement_map(std::move(displacement_map)) {
 
-	extract_from_obj_file(obj_file_path, uv_mapped);
+	extract_from_obj_file(obj_file_path);
 	std::cout << "actual texture width: " << this->diffuse_map.width << " actual texture height: " << this->diffuse_map.height << " model dimensions: "; print_vec(this->mesh_dimensions);
 	std::cout << "n_vertices: " << positions.size() << std::endl;
 	std::cout << "n_indices: " << indices.size() << std::endl;
@@ -560,6 +500,144 @@ Mesh::Mesh(const std::string& obj_file_path, const bool& uv_mapped, Texture diff
 	
 	this->vertices_map.clear();
 	std::cout << "cleared map\n";
+
+};
+
+Mesh::Mesh(const vec2& mesh_dimensions, const std::string& path_diffuse_map_file, const std::string& path_normal_map_file, const std::string& path_displacement_map_file) :
+
+	mesh_dimensions(mesh_dimensions),
+	diffuse_map(path_diffuse_map_file, "uTexture", GL_TEXTURE0, 0),
+	normal_map(path_normal_map_file, "uNormal_map", GL_TEXTURE1, 1),
+	displacement_map(path_displacement_map_file, "uDisplacement_map", GL_TEXTURE2, 2) {
+
+	generate_terrain();
+	std::cout << "actual texture width: " << this->diffuse_map.width << " actual texture height: " << this->diffuse_map.height << " model dimensions: "; print_vec(this->mesh_dimensions);
+	std::cout << "n_vertices: " << positions.size() << std::endl;
+	std::cout << "n_indices: " << indices.size() << std::endl;
+	std::cout << "n_uv_coords: " << this->texture_coordinates.size() << std::endl;
+	std::cout << "n_TBNs: " << this->normals.size() << std::endl;
+
+	this->vertices_map.clear();
+	std::cout << "cleared map\n";
+
+};
+Mesh::Mesh(const std::string& obj_file_path, const std::string& path_diffuse_map_file, const std::string& path_normal_map_file, const std::string& path_displacement_map_file) :
+
+	mesh_dimensions(100, 100),
+	diffuse_map(path_diffuse_map_file, "uTexture", GL_TEXTURE0, 0),
+	normal_map(path_normal_map_file, "uNormal_map", GL_TEXTURE1, 1),
+	displacement_map(path_displacement_map_file, "uDisplacement_map", GL_TEXTURE2, 2) {
+
+	extract_from_obj_file(obj_file_path);
+	std::cout << "actual texture width: " << this->diffuse_map.width << " actual texture height: " << this->diffuse_map.height << " model dimensions: "; print_vec(this->mesh_dimensions);
+	std::cout << "n_vertices: " << positions.size() << std::endl;
+	std::cout << "n_indices: " << indices.size() << std::endl;
+	std::cout << "n_uv_coords: " << this->texture_coordinates.size() << std::endl;
+	std::cout << "n_TBNs: " << this->normals.size() << std::endl;
+
+	this->vertices_map.clear();
+	std::cout << "cleared map\n";
+
+};
+
+Mesh::Mesh(const vec2& mesh_dimensions, const std::string& path_maps_folder) :
+
+	mesh_dimensions(mesh_dimensions),
+	diffuse_map(path_maps_folder + "/" + path_maps_folder.substr(path_maps_folder.find_last_of('/') + 1) + "_diffuse.png", "uTexture", GL_TEXTURE0, 0),
+	normal_map(path_maps_folder + "/" + path_maps_folder.substr(path_maps_folder.find_last_of('/') + 1) + "_normal.png", "uNormal_map", GL_TEXTURE1, 1),
+	displacement_map(path_maps_folder + "/" + path_maps_folder.substr(path_maps_folder.find_last_of('/') + 1) + "_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2) {
+
+	generate_terrain();
+	std::cout << "actual texture width: " << this->diffuse_map.width << " actual texture height: " << this->diffuse_map.height << " model dimensions: "; print_vec(this->mesh_dimensions);
+	std::cout << "n_vertices: " << positions.size() << std::endl;
+	std::cout << "n_indices: " << indices.size() << std::endl;
+	std::cout << "n_uv_coords: " << this->texture_coordinates.size() << std::endl;
+	std::cout << "n_TBNs: " << this->normals.size() << std::endl;
+
+	this->vertices_map.clear();
+	std::cout << "cleared map\n";
+
+};
+Mesh::Mesh(const std::string& obj_file_path, const std::string& path_maps_folder) :
+
+	mesh_dimensions(100, 100),
+	diffuse_map(path_maps_folder + "/" + path_maps_folder.substr(path_maps_folder.find_last_of('/') + 1) + "_diffuse.png", "uTexture", GL_TEXTURE0, 0),
+	normal_map(path_maps_folder + "/" + path_maps_folder.substr(path_maps_folder.find_last_of('/') + 1) + "_normal.png", "uNormal_map", GL_TEXTURE1, 1),
+	displacement_map(path_maps_folder + "/" + path_maps_folder.substr(path_maps_folder.find_last_of('/') + 1) + "_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2) {
+
+	extract_from_obj_file(obj_file_path);
+	std::cout << "actual texture width: " << this->diffuse_map.width << " actual texture height: " << this->diffuse_map.height << " model dimensions: "; print_vec(this->mesh_dimensions);
+	std::cout << "n_vertices: " << positions.size() << std::endl;
+	std::cout << "n_indices: " << indices.size() << std::endl;
+	std::cout << "n_uv_coords: " << this->texture_coordinates.size() << std::endl;
+	std::cout << "n_TBNs: " << this->normals.size() << std::endl;
+
+	this->vertices_map.clear();
+	std::cout << "cleared map\n";
+
+};
+
+Mesh Mesh::from_procedural_Texture(const vec2& mesh_dimensions, Texture&& diffuse_map, Texture&& normal_map, Texture&& displacement_map) {
+
+	return { mesh_dimensions, std::forward<Texture>(diffuse_map), std::forward<Texture>(normal_map), std::forward<Texture>(displacement_map) };
+
+};
+
+Mesh Mesh::from_obj_Texture(const std::string& obj_file_path, Texture&& diffuse_map, Texture&& normal_map, Texture&& displacement_map) {
+
+	return { obj_file_path, std::forward<Texture>(diffuse_map), std::forward<Texture>(normal_map), std::forward<Texture>(displacement_map) };
+
+};
+
+Mesh Mesh::from_procedural_files(const vec2& mesh_dimensions, const std::string& path_diffuse_map_file, const std::string& path_normal_map_file, const std::string& path_displacement_map_file) {
+
+	exit_if_file_doesnt_exist(path_diffuse_map_file); exit_if_file_doesnt_exist(path_normal_map_file); exit_if_file_doesnt_exist(path_displacement_map_file);
+	if (check_if_directory(path_diffuse_map_file) || check_if_directory(path_normal_map_file) || check_if_directory(path_displacement_map_file)) {
+
+		std::cerr << "ERROR: an inputed file path was a directory!\n";
+		exit(EXIT_FAILURE);
+
+	};
+	return { mesh_dimensions, path_diffuse_map_file, path_normal_map_file, path_displacement_map_file };
+
+};
+
+Mesh Mesh::from_obj_files(const std::string& obj_file_path, const std::string& path_diffuse_map_file, const std::string& path_normal_map_file, const std::string& path_displacement_map_file) {
+
+	exit_if_file_doesnt_exist(path_diffuse_map_file); exit_if_file_doesnt_exist(path_normal_map_file); exit_if_file_doesnt_exist(path_displacement_map_file);
+	if (check_if_directory(path_diffuse_map_file) || check_if_directory(path_normal_map_file) || check_if_directory(path_displacement_map_file)) {
+
+		std::cerr << "ERROR: an inputed file path was a directory!\n";
+		exit(EXIT_FAILURE);
+
+	};
+	return { obj_file_path, path_diffuse_map_file, path_normal_map_file, path_displacement_map_file };
+
+};
+
+Mesh Mesh::from_procedural_folder(const vec2& mesh_dimensions, const std::string& path_maps_folder) {
+
+	exit_if_file_doesnt_exist(path_maps_folder);
+	if (!check_if_directory(path_maps_folder)) {
+
+		std::cerr << "ERROR: inputed path " << path_maps_folder << " was a file and not a directory!\n";
+		exit(EXIT_FAILURE);
+
+	};
+	return { mesh_dimensions, path_maps_folder };
+
+};
+
+Mesh Mesh::from_obj_folder(const std::string& obj_file_path, const std::string& path_maps_folder) {
+
+	exit_if_file_doesnt_exist(path_maps_folder);
+	if (!check_if_directory(path_maps_folder)) {
+
+		std::cerr << "ERROR: inputed path " << path_maps_folder << " was a file and not a directory!\n";
+		exit(EXIT_FAILURE);
+
+	};
+	return { obj_file_path, path_maps_folder };
 
 };
 

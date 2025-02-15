@@ -9,7 +9,7 @@
 int main() {
 
 	vec2 screen_size; 
-	GLFWwindow* window = INIT_GLFW_GLAD_WINDOW(screen_size, vec3(0.478f, 0.647f, 0.702f));
+	GLFWwindow* window = INIT_GLAD_GLFW_WINDOW(screen_size, vec3(0.478f, 0.647f, 0.702f));
 	
 	std::string normal_mapping_and_displacement_mapping_and_geometry = SHADERS_DIR"/normal_mapping_and_displacement_mapping_and_geometry";
 	std::string normal_mapping_and_displacement_mapping_and_tesselation = SHADERS_DIR"/normal_mapping_and_displacement_mapping_and_tesselation";
@@ -25,35 +25,7 @@ int main() {
 	bool plot = false;
 	user_interface.shader_debug_mode(vectors_container, booleans_container, floats_container, plot);
 
-	/*Texture diffuse_map(RESOURCES_DIR"/diffuse_maps/abra.png", "uTexture", GL_TEXTURE0, 0);
-	Texture normal_map(RESOURCES_DIR"/normal_maps/abra_normal.png", "uNormal_map", GL_TEXTURE1, 1);
-	Texture displacement_map(RESOURCES_DIR"/displacement_maps/abra_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);*/
-
-	/*Texture diffuse_map(RESOURCES_DIR"/diffuse_maps/emma.png", "uTexture", GL_TEXTURE0, 0);
-	Texture normal_map(RESOURCES_DIR"/normal_maps/emma_normal.png", "uNormal_map", GL_TEXTURE1, 1);
-	Texture displacement_map(RESOURCES_DIR"/displacement_maps/emma_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);*/
-
-	/*Texture diffuse_map(RESOURCES_DIR"/diffuse_maps/osna.png", "uTexture", GL_TEXTURE0, 0);
-	Texture normal_map(RESOURCES_DIR"/normal_maps/osna_normal.png", "uNormal_map", GL_TEXTURE1, 1);
-	Texture displacement_map(RESOURCES_DIR"/displacement_maps/osna_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);*/
-
-	/*Texture diffuse_map(RESOURCES_DIR"/diffuse_maps/rocky_rivers.png", "uTexture", GL_TEXTURE0, 0);
-	Texture normal_map(RESOURCES_DIR"/normal_maps/osna_normal.png", "uNormal_map", GL_TEXTURE1, 1);
-	Texture displacement_map(RESOURCES_DIR"/displacement_maps/rocky_rivers_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);*/
-
-	/*Texture diffuse_map(RESOURCES_DIR"/diffuse_maps/ganges_river.png", "uTexture", GL_TEXTURE0, 0);
-	Texture normal_map(RESOURCES_DIR"/normal_maps/ganges_river_normal.png", "uNormal_map", GL_TEXTURE1, 1);
-	Texture displacement_map(RESOURCES_DIR"/displacement_maps/ganges_river_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);*/
-
-	/*Texture diffuse_map(RESOURCES_DIR"/diffuse_maps/mountain_range.png", "uTexture", GL_TEXTURE0, 0);
-	Texture normal_map(RESOURCES_DIR"/normal_maps/emma_normal.png", "uNormal_map", GL_TEXTURE1, 1);
-	Texture displacement_map(RESOURCES_DIR"/displacement_maps/mountain_range_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2);*/
-
-	Texture diffuse_map(RESOURCES_DIR"/diffuse_maps/cat.jpg", "uTexture", GL_TEXTURE0, 0);
-	Texture normal_map(RESOURCES_DIR"/normal_maps/emma_normal.png", "uNormal_map", GL_TEXTURE1, 1);
-	Texture displacement_map(RESOURCES_DIR"/displacement_maps/cat_displacement.jpg", "uDisplacement_map", GL_TEXTURE2, 2);
-
-	Mesh mesh(RESOURCES_DIR"/3D models/cottage.obj", true, std::move(diffuse_map));
+	Mesh mesh = Mesh::from_obj_folder(RESOURCES_DIR"/3D models/cottage.obj", RESOURCES_DIR"/texture_maps/default");
 
 	/*since each object has its own own data buffers and textures inside *Mesh*, we dont need multiple vertex arrays, instead we simply bind said buffers to the shader every time we want to draw said object
 	we do that by using the *Shader::draw_mesh_elements* function, where this function binds the *Mesh* data and draws it directly*/

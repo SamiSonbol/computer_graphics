@@ -7,15 +7,35 @@
 #include <fstream>
 #include <istream>
 #include <regex>
+#include <cstdarg>
+#include <cstdio>
 
-static std::string read_file(const std::string& file_path) {
+static void exit_if_file_doesnt_exist(const std::string& file_path) {
 
 	if (!std::filesystem::exists(file_path)) {
 
-		std::cerr << "ERROR: file " << file_path <<" doesnt exist!\n";
+		std::cerr << "ERROR: file " << file_path << " doesnt exist!\n";
 		exit(EXIT_FAILURE);
 
 	};
+
+};
+
+static bool check_if_directory(const std::string& file_path) {
+
+	if (std::filesystem::is_directory(std::filesystem::path(file_path))) {
+
+		return true;
+
+	};
+
+	return false;
+
+};
+
+static std::string read_file(const std::string& file_path) {
+
+	exit_if_file_doesnt_exist(file_path);
 
 	std::ifstream file(file_path);
 	std::stringstream data;
@@ -34,12 +54,7 @@ static std::string read_file(const std::string& file_path) {
 
 static std::vector<std::string> read_file_by_line(const std::string& file_path) {
 
-	if (!std::filesystem::exists(file_path)) {
-
-		std::cerr << "ERROR: file " << file_path << " doesnt exist!\n";
-		exit(EXIT_FAILURE);
-
-	};
+	exit_if_file_doesnt_exist(file_path);
 
 	std::ifstream file(file_path);
 	if (!file.is_open()) {
@@ -64,12 +79,7 @@ static std::vector<std::string> read_file_by_line(const std::string& file_path) 
 
 static std::string read_line_in_file(const std::string& file_path, const unsigned int& line_number) {
 
-	if (!std::filesystem::exists(file_path)) {
-
-		std::cerr << "ERROR: file " << file_path << " doesnt exist!\n";
-		exit(EXIT_FAILURE);
-
-	};
+	exit_if_file_doesnt_exist(file_path);
 
 	std::ifstream file(file_path);
 	if (!file.is_open()) {
@@ -123,8 +133,8 @@ static std::vector<std::string> tokenise_data(const std::string& data, const cha
 
 };
 
-//uses regex to tokenise instead of a char
-static std::vector<std::string> tokenise_data(const std::string& data, const std::regex& regex) {
+//uses regex to extract matches. If *extract_all_matches* is false, then the function skips the first match, which is a good thing if we want to use the match as a dellimeter
+static std::vector<std::string> extract_data(const std::string& data, const std::regex& regex, bool extract_all_matches = true, bool print_warning = true) {
 
 	std::vector<std::string> tokens;
 
@@ -132,8 +142,10 @@ static std::vector<std::string> tokenise_data(const std::string& data, const std
 	auto end = std::sregex_iterator();
 	for (std::sregex_iterator i = begin; i != end; ++i) {
 
+		size_t j = 0;
 		std::smatch match = *i;
-		for (size_t j = 1; j < match.size(); ++j) {//only subgroups since we are tokenising and not matching
+		if (!extract_all_matches) { j = 1; };
+		for (j; j < match.size(); ++j) {
 
 			tokens.emplace_back(match[j].str());
 
@@ -141,7 +153,7 @@ static std::vector<std::string> tokenise_data(const std::string& data, const std
 
 	};
 
-	if (tokens.empty()) {
+	if (tokens.empty() && print_warning) {
 
 		std::cerr << "WARNING: no matches from regex were found in data " << data << ", empty vector returned!\n";
 
@@ -151,78 +163,23 @@ static std::vector<std::string> tokenise_data(const std::string& data, const std
 
 };
 
-//returns the first token found
-static std::string tokenise_once(const std::string& data, const char& delimeter) {
+//a wrapper function for sscanf that checks if the parsing was correct.
+static void safe_sscanf(const char* buffer, const char* format, const int n_of_variables_to_parse, ...) {//VIMP NOTE: va_start() cannot take refrenced variables.
 
-	if (data.empty()) {
+	//initializing variadic args with the size of *n_of_variables_to_parse* to hold our *...* parameters
+	va_list args;
+	va_start(args, n_of_variables_to_parse);
 
-		std::cerr << "ERROR: string data " << data << " is empty!\n";
+	//vsscanf to parse variadic arguments
+	int parsed = vsscanf(buffer, format, args);
+	va_end(args);
+
+	//checking if we parsed the same number of variables we inputed
+	if (parsed != n_of_variables_to_parse) {
+
+		std::cerr << "ERROR: safe_sscanf couldn't parse data, expected " << n_of_variables_to_parse << ", but parsed " << parsed << "!\n";
 		exit(EXIT_FAILURE);
 
 	};
 
-	std::istringstream string_data(data);
-	std::string token;
-	if (std::getline(string_data, token, delimeter)) {
-
-		return token;
-
-	}
-	else {
-
-		std::cerr << "WARNING: no token found! returning " << data << " as is\n";
-		return data;
-
-	};
-
-	return token;
-
 };
-
-//returns the first token using regex
-static std::string tokenise_once(const std::string& data, const std::regex& regex) {
-
-	std::smatch matches;
-	std::regex_search(data, matches, regex);
-	if (!matches.empty() && matches.size() > 1) {
-
-		return matches[1].str();
-
-	}
-	else {
-
-		std::cerr << "WARNING: no matches from regex were found in data " << data << ", empty string returned!\n";
-		return "";
-
-	};
-
-};
-
-//uses regex to return all regex matches, difference between this function and *tokenise_data(string, regex)* is that this function returns also matches[0],... whilst *tokenise_data(string, regex)* returns matches[1],...
-static std::vector<std::string> capture_all_regex_matches(const std::string& data, const std::regex& regex) {
-
-	std::vector<std::string> tokens;
-
-	auto begin = std::sregex_iterator(data.begin(), data.end(), regex);
-	auto end = std::sregex_iterator();
-	for (std::sregex_iterator i = begin; i != end; ++i) {
-
-		std::smatch match = *i;
-		for (size_t j = 0; j < match.size(); ++j) {
-
-			tokens.emplace_back(match[j].str());
-
-		};
-
-	};
-
-	if (tokens.empty()) {
-
-		std::cerr << "WARNING: no matches from regex were found in data " << data << ", empty vector returned!\n";
-
-	};
-
-	return tokens;
-
-};
-

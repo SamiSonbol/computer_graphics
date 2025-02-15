@@ -3,6 +3,7 @@
 #include <cmath>
 #include <vector>
 #include <algorithm>
+#include <bit>
 
 class point {
 
@@ -1340,14 +1341,14 @@ static float get_decimal(const float& number) {
 
 };
 
-//these are hashing structs so the vectors can be used easily in maps
-static std::size_t hash_combine(std::size_t seed, std::size_t value) { return seed ^ (value + 0x9e3779b9 + (seed << 6) + (seed >> 2)); };
+//these are hashing structs so the vectors can be used easily in maps. Moreover, we cast our float to unint32_t to evade flaoting point precision issues that might arise form arithmatic operations
+static std::size_t hash_combine(std::size_t seed, std::size_t value) { return seed ^ (value + 0x9e3779b97f4a7c15 + (seed << 6) + (seed >> 2)); };
 struct vec2_hasher {
 
 	std::size_t operator()(const vec2& vec) const {
 
-		std::size_t h1 = std::hash<float>()(vec.x);
-		std::size_t h2 = std::hash<float>()(vec.y);
+		std::size_t h1 = std::hash<uint32_t>()(std::bit_cast<uint32_t>(vec.x));
+		std::size_t h2 = std::hash<uint32_t>()(std::bit_cast<uint32_t>(vec.y));
 
 		std::size_t seed = h1;
 		seed = hash_combine(seed, h2);
@@ -1361,9 +1362,9 @@ struct vec3_hasher {
 
 	std::size_t operator()(const vec3& vec) const {
 
-		std::size_t h1 = std::hash<float>()(vec.x);
-		std::size_t h2 = std::hash<float>()(vec.y);
-		std::size_t h3 = std::hash<float>()(vec.z);
+		std::size_t h1 = std::hash<uint32_t>()(std::bit_cast<uint32_t>(vec.x));
+		std::size_t h2 = std::hash<uint32_t>()(std::bit_cast<uint32_t>(vec.y));
+		std::size_t h3 = std::hash<uint32_t>()(std::bit_cast<uint32_t>(vec.z));
 
 		std::size_t seed = h1;
 		seed = hash_combine(seed, h2);
@@ -1378,10 +1379,10 @@ struct vec4_hasher {
 
 	std::size_t operator()(const vec4& vec) const {
 
-		std::size_t h1 = std::hash<float>()(vec.x);
-		std::size_t h2 = std::hash<float>()(vec.y);
-		std::size_t h3 = std::hash<float>()(vec.z);
-		std::size_t h4 = std::hash<float>()(vec.w);
+		std::size_t h1 = std::hash<uint32_t>()(std::bit_cast<uint32_t>(vec.x));
+		std::size_t h2 = std::hash<uint32_t>()(std::bit_cast<uint32_t>(vec.y));
+		std::size_t h3 = std::hash<uint32_t>()(std::bit_cast<uint32_t>(vec.z));
+		std::size_t h4 = std::hash<uint32_t>()(std::bit_cast<uint32_t>(vec.w));
 
 		std::size_t seed = h1;
 		seed = hash_combine(seed, h2);

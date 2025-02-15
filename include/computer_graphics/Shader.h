@@ -8,7 +8,7 @@
 #include "computer_graphics/Math.h"
 #include "computer_graphics/Mesh.h"
 
-static GLFWwindow* INIT_GLFW_GLAD_WINDOW(vec2& screen_size, const vec3& clear_color) {
+static GLFWwindow* INIT_GLAD_GLFW_WINDOW(vec2& screen_size, const vec3& clear_color) {
 
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
