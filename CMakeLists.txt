@@ -88,6 +88,13 @@ target_include_directories(Math PUBLIC
   "$<INSTALL_INTERFACE:include>"
 )
 
+#File library
+add_library(Point_Cloud src/computer_graphics/Point_Cloud.cpp)
+target_include_directories(Point_Cloud PUBLIC
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+  "$<INSTALL_INTERFACE:include>"
+)
+
 #Mesh library
 add_library(Mesh src/computer_graphics/Mesh.cpp)
 target_include_directories(Mesh PUBLIC
@@ -115,6 +122,7 @@ install(TARGETS
     imgui
     File
     Math 
+    Point_Cloud
     Mesh
     Shader
     UI
@@ -125,7 +133,7 @@ install(TARGETS
 
 #adding our main executable
 add_executable(${PROJECT_NAME} src/computer_graphics/Main.cpp)
-target_link_libraries(${PROJECT_NAME} Mesh Shader UI Math File imgui stb_image glfw3 glad)
+target_link_libraries(${PROJECT_NAME} UI Shader Mesh Point_Cloud Math File imgui stb_image glfw3 glad)
 install(TARGETS
   ${PROJECT_NAME}
   DESTINATION lib/${PROJECT_NAME}

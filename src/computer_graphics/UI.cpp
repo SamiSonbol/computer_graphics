@@ -85,7 +85,7 @@ void Mouse::plot_point(const bool& plot, GLFWwindow* window, const Shader::graph
 	if (plot && check_for_mouse_click(window)) {
 
 		mat4 model_transformation_matrix = create_model_transformation_matrix(vectors_container.translation_vector, vectors_container.scaling_vector, vectors_container.rotation_vector);
-		mat4 view_matrix = create_view_matrix(vectors_container.right_vector, vectors_container.up_vector, vectors_container.direction_vector, vectors_container.camera_position);
+		mat4 view_matrix = create_view_matrix(vectors_container.camera_position, vec3(0,0,0), vectors_container.right_vector, vectors_container.up_vector, vectors_container.direction_vector);
 		mat4 projection_matrix = create_frustum_projection_matrix(90.0f, screen_size.x, screen_size.y, 0.1f, 1000.0f);
 		mat4 viewport_matrix = create_static_view_port_matrix(screen_size.x, screen_size.y);
 
@@ -407,9 +407,15 @@ void UI::shader_debug_mode(Shader::graphics_vectors_container& vectors_container
 			ImGui::SeparatorText("Translation");
 			this->vec3_float_sliders("Model Translation", vectors_container.translation_vector, vec2(-500, 500));
 			ImGui::SeparatorText("Rotation");
-			this->vec3_float_sliders("Model Rotation", vectors_container.rotation_vector, vec2(0, 360));
+			this->vec3_float_sliders("Model Rotation", vectors_container.rotation_vector, vec2(-180, 180));
 			ImGui::SeparatorText("Scale");
-			this->vec3_vertical_float_sliders("Model Scale", vectors_container.scaling_vector, vec2(-20, 20), vec2(75, 100));
+			this->vec3_float_sliders("Model Scale", vectors_container.scaling_vector, vec2(-20, 20));
+
+			ImGui::SeparatorText("Texturing & Coloring");
+			ImGui::Checkbox("Texturing", &booleans_container.texturing);
+			ImGui::SameLine();
+			ImGui::Checkbox("Height Coloring", &booleans_container.height_coloring);
+
 			ImGui::SeparatorText("Tesselation & Displacement");
 			ImGui::Checkbox("Height Mapping", &booleans_container.displacement_mapping);
 			ImGui::SliderFloat("Tesselation Multiplier", &floats_container.tesselation_multiplier, 0.0f, 500.0f);
@@ -426,13 +432,13 @@ void UI::shader_debug_mode(Shader::graphics_vectors_container& vectors_container
 
 			ImGui::Checkbox("Gamma Correction", &booleans_container.gamma_correction);
 			ImGui::SameLine();
-			ImGui::Checkbox("Texturing", &booleans_container.texturing);
-			ImGui::SameLine();
 			ImGui::Checkbox("Normal Mapping", &booleans_container.normal_mapping);
 
 			this->vec3_color_picker("Light Color", vectors_container.light_color);
+
 			ImGui::SeparatorText("Translation");
 			this->vec3_float_sliders("Light Translation", vectors_container.light_position, vec2(-500, 500));
+
 			ImGui::SeparatorText("Material Properties");
 			this->vec4_vertical_float_sliders("Ambient", "Diffuse", "Specular", "Shininess", vectors_container.material_properties, vec2(0, 20), vec2(60, 100));
 
@@ -445,14 +451,24 @@ void UI::shader_debug_mode(Shader::graphics_vectors_container& vectors_container
 
 		if (ImGui::CollapsingHeader("Camera")) {
 
-			ImGui::SeparatorText("Translation");
-			this->vec3_float_sliders("Camera Translation", vectors_container.camera_position, vec2(-500, 500));
+			ImGui::SeparatorText("Orthographic Camera");
+			ImGui::Checkbox("Orthographic Projection", &booleans_container.orthogonal_projection);
+			ImGui::SameLine();
+			ImGui::SliderFloat("Orthogonal Size", &floats_container.orthogonal_size, 0.0f, 1000.0f);
+
+			ImGui::SeparatorText("Prespective Camera");
+			ImGui::SliderFloat("FOV", &floats_container.FOV, 0.0f, 1000.0f);
 			ImGui::SeparatorText("Up");
-			this->vec3_float_sliders("Up Direction", vectors_container.up_vector, vec2(-500, 500));
+			this->vec3_float_sliders("Up Direction", vectors_container.up_vector, vec2(-1000, 1000));
 			ImGui::SeparatorText("Right");
-			this->vec3_float_sliders("Right Direction", vectors_container.right_vector, vec2(-500, 500));
+			this->vec3_float_sliders("Right Direction", vectors_container.right_vector, vec2(-1000, 1000));
 			ImGui::SeparatorText("Forward");
-			this->vec3_float_sliders("Forward Direction", vectors_container.direction_vector, vec2(-500, 500));
+			this->vec3_float_sliders("Forward Direction", vectors_container.direction_vector, vec2(-1000, 1000));
+
+			ImGui::SeparatorText("Translation");
+			this->vec3_float_sliders("Camera Translation", vectors_container.camera_position, vec2(-1000, 1000));
+			ImGui::SeparatorText("Rotation");
+			this->vec3_float_sliders("Camera Rotation", vectors_container.camera_rotation_vector, vec2(-180, 180));
 
 		};
 

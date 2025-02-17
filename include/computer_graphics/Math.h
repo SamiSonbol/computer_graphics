@@ -1117,45 +1117,37 @@ static mat4 create_model_transformation_matrix(const mat4& T, const mat4& S, con
 };
 
 //3D SCREEN TRANSFORMATION
-static mat4 create_view_matrix(const vec3& r, const vec3& u, const vec3& d, const vec3& camera) {//also known as lookAtMatrix
+static mat4 create_view_matrix(const vec3& camera_position, const vec3& target_position, const vec3& r, const vec3& u, const vec3& d) {//also known as lookAtMatrix
 
 	//here am basically taking r as X-axis, u as Y-axis, and d as Z-axis and using them to find the actual right, up, direction vectors
-	vec3 direction = vec3(0.0f, 0.0f, 0.0f) - camera;
-	direction = direction.normalize();
-
-	vec3 right = u.cross(direction);
-	right = right.normalize();
-
+	vec3 direction = (camera_position - target_position).normalize();
+	vec3 right = u.cross(direction).normalize();
 	vec3 up = direction.cross(right).normalize();
 
 	return mat4(
 
-		right.x, right.y, right.z, -right.dot(camera),
-		up.x, up.y, up.z, -up.dot(camera),
-		-direction.x, -direction.y, -direction.z, direction.dot(camera),
+		right.x, right.y, right.z, -right.dot(camera_position),
+		up.x, up.y, up.z, -up.dot(camera_position),
+		-direction.x, -direction.y, -direction.z, direction.dot(camera_position),
 		0.0f, 0.0f, 0.0f, 1.0f
 
 	);
 
 };
 
-static mat4 create_parallel_projection_matrix(const float& fov, const float& screen_width, const float& screen_height, const float& near, const float& far) {//also known as orthographic projection matrix
+static mat4 create_orthographic_projection_matrix(const vec2& screen_size, const float& near, const float& far, const float& orthogonal_size) {
 
-	float view_angle = to_radians(fov);
-	float aspect_ratio = screen_width / screen_height;
-	float alpha = tan(view_angle / 2.0f);
-	float top = near * alpha;
-	float bottom = -top;
-	float right = near * aspect_ratio * alpha;
-	float left = -right;
+	float aspect = screen_size.x / screen_size.y;
+	float left = -orthogonal_size * aspect;
+	float right = orthogonal_size * aspect;
+	float bottom = -orthogonal_size;
+	float top = orthogonal_size;
 
 	return mat4(
-
 		2.0f / (right - left), 0.0f, 0.0f, -(right + left) / (right - left),
 		0.0f, 2.0f / (top - bottom), 0.0f, -(top + bottom) / (top - bottom),
 		0.0f, 0.0f, -2.0f / (far - near), -(far + near) / (far - near),
 		0.0f, 0.0f, 0.0f, 1.0f
-
 	);
 
 };
@@ -1167,14 +1159,14 @@ static mat4 create_frustum_projection_matrix(const float& fov, const float& scre
 	float alpha = tan(view_angle / 2.0f);
 	float top = near * alpha;
 	float bottom = -top;
-	float right = near * aspect_ratio * alpha;
+	float right = top * aspect_ratio;
 	float left = -right;
 
 	mat4 frustum = mat4(
 
 		(2.0f * near) / (right - left), 0.0f, (right + left) / (right - left), 0.0f,
 		0.0f, (2.0f * near) / (top - bottom), (top + bottom) / (top - bottom), 0.0f,
-		0.0f, 0.0f, (-far - near) / (far - near), (-2.0f * far * near) / (far - near),
+		0.0f, 0.0f, -(far + near) / (far - near), (-2.0f * far * near) / (far - near), //(-far - near) / (far - near)?
 		0.0f, 0.0f, -1.0f, 0.0f
 
 	);
@@ -1338,6 +1330,69 @@ static float get_decimal(const float& number) {
 
 	int n = number;
 	return number - n;
+
+};
+
+static std::pair<vec2, vec2> get_min_max(const std::vector<vec2>& data_set) {
+
+	vec2 min_bound(FLT_MAX, FLT_MAX);
+	vec2 max_bound(-FLT_MAX, -FLT_MAX);
+
+	for (const vec2& position : data_set) {
+
+		min_bound.x = std::min(min_bound.x, position.x);
+		min_bound.y = std::min(min_bound.y, position.y);
+
+		max_bound.x = std::max(max_bound.x, position.x);
+		max_bound.y = std::max(max_bound.y, position.y);
+
+	};
+
+	return std::make_pair(min_bound, max_bound);
+
+};
+
+static std::pair<vec3, vec3> get_min_max(const std::vector<vec3>& data_set) {
+
+	vec3 min_bound(FLT_MAX, FLT_MAX, FLT_MAX);
+	vec3 max_bound(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+
+	for (const vec3& position : data_set) {
+
+		min_bound.x = std::min(min_bound.x, position.x);
+		min_bound.y = std::min(min_bound.y, position.y);
+		min_bound.z = std::min(min_bound.z, position.z);
+
+		max_bound.x = std::max(max_bound.x, position.x);
+		max_bound.y = std::max(max_bound.y, position.y);
+		max_bound.z = std::max(max_bound.z, position.z);
+
+	};
+
+	return std::make_pair(min_bound, max_bound);
+
+};
+
+static std::pair<vec4, vec4> get_min_max(const std::vector<vec4>& data_set) {
+
+	vec4 min_bound(FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX);
+	vec4 max_bound(-FLT_MAX, -FLT_MAX, -FLT_MAX, -FLT_MAX);
+
+	for (const vec4& position : data_set) {
+
+		min_bound.x = std::min(min_bound.x, position.x);
+		min_bound.y = std::min(min_bound.y, position.y);
+		min_bound.z = std::min(min_bound.z, position.z);
+		min_bound.w = std::min(min_bound.w, position.w);
+
+		max_bound.x = std::max(max_bound.x, position.x);
+		max_bound.y = std::max(max_bound.y, position.y);
+		max_bound.z = std::max(max_bound.z, position.z);
+		max_bound.w = std::max(max_bound.w, position.w);
+
+	};
+
+	return std::make_pair(min_bound, max_bound);
 
 };
 

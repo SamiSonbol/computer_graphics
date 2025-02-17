@@ -14,7 +14,7 @@ static GLFWwindow* INIT_GLAD_GLFW_WINDOW(vec2& screen_size, const vec3& clear_co
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_DEPTH_BITS, 24);
+	glfwWindowHint(GLFW_DEPTH_BITS, 32);
 
 	GLFWmonitor* primary_monitor = glfwGetPrimaryMonitor();
 	if (!primary_monitor) {
@@ -65,6 +65,7 @@ public:
 		vec3 up_vector;
 		vec3 direction_vector;
 		vec3 camera_position;
+		vec3 camera_rotation_vector;
 		vec3 translation_vector;
 		vec3 scaling_vector;
 		vec3 rotation_vector;
@@ -77,16 +78,20 @@ public:
 	//same functionality as *graphics_vectors_container* but for bools
 	struct graphics_booleans_container {
 
+		bool orthogonal_projection;
 		bool gamma_correction;
 		bool texturing;
 		bool normal_mapping;
 		bool displacement_mapping;
+		bool height_coloring;
 
 	};
 
 	//same functionality as *graphics_vectors_container* but for bools
 	struct graphics_floats_container {
 
+		float orthogonal_size;
+		float FOV;
 		float tesselation_multiplier;
 		float displacement_scale;
 
@@ -119,11 +124,11 @@ public:
 
 		};
 
+		glBufferData(GL_ARRAY_TYPE, buffer_data.size() * sizeof(T), buffer_data.data(), GL_DRAW_TYPE);
+
 		if (generate_buffer) {
 
-			glBufferData(GL_ARRAY_TYPE, buffer_data.size() * sizeof(T), buffer_data.data(), GL_DRAW_TYPE);
-
-			if (attribute_position > -1) {
+			if (GL_ARRAY_TYPE == GL_ARRAY_BUFFER) {
 
 				glVertexAttribPointer(attribute_position, attribute_size, GL_FLOAT, GL_FALSE, sizeof(T), (void*)0);
 
@@ -138,17 +143,16 @@ public:
 	void update_texture(unsigned int* texture_ID, const unsigned int& GL_TEXTUREindex, unsigned char* bytes, const int& texture_width, const int& texture_height, const int& n_color_channels);
 
 	//sets the transformation matrices and light vectors
-	void init_matrices(const vec2& screen_size, const vec3& right_vector, const vec3& up_vector, const vec3& direction_vector, const vec3& camera_position, const vec3& translation_vector, const vec3& scaling_vector, const vec3& rotation_vector);
+	void init_matrices(const vec2& screen_size, const float& orthogonal_size, const float& FOV, const bool& orthogonal_projection, const vec3& right_vector, const vec3& up_vector, const vec3& direction_vector, const vec3& camera_position, const vec3& camera_rotation_vector, const vec3& translation_vector, const vec3& scaling_vector, const vec3& rotation_vector);
 	void init_light(const vec3& light_position, const vec3& light_color, const vec4& material_properties);
-	void init_booleans(const bool& gamma_correction, const bool& texturing, const bool& normal_mapping, const bool& displacement_mapping);
+	void init_booleans(const bool& gamma_correction, const bool& texturing, const bool& normal_mapping, const bool& displacement_mapping, const bool& height_coloring);
 	void init_floats(const float& tesselation_multiplier, const float& displacement_scale);
 	void initialize(const vec2& screen_size, const graphics_vectors_container& vectors_container, const graphics_booleans_container& booleans_container, const graphics_floats_container& floats_container);
 
-	void update_matrices(const vec3& right_vector, const vec3& up_vector, const vec3& direction_vector, const vec3& camera_position, const vec3& translation_vector, const vec3& scaling_vector, const vec3& rotation_vector);
-	void update(const graphics_vectors_container& vectors_container, const graphics_booleans_container& booleans_container, const graphics_floats_container& floats_container);
+	void update(const vec2& screen_size, const graphics_vectors_container& vectors_container, const graphics_booleans_container& booleans_container, const graphics_floats_container& floats_container);
 
-	void bind_mesh_buffers(Mesh& mesh, const bool& gamma_correction);
-	void bind_and_draw_mesh_elements(Mesh& mesh, const bool& gamma_correction, const unsigned int& GL_PRIMITIVE_TYPE);
+	void bind_mesh_buffers(Mesh& mesh, const unsigned int& GL_DRAW_TYPE, const bool& gamma_correction);
+	void bind_and_draw_mesh_elements(Mesh& mesh, const unsigned int& GL_PRIMITIVE_TYPE = GL_TRIANGLES, const unsigned int& GL_DRAW_MODE = GL_STATIC_DRAW, const bool& gamma_correction = true);
 
 	void delete_buffers();
 	void delete_program();

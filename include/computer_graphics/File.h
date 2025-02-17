@@ -63,7 +63,7 @@ static std::vector<std::string> read_file_by_line(const std::string& file_path) 
 		exit(EXIT_FAILURE);
 
 	};
-
+	
 	std::string line;
 	std::vector<std::string> lines;
 	while (std::getline(file, line)) {

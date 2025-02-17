@@ -44,41 +44,45 @@ void Shader::create_uniform_2D_texture(const int& index, const char* uniform_nam
 
 Shader::graphics_vectors_container Shader::create_standard_shader_vectors() {
 
-	vec3 right_vector(1, 0, 0);
-	vec3 up_vector(0, 1, 0);
-	vec3 direction_vector(0, 0, 1);
-	vec3 camera_position(0, 0, -1);
+	vec3 right_vector(1.0f, 0.0f, 0.0f);
+	vec3 up_vector(0.0f, 1.0f, 0.0f);
+	vec3 direction_vector(0.0f, 0.0f, 1.0f);
+	vec3 camera_position(0.0f, 0.0f, -1.0f);
+	vec3 camera_rotation_vector(0.0f, 0.0f, 0.0f);
 
-	vec3 translation_vector(0, 0, 0);
-	vec3 scaling_vector(1, 1, 1);
-	vec3 rotation_vector(0, 0, 0);
+	vec3 translation_vector(0.0f, 0.0f, 0.0f);
+	vec3 scaling_vector(1.0f, 1.0f, 1.0f);
+	vec3 rotation_vector(0.0f, 0.0f, 0.0f);
 
-	vec3 light_position(0, 0, -1);
-	vec3 light_color(255, 0, 0);
-	vec4 material_properties(1.0f, 0.7f, 0.1f, 10);
+	vec3 light_position(0.0f, 0.0f, -1.0f);
+	vec3 light_color(255.0f, 0.0f, 0.0f);
+	vec4 material_properties(1.0f, 0.7f, 0.1f, 10.0f);
 
-	return { right_vector, up_vector, direction_vector, camera_position, translation_vector, scaling_vector, rotation_vector, light_position, light_color, material_properties};
+	return { right_vector, up_vector, direction_vector, camera_position, camera_rotation_vector, translation_vector, scaling_vector, rotation_vector, light_position, light_color, material_properties};
 
 };
 
 Shader::graphics_booleans_container Shader::create_standard_shader_booleans() {
 
+	bool orthogonal_projection = false;
 	bool gamma_correction = true;
 	bool texturing = true;
 	bool normal_mapping = false;
 	bool displacement_mapping = false;
+	bool height_coloring = false;
 
-	return { gamma_correction, texturing, normal_mapping, displacement_mapping };
+	return { orthogonal_projection, gamma_correction, texturing, normal_mapping, displacement_mapping, height_coloring };
 
 };
 
 Shader::graphics_floats_container Shader::create_standard_shader_floats() {
 
+	float orthogonal_size = 10.0f;
+	float FOV = 90.0f;
 	float tesselation = 2.0f;
-
 	float displacement_scale = 0.1f;
 
-	return { tesselation, displacement_scale };
+	return { orthogonal_size, FOV, tesselation, displacement_scale };
 
 };
 
@@ -162,12 +166,26 @@ void Shader::update_texture(unsigned int* texture_ID, const unsigned int& GL_TEX
 
 };
 
-void Shader::init_matrices(const vec2& screen_size, const vec3& right_vector, const vec3& up_vector, const vec3& direction_vector, const vec3& camera_position, const vec3& translation_vector, const vec3& scaling_vector, const vec3& rotation_vector) {
+void Shader::init_matrices(const vec2& screen_size, const float& orthogonal_size, const float& FOV, const bool& orthogonal_projection, const vec3& right_vector, const vec3& up_vector, const vec3& direction_vector, const vec3& camera_position, const vec3& camera_rotation_vector, const vec3& translation_vector, const vec3& scaling_vector, const vec3& rotation_vector) {
 
 	this->create_uniform_vec3(camera_position.to_GL(), "eye_vector");
 	this->create_uniform_mat4(create_model_transformation_matrix(translation_vector, scaling_vector, rotation_vector).to_GL(), "model_transformation_matrix");
-	this->create_uniform_mat4(create_view_matrix(right_vector, up_vector, direction_vector, camera_position).to_GL(), "view_matrix");
-	this->create_uniform_mat4(create_frustum_projection_matrix(90.0f, screen_size.x, screen_size.y, 0.1f, 1000.0f).to_GL(), "projection_matrix");
+
+	mat4 camera_rotation_matrix = create_rotation_matrix(camera_rotation_vector);
+	vec3 forward = (camera_rotation_matrix * vec4(direction_vector, 0.0f)).xyz();
+	vec3 camera_target_position = camera_position + forward;
+	this->create_uniform_mat4(create_view_matrix(camera_position, camera_target_position, right_vector, up_vector, direction_vector).to_GL(), "view_matrix");
+	
+	if (orthogonal_projection) {
+
+		this->create_uniform_mat4(create_orthographic_projection_matrix(vec2(screen_size.x, screen_size.y), 0.1f, 1000.0f, orthogonal_size).to_GL(), "projection_matrix");
+
+	}
+	else {
+
+		this->create_uniform_mat4(create_frustum_projection_matrix(FOV, screen_size.x, screen_size.y, 0.1f, 1000.0f).to_GL(), "projection_matrix");
+
+	};
 
 };
 
@@ -188,12 +206,13 @@ void Shader::init_light(const vec3& light_position, const vec3& light_color, con
 
 };
 
-void Shader::init_booleans(const bool& gamma_correction, const bool& texturing, const bool& normal_mapping, const bool& displacement_mapping) {
+void Shader::init_booleans(const bool& gamma_correction, const bool& texturing, const bool& normal_mapping, const bool& displacement_mapping, const bool& height_coloring) {
 
 	this->create_uniform_bool(gamma_correction, "gamma_correction");
 	this->create_uniform_bool(texturing, "texturing");
 	this->create_uniform_bool(normal_mapping, "normal_mapping");
 	this->create_uniform_bool(displacement_mapping, "displacement_mapping");
+	this->create_uniform_bool(height_coloring, "height_coloring");
 
 };
 
@@ -207,39 +226,31 @@ void Shader::init_floats(const float& tesselation_multiplier, const float& displ
 //override
 void Shader::initialize(const vec2& screen_size, const graphics_vectors_container& vectors_container, const graphics_booleans_container& booleans_container, const graphics_floats_container& floats_container) {
 
-	this->init_matrices(screen_size, vectors_container.right_vector, vectors_container.up_vector, vectors_container.direction_vector, vectors_container.camera_position, vectors_container.translation_vector, vectors_container.scaling_vector, vectors_container.rotation_vector);
+	this->init_matrices(screen_size, floats_container.orthogonal_size, floats_container.FOV, booleans_container.orthogonal_projection, vectors_container.right_vector, vectors_container.up_vector, vectors_container.direction_vector, vectors_container.camera_position, vectors_container.camera_rotation_vector, vectors_container.translation_vector, vectors_container.scaling_vector, vectors_container.rotation_vector);
 	this->init_light(vectors_container.light_position, vectors_container.light_color, vectors_container.material_properties);
-	this->init_booleans(booleans_container.gamma_correction, booleans_container.texturing, booleans_container.normal_mapping, booleans_container.displacement_mapping);
+	this->init_booleans(booleans_container.gamma_correction, booleans_container.texturing, booleans_container.normal_mapping, booleans_container.displacement_mapping, booleans_container.height_coloring);
 	this->init_floats(floats_container.tesselation_multiplier, floats_container.displacement_scale);
 
 };
 
-void Shader::update_matrices(const vec3& right_vector, const vec3& up_vector, const vec3& direction_vector, const vec3& camera_position, const vec3& translation_vector, const vec3& scaling_vector, const vec3& rotation_vector) {
+void Shader::update(const vec2& screen_size, const graphics_vectors_container& vectors_container, const graphics_booleans_container& booleans_container, const graphics_floats_container& floats_container) {
 
-	this->create_uniform_vec3(camera_position.to_GL(), "eye_vector");
-	this->create_uniform_mat4(create_model_transformation_matrix(translation_vector, scaling_vector, rotation_vector).to_GL(), "model_transformation_matrix");
-	this->create_uniform_mat4(create_view_matrix(right_vector, up_vector, direction_vector, camera_position).to_GL(), "view_matrix");
-
-};
-
-void Shader::update(const graphics_vectors_container& vectors_container, const graphics_booleans_container& booleans_container, const graphics_floats_container& floats_container) {
-
-	this->update_matrices(vectors_container.right_vector, vectors_container.up_vector, vectors_container.direction_vector, vectors_container.camera_position, vectors_container.translation_vector, vectors_container.scaling_vector, vectors_container.rotation_vector);
+	this->init_matrices(screen_size, floats_container.orthogonal_size, floats_container.FOV, booleans_container.orthogonal_projection, vectors_container.right_vector, vectors_container.up_vector, vectors_container.direction_vector, vectors_container.camera_position, vectors_container.camera_rotation_vector, vectors_container.translation_vector, vectors_container.scaling_vector, vectors_container.rotation_vector);
 	this->init_light(vectors_container.light_position, vectors_container.light_color, vectors_container.material_properties);
-	this->init_booleans(booleans_container.gamma_correction, booleans_container.texturing, booleans_container.normal_mapping, booleans_container.displacement_mapping);
+	this->init_booleans(booleans_container.gamma_correction, booleans_container.texturing, booleans_container.normal_mapping, booleans_container.displacement_mapping, booleans_container.height_coloring);
 	this->init_floats(floats_container.tesselation_multiplier, floats_container.displacement_scale);
 
 };
 
-void Shader::bind_mesh_buffers(Mesh& mesh, const bool& gamma_correction) {
+void Shader::bind_mesh_buffers(Mesh& mesh, const unsigned int& GL_DRAW_TYPE, const bool& gamma_correction) {
 
-	this->bind_buffer(mesh.generate_buffers_and_textures, GL_ARRAY_BUFFER, &this->positions_buffer, mesh.positions, GL_STATIC_DRAW, 0, 3);
-	this->bind_buffer(mesh.generate_buffers_and_textures, GL_ARRAY_BUFFER, &this->normals_buffer, mesh.normals, GL_STATIC_DRAW, 1, 3);
-	this->bind_buffer(mesh.generate_buffers_and_textures, GL_ARRAY_BUFFER, &this->colors_buffer, mesh.colors, GL_STATIC_DRAW, 2, 3);
-	this->bind_buffer(mesh.generate_buffers_and_textures, GL_ELEMENT_ARRAY_BUFFER, &this->indices_buffer, mesh.indices, GL_STATIC_DRAW, -1, 1);
-	this->bind_buffer(mesh.generate_buffers_and_textures, GL_ARRAY_BUFFER, &this->texture_coordinates_buffer, mesh.texture_coordinates, GL_STATIC_DRAW, 3, 2);
-	this->bind_buffer(mesh.generate_buffers_and_textures, GL_ARRAY_BUFFER, &this->tangents_buffer, mesh.tangents, GL_STATIC_DRAW, 4, 3);
-	this->bind_buffer(mesh.generate_buffers_and_textures, GL_ARRAY_BUFFER, &this->bitangents_buffer, mesh.bitangents, GL_STATIC_DRAW, 5, 3);
+	this->bind_buffer(mesh.generate_buffers_and_textures, GL_ARRAY_BUFFER, &this->positions_buffer, mesh.positions, GL_DRAW_TYPE, 0, 3);
+	this->bind_buffer(mesh.generate_buffers_and_textures, GL_ARRAY_BUFFER, &this->normals_buffer, mesh.normals, GL_DRAW_TYPE, 1, 3);
+	this->bind_buffer(mesh.generate_buffers_and_textures, GL_ARRAY_BUFFER, &this->colors_buffer, mesh.colors, GL_DRAW_TYPE, 2, 3);
+	this->bind_buffer(mesh.generate_buffers_and_textures, GL_ELEMENT_ARRAY_BUFFER, &this->indices_buffer, mesh.indices, GL_DRAW_TYPE, -1, 1);
+	this->bind_buffer(mesh.generate_buffers_and_textures, GL_ARRAY_BUFFER, &this->texture_coordinates_buffer, mesh.texture_coordinates, GL_DRAW_TYPE, 3, 2);
+	this->bind_buffer(mesh.generate_buffers_and_textures, GL_ARRAY_BUFFER, &this->tangents_buffer, mesh.tangents, GL_DRAW_TYPE, 4, 3);
+	this->bind_buffer(mesh.generate_buffers_and_textures, GL_ARRAY_BUFFER, &this->bitangents_buffer, mesh.bitangents, GL_DRAW_TYPE, 5, 3);
 
 	this->bind_texture(mesh.generate_buffers_and_textures, &mesh.diffuse_map.texture_ID, mesh.diffuse_map.GL_TEXTUREindex, mesh.diffuse_map.bytes, mesh.diffuse_map.width, mesh.diffuse_map.height, mesh.diffuse_map.n_color_channels, gamma_correction);
 	this->bind_texture(mesh.generate_buffers_and_textures, &mesh.normal_map.texture_ID, mesh.normal_map.GL_TEXTUREindex, mesh.normal_map.bytes, mesh.normal_map.width, mesh.normal_map.height, mesh.normal_map.n_color_channels, gamma_correction);
@@ -256,10 +267,19 @@ void Shader::bind_mesh_buffers(Mesh& mesh, const bool& gamma_correction) {
 
 };
 
-void Shader::bind_and_draw_mesh_elements(Mesh& mesh, const bool& gamma_correction, const unsigned int& GL_PRIMITIVE_TYPE) {
+void Shader::bind_and_draw_mesh_elements(Mesh& mesh, const unsigned int& GL_PRIMITIVE_TYPE, const unsigned int& GL_DRAW_MODE, const bool& gamma_correction) {
 
-	this->bind_mesh_buffers(mesh, gamma_correction);
-	glDrawElements(GL_PRIMITIVE_TYPE, mesh.indices.size(), GL_UNSIGNED_SHORT, 0);
+	this->bind_mesh_buffers(mesh, GL_DRAW_MODE, gamma_correction);
+	if (mesh.draw_as_elements) {
+
+		glDrawElements(GL_PRIMITIVE_TYPE, mesh.indices.size(), GL_UNSIGNED_INT, 0);
+
+	}
+	else {
+
+		glDrawArrays(GL_PRIMITIVE_TYPE, 0, mesh.positions.size());
+
+	};
 
 };
 

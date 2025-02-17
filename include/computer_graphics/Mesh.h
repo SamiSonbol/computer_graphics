@@ -8,6 +8,7 @@
 #include <stb_image/stb_image.h>
 #include "computer_graphics/Math.h"
 #include "computer_graphics/File.h"
+#include "computer_graphics/Point_Cloud.h"
 
 //struct used to hash the unordered_map we are using in our *Mesh* class
 struct vec3_vec3_vec2_hasher {
@@ -108,7 +109,7 @@ class Mesh {
 	vec2 mesh_dimensions;
 	std::unordered_map<std::tuple<vec3, vec3, vec2>, unsigned short, vec3_vec3_vec2_hasher> vertices_map;
 
-	std::vector<unsigned short> indices;
+	std::vector<unsigned int> indices;
 	std::vector<vec3> positions;
 	std::vector<vec3> normals;
 	std::vector<vec3> tangents;
@@ -118,44 +119,84 @@ class Mesh {
 
 	//used as a signal to the shader to decide if buffers and textures of this mesh have been already generated or not
 	bool generate_buffers_and_textures;
+	bool draw_as_elements;
+
+	void add_without_check(Vertex& vertex, int& index_counter);
+	void add_without_check(Triangle& triangle, int& index_counter);
 
 	void check_accumalate_add(Vertex& vertex, int& index_counter);
 	void check_accumalate_add(Triangle& triangle, int& index_counter);
 	
 	void set_as_single_face(Vertex& top_left, Vertex& bottom_left, Vertex& top_right, Vertex& bottom_right);
 	
-	void generate_terrain();
-	void extract_from_obj_file(const std::string& file_path);
+	void generate_terrain(const uint8_t& ADD_VERTICES);
+	void extract_from_OBJ_file(const std::string& file_path, const uint8_t& ADD_VERTICES);
+	void extract_from_LAS_file(const std::string& file_path, const uint8_t& ADD_VERTICES);
 
  private:
 
-	Mesh(const vec2& mesh_dimensions, Texture&& diffuse_map, Texture&& normal_map, Texture&& displacement_map);
-	Mesh(const std::string& obj_file_path, Texture&& diffuse_map, Texture&& normal_map, Texture&& displacement_map);
+	static constexpr uint8_t OBJ_FILE = 0;
+	static constexpr uint8_t LAS_FILE = 1;
 
-	Mesh(const vec2& mesh_dimensions, const std::string& path_diffuse_map_file, const std::string& path_normal_map_file, const std::string& path_displacement_map_file);
-	Mesh(const std::string& obj_file_path, const std::string& path_diffuse_map_file, const std::string& path_normal_map_file, const std::string& path_displacement_map_file);
+	Mesh(const vec2& mesh_dimensions, const uint8_t& ADD_VERTICES, Texture&& diffuse_map, Texture&& normal_map, Texture&& displacement_map);
+	Mesh(const std::string& file_path, const uint8_t& ADD_VERTICES, Texture&& diffuse_map, Texture&& normal_map, Texture&& displacement_map, const uint8_t& FILE_TYPE);
 
-	Mesh(const vec2& mesh_dimensions, const std::string& path_maps_folder);
-	Mesh(const std::string& obj_file_path, const std::string& path_maps_folder);
+	Mesh(const vec2& mesh_dimensions, const std::string& path_diffuse_map_file, const uint8_t& ADD_VERTICES, const std::string& path_normal_map_file, const std::string& path_displacement_map_file);
+	Mesh(const std::string& file_path, const std::string& path_diffuse_map_file, const uint8_t& ADD_VERTICES, const std::string& path_normal_map_file, const std::string& path_displacement_map_file, const uint8_t& FILE_TYPE);
+
+	Mesh(const vec2& mesh_dimensions, const std::string& path_maps_folder, const uint8_t& ADD_VERTICES);
+	Mesh(const std::string& file_path, const std::string& path_maps_folder, const uint8_t& ADD_VERTICES, const uint8_t& FILE_TYPE);
 
 
  public:
 
+	static constexpr uint8_t ADD_ONLY_UNIQUE_VERTICES = 0;
+	static constexpr uint8_t ADD_ALL_VERTICES = 1;
+
 	static Mesh from_procedural_Texture(const vec2& mesh_dimensions,
+		const uint8_t& ADD_VERTICES = ADD_ONLY_UNIQUE_VERTICES,
 		Texture&& diffuse_map = Texture(RESOURCES_DIR"/texture_maps/default/default_diffuse.png", "uTexture", GL_TEXTURE0, 0),
 		Texture&& normal_map = Texture(RESOURCES_DIR"/texture_maps/default/default_normal.png", "uNormal_map", GL_TEXTURE1, 1),
 		Texture&& displacement_map = Texture(RESOURCES_DIR"/texture_maps/default/default_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2)
 	);
-	static Mesh from_obj_Texture(const std::string& obj_file_path,
+	static Mesh from_OBJ_Texture(const std::string& obj_file_path,
+		const uint8_t& ADD_VERTICES = ADD_ONLY_UNIQUE_VERTICES,
 		Texture&& diffuse_map = Texture(RESOURCES_DIR"/texture_maps/default/default_diffuse.png", "uTexture", GL_TEXTURE0, 0),
 		Texture&& normal_map = Texture(RESOURCES_DIR"/texture_maps/default/default_normal.png", "uNormal_map", GL_TEXTURE1, 1),
-		Texture&& displacement_map = Texture(RESOURCES_DIR"/texture_maps/default/default_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2)
+		Texture&& displacement_map = Texture(RESOURCES_DIR"/texture_maps/default/default_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2),
+		const uint8_t& FILE_TYPE = OBJ_FILE
+	);
+	static Mesh from_LAS_Texture(const std::string& las_file_path,
+		const uint8_t& ADD_VERTICES = ADD_ONLY_UNIQUE_VERTICES,
+		Texture&& diffuse_map = Texture(RESOURCES_DIR"/texture_maps/default/default_diffuse.png", "uTexture", GL_TEXTURE0, 0),
+		Texture&& normal_map = Texture(RESOURCES_DIR"/texture_maps/default/default_normal.png", "uNormal_map", GL_TEXTURE1, 1),
+		Texture&& displacement_map = Texture(RESOURCES_DIR"/texture_maps/default/default_displacement.png", "uDisplacement_map", GL_TEXTURE2, 2),
+		const uint8_t& FILE_TYPE = LAS_FILE
 	);
 
-	static Mesh from_procedural_files(const vec2& mesh_dimensions, const std::string& path_diffuse_map_file, const std::string& path_normal_map_file = RESOURCES_DIR"/texture_maps/default/default_normal.png", const std::string& path_displacement_map_file = RESOURCES_DIR"/texture_maps/default/default_displacement.png");
-	static Mesh from_obj_files(const std::string& obj_file_path, const std::string& path_diffuse_map_file, const std::string& path_normal_map_file = RESOURCES_DIR"/texture_maps/default/default_normal.png", const std::string& path_displacement_map_file = RESOURCES_DIR"/texture_maps/default/default_displacement.png");
+	static Mesh from_procedural_files(const vec2& mesh_dimensions, 
+		const std::string& path_diffuse_map_file, 
+		const uint8_t& ADD_VERTICES = ADD_ONLY_UNIQUE_VERTICES,
+		const std::string& path_normal_map_file = RESOURCES_DIR"/texture_maps/default/default_normal.png", 
+		const std::string& path_displacement_map_file = RESOURCES_DIR"/texture_maps/default/default_displacement.png"
+	);
+	static Mesh from_OBJ_files(const std::string& obj_file_path, 
+		const std::string& path_diffuse_map_file, 
+		const uint8_t& ADD_VERTICES = ADD_ONLY_UNIQUE_VERTICES,
+		const std::string& path_normal_map_file = RESOURCES_DIR"/texture_maps/default/default_normal.png", 
+		const std::string& path_displacement_map_file = RESOURCES_DIR"/texture_maps/default/default_displacement.png", 
+		const uint8_t& FILE_TYPE = OBJ_FILE
+	);
+	static Mesh from_LAS_files(const std::string& las_file_path,
+		const std::string& path_diffuse_map_file,
+		const uint8_t& ADD_VERTICES = ADD_ONLY_UNIQUE_VERTICES,
+		const std::string& path_normal_map_file = RESOURCES_DIR"/texture_maps/default/default_normal.png",
+		const std::string& path_displacement_map_file = RESOURCES_DIR"/texture_maps/default/default_displacement.png",
+		const uint8_t& FILE_TYPE = LAS_FILE
+	);
 
-	static Mesh from_procedural_folder(const vec2& mesh_dimensions, const std::string& path_maps_folder);
-	static Mesh from_obj_folder(const std::string& obj_file_path, const std::string& path_maps_folder);
+	static Mesh from_procedural_folder(const vec2& mesh_dimensions, const std::string& path_maps_folder, const uint8_t& ADD_VERTICES = ADD_ONLY_UNIQUE_VERTICES);
+	static Mesh from_OBJ_folder(const std::string& obj_file_path, const std::string& path_maps_folder, const uint8_t& ADD_VERTICES = ADD_ONLY_UNIQUE_VERTICES, const uint8_t& FILE_TYPE = OBJ_FILE);
+	static Mesh from_LAS_folder(const std::string& las_file_path, const std::string& path_maps_folder, const uint8_t& ADD_VERTICES = ADD_ONLY_UNIQUE_VERTICES, const uint8_t& FILE_TYPE = LAS_FILE);
 
 };
