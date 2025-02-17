@@ -15,6 +15,8 @@ uniform bool displacement_mapping;
 uniform sampler2D uDisplacement_map;
 uniform float displacement_scale;
 
+uniform float point_size;
+
 out vec3 vPosition;
 out vec3 vNormal;
 out vec3 vColor;
@@ -48,6 +50,7 @@ void main() {
     vTexture_coordinates = aTexture_coordinates;
     vColor = aColor;
 
+    gl_PointSize = point_size;
     gl_Position = projection_matrix * view_matrix * model_transformation_matrix * vec4(vPosition, 1.0);
     
 };

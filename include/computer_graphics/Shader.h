@@ -48,6 +48,8 @@ static GLFWwindow* INIT_GLAD_GLFW_WINDOW(vec2& screen_size, const vec3& clear_co
 	std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
 	glViewport(0, 0, screen_size.x, screen_size.y);
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_PROGRAM_POINT_SIZE);
+	glPatchParameteri(GL_PATCH_VERTICES, 3);
 	glClearColor(clear_color.x, clear_color.y, clear_color.z, 1.0f);
 
 	return window;
@@ -94,6 +96,7 @@ public:
 		float FOV;
 		float tesselation_multiplier;
 		float displacement_scale;
+		float point_size;
 
 	};
 
@@ -146,7 +149,7 @@ public:
 	void init_matrices(const vec2& screen_size, const float& orthogonal_size, const float& FOV, const bool& orthogonal_projection, const vec3& right_vector, const vec3& up_vector, const vec3& direction_vector, const vec3& camera_position, const vec3& camera_rotation_vector, const vec3& translation_vector, const vec3& scaling_vector, const vec3& rotation_vector);
 	void init_light(const vec3& light_position, const vec3& light_color, const vec4& material_properties);
 	void init_booleans(const bool& gamma_correction, const bool& texturing, const bool& normal_mapping, const bool& displacement_mapping, const bool& height_coloring);
-	void init_floats(const float& tesselation_multiplier, const float& displacement_scale);
+	void init_floats(const float& tesselation_multiplier, const float& displacement_scale, const float& point_size);
 	void initialize(const vec2& screen_size, const graphics_vectors_container& vectors_container, const graphics_booleans_container& booleans_container, const graphics_floats_container& floats_container);
 
 	void update(const vec2& screen_size, const graphics_vectors_container& vectors_container, const graphics_booleans_container& booleans_container, const graphics_floats_container& floats_container);

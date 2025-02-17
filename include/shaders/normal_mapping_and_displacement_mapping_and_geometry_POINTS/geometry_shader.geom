@@ -1,7 +1,7 @@
 #version 440 core
 
-layout (triangles) in;
-layout (triangle_strip, max_vertices = 3) out;
+layout (points) in;
+layout (points, max_vertices = 1) out;
 
 in vec3 vNormal[];
 in vec3 vColor[];
@@ -19,7 +19,8 @@ out vec3 gBitangent;
 
 void main() {
 
-    for (int i = 0; i < 3; ++i) {
+    for (int i = 0; i < 1; ++i) {
+
         gNormal = vNormal[i];
         gColor = vColor[i];
         gPosition = vPosition[i];
@@ -29,7 +30,8 @@ void main() {
 
         gl_Position = gl_in[i].gl_Position;
         EmitVertex();
-    }
+
+    };
 
     EndPrimitive();
 

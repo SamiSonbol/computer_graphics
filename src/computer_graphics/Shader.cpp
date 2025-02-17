@@ -81,8 +81,9 @@ Shader::graphics_floats_container Shader::create_standard_shader_floats() {
 	float FOV = 90.0f;
 	float tesselation = 2.0f;
 	float displacement_scale = 0.1f;
+	float point_size = 1.0f;
 
-	return { orthogonal_size, FOV, tesselation, displacement_scale };
+	return { orthogonal_size, FOV, tesselation, displacement_scale, point_size };
 
 };
 
@@ -178,12 +179,12 @@ void Shader::init_matrices(const vec2& screen_size, const float& orthogonal_size
 	
 	if (orthogonal_projection) {
 
-		this->create_uniform_mat4(create_orthographic_projection_matrix(vec2(screen_size.x, screen_size.y), 0.1f, 1000.0f, orthogonal_size).to_GL(), "projection_matrix");
+		this->create_uniform_mat4(create_orthographic_projection_matrix(vec2(screen_size.x, screen_size.y), 0.1f, 50000.0f, orthogonal_size).to_GL(), "projection_matrix");
 
 	}
 	else {
 
-		this->create_uniform_mat4(create_frustum_projection_matrix(FOV, screen_size.x, screen_size.y, 0.1f, 1000.0f).to_GL(), "projection_matrix");
+		this->create_uniform_mat4(create_frustum_projection_matrix(FOV, screen_size.x, screen_size.y, 0.1f, 50000.0f).to_GL(), "projection_matrix");
 
 	};
 
@@ -216,10 +217,11 @@ void Shader::init_booleans(const bool& gamma_correction, const bool& texturing, 
 
 };
 
-void Shader::init_floats(const float& tesselation_multiplier, const float& displacement_scale) {
+void Shader::init_floats(const float& tesselation_multiplier, const float& displacement_scale, const float& point_size) {
 
 	this->create_uniform_float(tesselation_multiplier, "tesselation_multiplier");
 	this->create_uniform_float(displacement_scale, "displacement_scale");
+	this->create_uniform_float(point_size, "point_size");
 
 };
 
@@ -229,7 +231,7 @@ void Shader::initialize(const vec2& screen_size, const graphics_vectors_containe
 	this->init_matrices(screen_size, floats_container.orthogonal_size, floats_container.FOV, booleans_container.orthogonal_projection, vectors_container.right_vector, vectors_container.up_vector, vectors_container.direction_vector, vectors_container.camera_position, vectors_container.camera_rotation_vector, vectors_container.translation_vector, vectors_container.scaling_vector, vectors_container.rotation_vector);
 	this->init_light(vectors_container.light_position, vectors_container.light_color, vectors_container.material_properties);
 	this->init_booleans(booleans_container.gamma_correction, booleans_container.texturing, booleans_container.normal_mapping, booleans_container.displacement_mapping, booleans_container.height_coloring);
-	this->init_floats(floats_container.tesselation_multiplier, floats_container.displacement_scale);
+	this->init_floats(floats_container.tesselation_multiplier, floats_container.displacement_scale, floats_container.point_size);
 
 };
 
@@ -238,7 +240,7 @@ void Shader::update(const vec2& screen_size, const graphics_vectors_container& v
 	this->init_matrices(screen_size, floats_container.orthogonal_size, floats_container.FOV, booleans_container.orthogonal_projection, vectors_container.right_vector, vectors_container.up_vector, vectors_container.direction_vector, vectors_container.camera_position, vectors_container.camera_rotation_vector, vectors_container.translation_vector, vectors_container.scaling_vector, vectors_container.rotation_vector);
 	this->init_light(vectors_container.light_position, vectors_container.light_color, vectors_container.material_properties);
 	this->init_booleans(booleans_container.gamma_correction, booleans_container.texturing, booleans_container.normal_mapping, booleans_container.displacement_mapping, booleans_container.height_coloring);
-	this->init_floats(floats_container.tesselation_multiplier, floats_container.displacement_scale);
+	this->init_floats(floats_container.tesselation_multiplier, floats_container.displacement_scale, floats_container.point_size);
 
 };
 

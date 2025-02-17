@@ -79,30 +79,30 @@ Triangle::Triangle(const vec3& A, const vec3& B, const vec3& C) : A(A), B(B), C(
 
 std::vector<float> Texture::generate_normal_map() {
 
- std::vector<float> normals;
+	 std::vector<float> normals;
 
- for (int j = 0; j < this->height; ++j) {
+	 for (int j = 0; j < this->height; ++j) {
 
-	for (int i = 0; i < this->width; ++i) {
+		for (int i = 0; i < this->width; ++i) {
 
-		int index = (j * this->width + i) * 3;
+			int index = (j * this->width + i) * 3;
 
-		float x = bytes[index] / 255.0f * 2.0f - 1.0f;
-		float y = bytes[index + 1] / 255.0f * 2.0f - 1.0f;
-		float z = bytes[index + 2] / 255.0f * 2.0f - 1.0f;
+			float x = bytes[index] / 255.0f * 2.0f - 1.0f;
+			float y = bytes[index + 1] / 255.0f * 2.0f - 1.0f;
+			float z = bytes[index + 2] / 255.0f * 2.0f - 1.0f;
 
-		vec3 v = vec3(x, y, z);
-		v = v.normalize();
+			vec3 v = vec3(x, y, z);
+			v = v.normalize();
 
-		normals.emplace_back(v.x);
-		normals.emplace_back(v.y);
-		normals.emplace_back(v.z);
+			normals.emplace_back(v.x);
+			normals.emplace_back(v.y);
+			normals.emplace_back(v.z);
 
-	};
+		};
 
- };
+	 };
 
- return normals;
+	 return normals;
 
 };
 
