@@ -37,7 +37,7 @@ class Mouse {
 	 vec3 from_screen_to_model(const vec2& screen_position, const vec2& screen_size, const mat4& projection_matrix, const mat4& view_matrix, const mat4& model_matrix);
 	 vec2 from_model_to_screen(const vec3& model_position, const vec2& screen_size, const mat4& projection_matrix, const mat4& view_matrix, const mat4& model_matrix);
 
-	 void plot_point(const bool& plot, GLFWwindow* window, const Shader::graphics_vectors_container& vectors_container, const vec2& screen_size, Mesh& mesh, std::vector<vec3>& colors, std::vector<vec3>& positions);
+	 //void plot_point(const bool& plot, GLFWwindow* window, const Shader::graphics_vectors_container& vectors_container, const vec2& screen_size, Mesh& mesh, std::vector<vec3>& colors, std::vector<vec3>& positions);
 
 	 void update(GLFWwindow* window);
 
@@ -91,7 +91,7 @@ class UI {
 	void vec4_vertical_float_sliders(const std::string& label_x, const std::string& label_y, const std::string& label_z, const std::string& label_w, vec4& vec, const vec2& min_max, const vec2& size);
 	void vec4_color_picker(const std::string& label, vec4& RGBA);
 		
-	void shader_debug_mode(Shader::graphics_vectors_container& vectors_container, Shader::graphics_booleans_container& booleans_container, Shader::graphics_floats_container& floats_container, bool& plot);
+	void shader_debug_mode(Shader& shader, bool& plot);
 
 	void update();
 	void render();

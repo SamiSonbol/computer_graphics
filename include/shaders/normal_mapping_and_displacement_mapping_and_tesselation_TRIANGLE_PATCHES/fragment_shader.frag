@@ -1,24 +1,24 @@
 #version 440 core
 
+uniform bool gamma_correction;
+uniform bool height_coloring;
+uniform bool normal_mapping;
+uniform bool texturing;
+
 uniform vec3 light_position;
 uniform vec3 light_color;
-uniform vec3 eye_vector;
+uniform vec3 camera_position;
 
 uniform float ambient;
 uniform float diffuse;
 uniform float specular;
 uniform float shininess;
-uniform bool gamma_correction;
 
-uniform bool height_coloring;
 uniform float min_height;
 uniform float max_height;
 
 uniform sampler2D uNormal_map;
-uniform bool normal_mapping;
-
 uniform sampler2D uTexture;
-uniform bool texturing;
 
 in vec3 tColor;
 in vec3 tPosition;
@@ -115,7 +115,7 @@ void main() {
 
 	};
 
-    vec3 phong = calculate_phong_lighting(tPosition, Normal, eye_vector, light_position, light_color, light_intensity, Color, ambient, diffuse, specular, shininess);
+    vec3 phong = calculate_phong_lighting(tPosition, Normal, camera_position, light_position, light_color, light_intensity, Color, ambient, diffuse, specular, shininess);
     if (gamma_correction) {
 
         vec3 gamma = vec3(1.0 / 2.2);

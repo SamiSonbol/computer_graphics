@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <vector>
+#include <unordered_map>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -33,9 +34,9 @@ static GLFWwindow* INIT_GLAD_GLFW_WINDOW(vec2& screen_size, const vec3& clear_co
 		exit(EXIT_FAILURE);
 
 	};
-
 	screen_size = vec2(video_mode->width, video_mode->height);
-	GLFWwindow* window = glfwCreateWindow(screen_size.x, screen_size.y, PROJECT_NAME, NULL, NULL);
+
+	GLFWwindow* window = glfwCreateWindow(video_mode->width, video_mode->height, PROJECT_NAME, NULL, NULL);
 	if (window == NULL) {
 
 		std::cout << "failed";
@@ -46,7 +47,7 @@ static GLFWwindow* INIT_GLAD_GLFW_WINDOW(vec2& screen_size, const vec3& clear_co
 	glfwMakeContextCurrent(window);
 	gladLoadGL();
 	std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
-	glViewport(0, 0, screen_size.x, screen_size.y);
+	glViewport(0, 0, video_mode->width, video_mode->height);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_PROGRAM_POINT_SIZE);
 	glPatchParameteri(GL_PATCH_VERTICES, 3);
@@ -60,59 +61,52 @@ class Shader {
 
 public:
 
-	//this is a struct that holds the basic vectors needed to update and initialize our image, used this instead of an std::vector<vec3> inorder to attain readability, clarity, and avoid the issue of guessing which index is which vec3.
-	struct graphics_vectors_container {
-
-		vec3 right_vector;
-		vec3 up_vector;
-		vec3 direction_vector;
-		vec3 camera_position;
-		vec3 camera_rotation_vector;
-		vec3 translation_vector;
-		vec3 scaling_vector;
-		vec3 rotation_vector;
-		vec3 light_position;
-		vec3 light_color;
-		vec4 material_properties;
-
-	};
-
-	//same functionality as *graphics_vectors_container* but for bools
-	struct graphics_booleans_container {
-
-		bool orthogonal_projection;
-		bool gamma_correction;
-		bool texturing;
-		bool normal_mapping;
-		bool displacement_mapping;
-		bool height_coloring;
-
-	};
-
-	//same functionality as *graphics_vectors_container* but for bools
-	struct graphics_floats_container {
-
-		float orthogonal_size;
-		float FOV;
-		float tesselation_multiplier;
-		float displacement_scale;
-		float point_size;
-
-	};
-
 	unsigned int program;
 	unsigned int positions_buffer, normals_buffer, colors_buffer, indices_buffer, texture_coordinates_buffer, tangents_buffer, bitangents_buffer;
 	
-	void create_uniform_mat4(const std::vector<float>& data_vector, const char* uniform_name);
-	void create_uniform_vec3(const std::vector<float>& data_vector, const char* uniform_name);
-	void create_uniform_float(const float& data_variable, const char* uniform_name);
-	void create_uniform_int(const int& data_variable, const char* uniform_name);
 	void create_uniform_bool(const bool& boolean, const char* uniform_name);
+	void create_uniform_int(const int& data_variable, const char* uniform_name);
+	void create_uniform_float(const float& data_variable, const char* uniform_name);
+	void create_uniform_vec2(const std::vector<float>& data_vector, const char* uniform_name);
+	void create_uniform_vec3(const std::vector<float>& data_vector, const char* uniform_name);
+	void create_uniform_mat4(const std::vector<float>& data_vector, const char* uniform_name);
 	void create_uniform_2D_texture(const int& index, const char* uniform_name);
 
-	graphics_vectors_container create_standard_shader_vectors();
-	graphics_booleans_container create_standard_shader_booleans();
-	graphics_floats_container create_standard_shader_floats();
+private:
+
+	std::unordered_map<std::string, bool> bool_uniforms_map;
+	std::unordered_map<std::string, int> int_uniforms_map;
+	std::unordered_map<std::string, float> float_uniforms_map;
+	std::unordered_map<std::string, vec2> vec2_uniforms_map;
+	std::unordered_map<std::string, vec3> vec3_uniforms_map;
+	std::unordered_map<std::string, mat4> mat4_uniforms_map;
+
+	void upload_bool_uniforms();
+	void upload_int_uniforms();
+	void upload_float_uniforms();
+	void upload_vec2_uniforms();
+	void upload_vec3_uniforms();
+	void upload_mat4_uniforms();
+
+public:
+
+	//opted to use a different function for each type instead of a templated function which checks for size and gets the correct map type, since i need speed. Having to check everytime for all possible types before getting a hit will take along time if we have alot of uniforms.
+	bool& get_reference_bool_uniform(const std::string& uniform_name);
+	int& get_reference_int_uniform(const std::string& uniform_name);
+	float& get_reference_float_uniform(const std::string& uniform_name);
+	vec2& get_reference_vec2_uniform(const std::string& uniform_name);
+	vec3& get_reference_vec3_uniform(const std::string& uniform_name);
+	mat4& get_reference_mat4_uniform(const std::string& uniform_name);
+
+	void set_value_bool_uniform(const std::string& uniform_name, const bool& value);
+	void set_value_int_uniform(const std::string& uniform_name, const int& value);
+	void set_value_float_uniform(const std::string& uniform_name, const float& value);
+	void set_value_vec2_uniform(const std::string& uniform_name, const vec2& value);
+	void set_value_vec3_uniform(const std::string& uniform_name, const vec3& value);
+	void set_value_mat4_uniform(const std::string& uniform_name, const mat4& value);
+
+	void default_uniforms_maps_initialization(const vec2& screen_size);
+	void update_uniforms();
 
 	//generates a buffer from the inputted paramter and binds it OR binds the inputted buffer
 	template<typename T>
@@ -145,16 +139,8 @@ public:
 	void bind_texture(const bool& generate_texture, unsigned int* texture_ID, const unsigned int& GL_TEXTUREindex, unsigned char* bytes, const int& texture_width, const int& texture_height, const int& n_color_channels, const bool& gamma_correction);
 	void update_texture(unsigned int* texture_ID, const unsigned int& GL_TEXTUREindex, unsigned char* bytes, const int& texture_width, const int& texture_height, const int& n_color_channels);
 
-	//sets the transformation matrices and light vectors
-	void init_matrices(const vec2& screen_size, const float& orthogonal_size, const float& FOV, const bool& orthogonal_projection, const vec3& right_vector, const vec3& up_vector, const vec3& direction_vector, const vec3& camera_position, const vec3& camera_rotation_vector, const vec3& translation_vector, const vec3& scaling_vector, const vec3& rotation_vector);
-	void init_light(const vec3& light_position, const vec3& light_color, const vec4& material_properties);
-	void init_booleans(const bool& gamma_correction, const bool& texturing, const bool& normal_mapping, const bool& displacement_mapping, const bool& height_coloring);
-	void init_floats(const float& tesselation_multiplier, const float& displacement_scale, const float& point_size);
-	void initialize(const vec2& screen_size, const graphics_vectors_container& vectors_container, const graphics_booleans_container& booleans_container, const graphics_floats_container& floats_container);
-
-	void update(const vec2& screen_size, const graphics_vectors_container& vectors_container, const graphics_booleans_container& booleans_container, const graphics_floats_container& floats_container);
-
-	void bind_mesh_buffers(Mesh& mesh, const unsigned int& GL_DRAW_TYPE, const bool& gamma_correction);
+	void bind_mesh_buffers_and_textures(Mesh& mesh, const unsigned int& GL_DRAW_TYPE, const bool& gamma_correction);
+	void draw_mesh_elements(Mesh& mesh, const unsigned int& GL_PRIMITIVE_TYPE = GL_TRIANGLES);
 	void bind_and_draw_mesh_elements(Mesh& mesh, const unsigned int& GL_PRIMITIVE_TYPE = GL_TRIANGLES, const unsigned int& GL_DRAW_MODE = GL_STATIC_DRAW, const bool& gamma_correction = true);
 
 	void delete_buffers();

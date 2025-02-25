@@ -686,17 +686,23 @@ public:
 
 	};
 
-	std::vector<float> to_GL() const {
+	std::vector<float> to_std_vector() {
 
 		return {
 
-			this->a11, this->a21, this->a31,
-			this->a12, this->a22, this->a32,
-			this->a13, this->a23, this->a33
+			this->a11, this->a12, this->a13,
+			this->a21, this->a22, this->a23,
+			this->a31, this->a32, this->a33,
 
 		};
 
-	}
+	};
+
+	std::vector<float> to_GL() const {
+
+		return this->transpose().to_std_vector();
+
+	};
 
 };
 
@@ -826,47 +832,6 @@ public:
 
 	};
 
-	//mat4 inverse() const {
-
-	//	float det = a11 * (a22 * (a33 * a44 - a34 * a43) - a23 * (a32 * a44 - a34 * a42) + a24 * (a32 * a43 - a33 * a42))
-	//		- a12 * (a21 * (a33 * a44 - a34 * a43) - a23 * (a31 * a44 - a34 * a41) + a24 * (a31 * a43 - a33 * a41))
-	//		+ a13 * (a21 * (a32 * a44 - a34 * a42) - a22 * (a31 * a44 - a34 * a41) + a24 * (a31 * a42 - a32 * a41))
-	//		- a14 * (a21 * (a32 * a43 - a33 * a42) - a22 * (a31 * a43 - a33 * a41) + a23 * (a31 * a42 - a32 * a41));
-
-	//	if (det == 0) {
-
-	//		std::cerr << "Matrix is singular and cannot be inverted." << std::endl;
-	//		return mat4(); // Return identity or some error indicator
-
-	//	};
-
-	//	float inv_det = 1.0f / det;
-
-	//	return mat4(
-
-	//		inv_det * (a22 * (a33 * a44 - a34 * a43) - a23 * (a32 * a44 - a34 * a42) + a24 * (a32 * a43 - a33 * a42)),
-	//		inv_det * -(a12 * (a33 * a44 - a34 * a43) - a13 * (a32 * a44 - a34 * a42) + a14 * (a32 * a43 - a33 * a42)),
-	//		inv_det * (a12 * (a23 * a44 - a24 * a43) - a13 * (a22 * a44 - a24 * a42) + a14 * (a22 * a43 - a23 * a42)),
-	//		inv_det * -(a12 * (a23 * a34 - a24 * a33) - a13 * (a22 * a34 - a24 * a32) + a14 * (a22 * a33 - a23 * a32)),
-
-	//		inv_det * -(a21 * (a33 * a44 - a34 * a43) - a23 * (a31 * a44 - a34 * a41) + a24 * (a31 * a43 - a33 * a41)),
-	//		inv_det * (a11 * (a33 * a44 - a34 * a43) - a13 * (a31 * a44 - a34 * a41) + a14 * (a31 * a43 - a33 * a41)),
-	//		inv_det * -(a11 * (a23 * a44 - a24 * a43) - a13 * (a21 * a44 - a24 * a41) + a14 * (a21 * a43 - a23 * a41)),
-	//		inv_det * (a11 * (a23 * a34 - a24 * a33) - a13 * (a21 * a34 - a24 * a31) + a14 * (a21 * a33 - a23 * a31)),
-
-	//		inv_det * (a21 * (a32 * a44 - a34 * a42) - a22 * (a31 * a44 - a34 * a41) + a24 * (a31 * a42 - a32 * a41)),
-	//		inv_det * -(a11 * (a32 * a44 - a34 * a42) - a12 * (a31 * a44 - a34 * a41) + a14 * (a31 * a42 - a32 * a41)),
-	//		inv_det * (a11 * (a22 * a44 - a24 * a42) - a12 * (a21 * a44 - a24 * a41) + a14 * (a21 * a42 - a22 * a41)),
-	//		inv_det * -(a11 * (a22 * a34 - a24 * a32) - a12 * (a21 * a34 - a24 * a31) + a14 * (a21 * a32 - a22 * a31)),
-
-	//		inv_det * -(a21 * (a32 * a43 - a33 * a42) - a22 * (a31 * a43 - a33 * a41) + a23 * (a31 * a42 - a32 * a41)),
-	//		inv_det * (a11 * (a32 * a43 - a33 * a42) - a12 * (a31 * a43 - a33 * a41) + a13 * (a31 * a42 - a32 * a41)),
-	//		inv_det * -(a11 * (a22 * a43 - a23 * a42) - a12 * (a21 * a43 - a23 * a41) + a13 * (a21 * a42 - a22 * a41)),
-	//		inv_det * (a11 * (a22 * a33 - a23 * a32) - a12 * (a21 * a33 - a23 * a31) + a13 * (a21 * a32 - a22 * a31))
-
-	//	);
-	//}
-
 	float determinate() const {
 
 		return   this->a11 * mat3(this->a22, this->a23, this->a24, this->a32, this->a33, this->a34, this->a42, this->a43, this->a44).determinate()
@@ -891,16 +856,22 @@ public:
 
 	};
 
-	std::vector<float> to_GL() const {
+	std::vector<float> to_std_vector() {
 
 		return {
 
-			this->a11, this->a21, this->a31, this->a41,
-			this->a12, this->a22, this->a32, this->a42,
-			this->a13, this->a23, this->a33, this->a43,
-			this->a14, this->a24, this->a34, this->a44
+			this->a11, this->a12, this->a13, this->a14,
+			this->a21, this->a22, this->a23, this->a24,
+			this->a31, this->a32, this->a33, this->a34,
+			this->a41, this->a42, this->a43, this->a44,
 
 		};
+
+	};
+
+	std::vector<float> to_GL() const {
+
+		return this->transpose().to_std_vector();
 
 	};
 
@@ -1097,9 +1068,9 @@ static mat4 create_rotation_matrix(const float& alpha, const float& theta, const
 
 };
 
-static mat4 create_rotation_matrix(const vec3& vec) {//@override
+static mat4 create_rotation_matrix(const vec3& rotation_vector) {//@override
 
-	return create_rotation_matrix(vec.x, vec.y, vec.z);
+	return create_rotation_matrix(rotation_vector.x, rotation_vector.y, rotation_vector.z);
 
 };
 
@@ -1117,18 +1088,17 @@ static mat4 create_model_transformation_matrix(const mat4& T, const mat4& S, con
 };
 
 //3D SCREEN TRANSFORMATION
-static mat4 create_view_matrix(const vec3& camera_position, const vec3& target_position, const vec3& r, const vec3& u, const vec3& d) {//also known as lookAtMatrix
+static mat4 create_view_matrix(const vec3& camera_position, const vec3& target_position, const vec3& up_vector) {//also known as lookAtMatrix
 
-	//here am basically taking r as X-axis, u as Y-axis, and d as Z-axis and using them to find the actual right, up, direction vectors
-	vec3 direction = (camera_position - target_position).normalize();
-	vec3 right = u.cross(direction).normalize();
-	vec3 up = direction.cross(right).normalize();
+	vec3 forward = (camera_position - target_position).normalize();
+	vec3 right = up_vector.cross(forward).normalize();
+	vec3 up = forward.cross(right).normalize();
 
 	return mat4(
 
 		right.x, right.y, right.z, -right.dot(camera_position),
 		up.x, up.y, up.z, -up.dot(camera_position),
-		-direction.x, -direction.y, -direction.z, direction.dot(camera_position),
+		-forward.x, -forward.y, -forward.z, forward.dot(camera_position),
 		0.0f, 0.0f, 0.0f, 1.0f
 
 	);
@@ -1137,32 +1107,34 @@ static mat4 create_view_matrix(const vec3& camera_position, const vec3& target_p
 
 static mat4 create_orthographic_projection_matrix(const vec2& screen_size, const float& near, const float& far, const float& orthogonal_size) {
 
-	float aspect = screen_size.x / screen_size.y;
-	float left = -orthogonal_size * aspect;
-	float right = orthogonal_size * aspect;
+	float aspect_ratio = screen_size.x / screen_size.y;
+	float left = -orthogonal_size * aspect_ratio;
+	float right = orthogonal_size * aspect_ratio;
 	float bottom = -orthogonal_size;
 	float top = orthogonal_size;
 
 	return mat4(
+
 		2.0f / (right - left), 0.0f, 0.0f, -(right + left) / (right - left),
 		0.0f, 2.0f / (top - bottom), 0.0f, -(top + bottom) / (top - bottom),
 		0.0f, 0.0f, -2.0f / (far - near), -(far + near) / (far - near),
 		0.0f, 0.0f, 0.0f, 1.0f
+
 	);
 
 };
 
-static mat4 create_frustum_projection_matrix(const float& fov, const float& screen_width, const float& screen_height, const float& near, const float& far) {
+static mat4 create_frustum_projection_matrix(const float& FOV, const vec2& screen_size, const float& near, const float& far) {
 
-	float view_angle = to_radians(fov);
-	float aspect_ratio = screen_width / screen_height;
-	float alpha = tan(view_angle / 2.0f);
+	float view_angle = to_radians(FOV);
+	float aspect_ratio = screen_size.x / screen_size.y;
+	float alpha = std::tan(view_angle / 2.0f);
 	float top = near * alpha;
 	float bottom = -top;
 	float right = top * aspect_ratio;
 	float left = -right;
 
-	mat4 frustum = mat4(
+	return mat4(
 
 		(2.0f * near) / (right - left), 0.0f, (right + left) / (right - left), 0.0f,
 		0.0f, (2.0f * near) / (top - bottom), (top + bottom) / (top - bottom), 0.0f,
@@ -1170,8 +1142,6 @@ static mat4 create_frustum_projection_matrix(const float& fov, const float& scre
 		0.0f, 0.0f, -1.0f, 0.0f
 
 	);
-
-	return frustum;
 
 };
 
@@ -1443,6 +1413,83 @@ struct vec4_hasher {
 		seed = hash_combine(seed, h2);
 		seed = hash_combine(seed, h3);
 		seed = hash_combine(seed, h4);
+		return seed;
+
+	};
+
+};
+
+struct mat3_hasher {
+
+	std::size_t operator()(const mat3& matrix) const {
+
+        std::size_t h1 = std::hash<uint32_t>()(std::bit_cast<uint32_t>(matrix.a11));
+		std::size_t h2 = std::hash<uint32_t>()(std::bit_cast<uint32_t>(matrix.a12));
+		std::size_t h3 = std::hash<uint32_t>()(std::bit_cast<uint32_t>(matrix.a13));
+
+		std::size_t h4 = std::hash<uint32_t>()(std::bit_cast<uint32_t>(matrix.a21));
+		std::size_t h5 = std::hash<uint32_t>()(std::bit_cast<uint32_t>(matrix.a22));
+		std::size_t h6 = std::hash<uint32_t>()(std::bit_cast<uint32_t>(matrix.a23));
+
+		std::size_t h7 = std::hash<uint32_t>()(std::bit_cast<uint32_t>(matrix.a31));
+		std::size_t h8 = std::hash<uint32_t>()(std::bit_cast<uint32_t>(matrix.a32));
+		std::size_t h9 = std::hash<uint32_t>()(std::bit_cast<uint32_t>(matrix.a33));
+		
+		std::size_t seed = h1;
+		seed = hash_combine(seed, h2);
+		seed = hash_combine(seed, h3);
+		seed = hash_combine(seed, h4);
+		seed = hash_combine(seed, h5);
+		seed = hash_combine(seed, h6);
+		seed = hash_combine(seed, h7);
+		seed = hash_combine(seed, h8);
+		seed = hash_combine(seed, h9);
+		return seed;
+
+	};
+
+};
+
+struct mat4_hasher {
+
+	std::size_t operator()(const mat4& matrix) const {
+
+		std::size_t h1 = std::hash<uint32_t>()(std::bit_cast<uint32_t>(matrix.a11));
+		std::size_t h2 = std::hash<uint32_t>()(std::bit_cast<uint32_t>(matrix.a12));
+		std::size_t h3 = std::hash<uint32_t>()(std::bit_cast<uint32_t>(matrix.a13));
+		std::size_t h4 = std::hash<uint32_t>()(std::bit_cast<uint32_t>(matrix.a14));
+
+		std::size_t h5 = std::hash<uint32_t>()(std::bit_cast<uint32_t>(matrix.a21));
+		std::size_t h6 = std::hash<uint32_t>()(std::bit_cast<uint32_t>(matrix.a22));
+		std::size_t h7 = std::hash<uint32_t>()(std::bit_cast<uint32_t>(matrix.a23));
+		std::size_t h8 = std::hash<uint32_t>()(std::bit_cast<uint32_t>(matrix.a24));
+
+		std::size_t h9 = std::hash<uint32_t>()(std::bit_cast<uint32_t>(matrix.a31));
+		std::size_t h10 = std::hash<uint32_t>()(std::bit_cast<uint32_t>(matrix.a32));
+		std::size_t h11 = std::hash<uint32_t>()(std::bit_cast<uint32_t>(matrix.a33));
+		std::size_t h12 = std::hash<uint32_t>()(std::bit_cast<uint32_t>(matrix.a34));
+
+		std::size_t h13 = std::hash<uint32_t>()(std::bit_cast<uint32_t>(matrix.a41));
+		std::size_t h14 = std::hash<uint32_t>()(std::bit_cast<uint32_t>(matrix.a42));
+		std::size_t h15 = std::hash<uint32_t>()(std::bit_cast<uint32_t>(matrix.a43));
+		std::size_t h16 = std::hash<uint32_t>()(std::bit_cast<uint32_t>(matrix.a44));
+
+		std::size_t seed = h1;
+		seed = hash_combine(seed, h2);
+		seed = hash_combine(seed, h3);
+		seed = hash_combine(seed, h4);
+		seed = hash_combine(seed, h5);
+		seed = hash_combine(seed, h6);
+		seed = hash_combine(seed, h7);
+		seed = hash_combine(seed, h8);
+		seed = hash_combine(seed, h9);
+		seed = hash_combine(seed, h10);
+		seed = hash_combine(seed, h11);
+		seed = hash_combine(seed, h12);
+		seed = hash_combine(seed, h13);
+		seed = hash_combine(seed, h14);
+		seed = hash_combine(seed, h15);
+		seed = hash_combine(seed, h16);
 		return seed;
 
 	};

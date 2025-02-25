@@ -568,8 +568,8 @@ void Mesh::extract_from_OBJ_file(const std::string& file_path, const uint8_t& AD
 void Mesh::extract_from_LAS_file(const std::string& file_path, const uint8_t& ADD_VERTICES) {
 
 	Point_Cloud cloud;
-	std::vector<vec3> temp_positions = cloud.extract_points_coordinates(file_path);
-	vec3 color(0, 255, 0);
+	std::vector<vec3> temp_positions = cloud.extract_openGL_points_coordinates(file_path);
+	vec3 color(0.0f, 255.0f, 0.0f);
 
 	//we traverse the grid by going to every row where we work on every column on said row.
 	int index_counter = 0;

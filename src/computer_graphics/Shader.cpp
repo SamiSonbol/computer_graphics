@@ -1,40 +1,41 @@
 #include "computer_graphics/Shader.h"
 
-void Shader::create_uniform_mat4(const std::vector<float>& data_vector, const char* uniform_name) {
-
-	unsigned int location = glGetUniformLocation(this->program, uniform_name);
-	glUniformMatrix4fv(location, 1, GL_FALSE, data_vector.data());
-
-};
-
-void Shader::create_uniform_vec3(const std::vector<float>& data_vector, const char* uniform_name) {
-
-	unsigned int location = glGetUniformLocation(this->program, uniform_name);
-	glUniform3fv(location, 1, data_vector.data());
-
-};
-
-void Shader::create_uniform_float(const float& data_variable, const char* uniform_name) {
-
-	unsigned int location = glGetUniformLocation(this->program, uniform_name);
-	glUniform1f(location, data_variable);
-
-};
-
-void Shader::create_uniform_int(const int& data_variable, const char* uniform_name) {
-
-	unsigned int location = glGetUniformLocation(this->program, uniform_name);
-	glUniform1i(location, data_variable);
-
-};
-
 void Shader::create_uniform_bool(const bool& boolean, const char* uniform_name) {
 
 	unsigned int location = glGetUniformLocation(this->program, uniform_name);
 	glUniform1i(location, boolean);
 
 };
+void Shader::create_uniform_int(const int& data_variable, const char* uniform_name) {
 
+	unsigned int location = glGetUniformLocation(this->program, uniform_name);
+	glUniform1i(location, data_variable);
+
+};
+void Shader::create_uniform_float(const float& data_variable, const char* uniform_name) {
+
+	unsigned int location = glGetUniformLocation(this->program, uniform_name);
+	glUniform1f(location, data_variable);
+
+};
+void Shader::create_uniform_vec2(const std::vector<float>& data_vector, const char* uniform_name) {
+
+	unsigned int location = glGetUniformLocation(this->program, uniform_name);
+	glUniform2fv(location, 1, data_vector.data());
+
+};
+void Shader::create_uniform_vec3(const std::vector<float>& data_vector, const char* uniform_name) {
+
+	unsigned int location = glGetUniformLocation(this->program, uniform_name);
+	glUniform3fv(location, 1, data_vector.data());
+
+};
+void Shader::create_uniform_mat4(const std::vector<float>& data_vector, const char* uniform_name) {
+
+	unsigned int location = glGetUniformLocation(this->program, uniform_name);
+	glUniformMatrix4fv(location, 1, GL_FALSE, data_vector.data());
+
+};
 void Shader::create_uniform_2D_texture(const int& index, const char* uniform_name) {
 
 	unsigned int location = glGetUniformLocation(this->program, uniform_name);
@@ -42,48 +43,206 @@ void Shader::create_uniform_2D_texture(const int& index, const char* uniform_nam
 
 };
 
-Shader::graphics_vectors_container Shader::create_standard_shader_vectors() {
+void Shader::upload_bool_uniforms() {
 
-	vec3 right_vector(1.0f, 0.0f, 0.0f);
-	vec3 up_vector(0.0f, 1.0f, 0.0f);
-	vec3 direction_vector(0.0f, 0.0f, 1.0f);
-	vec3 camera_position(0.0f, 0.0f, -1.0f);
-	vec3 camera_rotation_vector(0.0f, 0.0f, 0.0f);
+	if (!this->bool_uniforms_map.empty()) {
 
-	vec3 translation_vector(0.0f, 0.0f, 0.0f);
-	vec3 scaling_vector(1.0f, 1.0f, 1.0f);
-	vec3 rotation_vector(0.0f, 0.0f, 0.0f);
+		for (auto iterator = this->bool_uniforms_map.begin(); iterator != this->bool_uniforms_map.end(); iterator++) {
 
-	vec3 light_position(0.0f, 0.0f, -1.0f);
-	vec3 light_color(255.0f, 0.0f, 0.0f);
-	vec4 material_properties(1.0f, 0.7f, 0.1f, 10.0f);
+			this->create_uniform_bool(iterator->second, iterator->first.c_str());
 
-	return { right_vector, up_vector, direction_vector, camera_position, camera_rotation_vector, translation_vector, scaling_vector, rotation_vector, light_position, light_color, material_properties};
+		};
+
+	};
+
+};
+void Shader::upload_int_uniforms() {
+
+	if (!this->int_uniforms_map.empty()) {
+
+		for (auto iterator = this->int_uniforms_map.begin(); iterator != this->int_uniforms_map.end(); iterator++) {
+
+			this->create_uniform_int(iterator->second, iterator->first.c_str());
+
+		};
+
+	};
+
+};
+void Shader::upload_float_uniforms() {
+
+	if (!this->float_uniforms_map.empty()) {
+
+		for (auto iterator = this->float_uniforms_map.begin(); iterator != this->float_uniforms_map.end(); iterator++) {
+
+			this->create_uniform_float(iterator->second, iterator->first.c_str());
+
+		};
+
+	};
+
+};
+void Shader::upload_vec2_uniforms() {
+
+	if (!this->vec2_uniforms_map.empty()) {
+
+		for (auto iterator = this->vec2_uniforms_map.begin(); iterator != this->vec2_uniforms_map.end(); iterator++) {
+
+			this->create_uniform_vec2(iterator->second.to_GL(), iterator->first.c_str());
+
+		};
+
+	};
+
+};
+void Shader::upload_vec3_uniforms() {
+
+	if (!this->vec3_uniforms_map.empty()) {
+
+		for (auto iterator = this->vec3_uniforms_map.begin(); iterator != this->vec3_uniforms_map.end(); iterator++) {
+
+			this->create_uniform_vec3(iterator->second.to_GL(), iterator->first.c_str());
+
+		};
+
+	};
+
+};
+void Shader::upload_mat4_uniforms() {
+
+	if (!this->mat4_uniforms_map.empty()) {
+
+		for (auto iterator = this->mat4_uniforms_map.begin(); iterator != this->mat4_uniforms_map.end(); iterator++) {
+
+			this->create_uniform_mat4(iterator->second.to_GL(), iterator->first.c_str());
+
+		};
+
+	};
 
 };
 
-Shader::graphics_booleans_container Shader::create_standard_shader_booleans() {
+bool& Shader::get_reference_bool_uniform(const std::string& uniform_name) {
 
-	bool orthogonal_projection = false;
-	bool gamma_correction = true;
-	bool texturing = true;
-	bool normal_mapping = false;
-	bool displacement_mapping = false;
-	bool height_coloring = false;
+	auto iterator = this->bool_uniforms_map.find(uniform_name);
+	if (iterator != this->bool_uniforms_map.end()) { return iterator->second; }
+	else { std::cerr << "ERROR: couldnt find " << uniform_name << " inside bool uniforms map!\n"; exit(EXIT_FAILURE); };
 
-	return { orthogonal_projection, gamma_correction, texturing, normal_mapping, displacement_mapping, height_coloring };
+};
+int& Shader::get_reference_int_uniform(const std::string& uniform_name) {
+
+	auto iterator = this->int_uniforms_map.find(uniform_name);
+	if (iterator != this->int_uniforms_map.end()) { return iterator->second; }
+	else { std::cerr << "ERROR: couldnt find " << uniform_name << " inside int uniforms map !\n"; exit(EXIT_FAILURE); };
+
+};
+float& Shader::get_reference_float_uniform(const std::string& uniform_name) {
+
+	auto iterator = this->float_uniforms_map.find(uniform_name);
+	if (iterator != this->float_uniforms_map.end()) { return iterator->second; }
+	else { std::cerr << "ERROR: couldnt find " << uniform_name << " inside float uniforms map!\n"; exit(EXIT_FAILURE); };
+
+};
+vec2& Shader::get_reference_vec2_uniform(const std::string& uniform_name) {
+
+	auto iterator = this->vec2_uniforms_map.find(uniform_name);
+	if (iterator != this->vec2_uniforms_map.end()) { return iterator->second; }
+	else { std::cerr << "ERROR: couldnt find " << uniform_name << " inside vec2 uniforms map!\n"; exit(EXIT_FAILURE); };
+
+};
+vec3& Shader::get_reference_vec3_uniform(const std::string& uniform_name) {
+
+	auto iterator = this->vec3_uniforms_map.find(uniform_name);
+	if (iterator != this->vec3_uniforms_map.end()) { return iterator->second; }
+	else { std::cerr << "ERROR: couldnt find " << uniform_name << " inside vec3 uniforms map!\n"; exit(EXIT_FAILURE); };
+
+};
+mat4& Shader::get_reference_mat4_uniform(const std::string& uniform_name) {
+
+	auto iterator = this->mat4_uniforms_map.find(uniform_name);
+	if (iterator != this->mat4_uniforms_map.end()) { return iterator->second; }
+	else { std::cerr << "ERROR: couldnt find " << uniform_name << " inside mat4 uniforms map!\n"; exit(EXIT_FAILURE); };
 
 };
 
-Shader::graphics_floats_container Shader::create_standard_shader_floats() {
+void Shader::set_value_bool_uniform(const std::string& uniform_name, const bool& value) {
 
-	float orthogonal_size = 10.0f;
-	float FOV = 90.0f;
-	float tesselation = 2.0f;
-	float displacement_scale = 0.1f;
-	float point_size = 1.0f;
+	get_reference_bool_uniform(uniform_name) = value;
 
-	return { orthogonal_size, FOV, tesselation, displacement_scale, point_size };
+};
+void Shader::set_value_int_uniform(const std::string& uniform_name, const int& value) {
+
+	get_reference_int_uniform(uniform_name) = value;
+
+};
+void Shader::set_value_float_uniform(const std::string& uniform_name, const float& value) {
+
+	get_reference_float_uniform(uniform_name) = value;
+
+};
+void Shader::set_value_vec2_uniform(const std::string& uniform_name, const vec2& value) {
+
+	get_reference_vec2_uniform(uniform_name) = value;
+
+};
+void Shader::set_value_vec3_uniform(const std::string& uniform_name, const vec3& value) {
+
+	get_reference_vec3_uniform(uniform_name) = value;
+
+};
+void Shader::set_value_mat4_uniform(const std::string& uniform_name, const mat4& value) {
+
+	get_reference_mat4_uniform(uniform_name) = value;
+
+};
+
+void Shader::default_uniforms_maps_initialization(const vec2& screen_size) {
+
+	this->bool_uniforms_map["orthogonal_projection"] = false;
+	this->bool_uniforms_map["gamma_correction"] = true;
+	this->bool_uniforms_map["texturing"] = true;
+	this->bool_uniforms_map["normal_mapping"] = false;
+	this->bool_uniforms_map["displacement_mapping"] = false;
+	this->bool_uniforms_map["height_coloring"] = false;
+
+	//camera vectors
+	this->vec3_uniforms_map["forward_vector"] = vec3(0.0f, 0.0f, 1.0f);
+	this->vec3_uniforms_map["up_vector"] = vec3(0.0f, 1.0f, 0.0f);
+	this->vec3_uniforms_map["camera_position"] = vec3(0.0f, 0.0f, -1.0f);
+	this->vec3_uniforms_map["camera_rotation_vector"] = vec3(0.0f, 0.0f, 0.0f);
+
+	//model trasnformation vectors
+	this->vec3_uniforms_map["model_translation_vector"] = vec3(0.0f, 0.0f, 0.0f);
+	this->vec3_uniforms_map["model_scaling_vector"] = vec3(1.0f, 1.0f, 1.0f);
+	this->vec3_uniforms_map["model_rotation_vector"] = vec3(0.0f, 0.0f, 0.0f);
+
+	//light vectors
+	this->vec3_uniforms_map["light_position"] = vec3(0.0f, 0.0f, -1.0f);
+	this->vec3_uniforms_map["light_color"] = vec3(255.0f, 0.0f, 0.0f);
+
+	this->float_uniforms_map["orthogonal_size"] = 10.0f;
+	this->float_uniforms_map["FOV"] = 90.0f;
+	this->float_uniforms_map["tesselation_multiplier"] = 2.0f;
+	this->float_uniforms_map["displacement_scale"] = 0.1f;
+	this->float_uniforms_map["point_size"] = 1.0f;
+
+	this->float_uniforms_map["ambient"] = 1.0f;
+	this->float_uniforms_map["diffuse"] = 0.7f;
+	this->float_uniforms_map["specular"] = 0.1f;
+	this->float_uniforms_map["shininess"] = 10.0f;
+
+	this->vec2_uniforms_map["screen_size"] = screen_size;
+
+};
+
+void Shader::update_uniforms() {
+
+	upload_bool_uniforms();
+	upload_int_uniforms();
+	upload_float_uniforms();
+	upload_vec2_uniforms();
+	upload_vec3_uniforms();
+	upload_mat4_uniforms();
 
 };
 
@@ -167,84 +326,7 @@ void Shader::update_texture(unsigned int* texture_ID, const unsigned int& GL_TEX
 
 };
 
-void Shader::init_matrices(const vec2& screen_size, const float& orthogonal_size, const float& FOV, const bool& orthogonal_projection, const vec3& right_vector, const vec3& up_vector, const vec3& direction_vector, const vec3& camera_position, const vec3& camera_rotation_vector, const vec3& translation_vector, const vec3& scaling_vector, const vec3& rotation_vector) {
-
-	this->create_uniform_vec3(camera_position.to_GL(), "eye_vector");
-	this->create_uniform_mat4(create_model_transformation_matrix(translation_vector, scaling_vector, rotation_vector).to_GL(), "model_transformation_matrix");
-
-	mat4 camera_rotation_matrix = create_rotation_matrix(camera_rotation_vector);
-	vec3 forward = (camera_rotation_matrix * vec4(direction_vector, 0.0f)).xyz();
-	vec3 camera_target_position = camera_position + forward;
-	this->create_uniform_mat4(create_view_matrix(camera_position, camera_target_position, right_vector, up_vector, direction_vector).to_GL(), "view_matrix");
-	
-	if (orthogonal_projection) {
-
-		this->create_uniform_mat4(create_orthographic_projection_matrix(vec2(screen_size.x, screen_size.y), 0.1f, 50000.0f, orthogonal_size).to_GL(), "projection_matrix");
-
-	}
-	else {
-
-		this->create_uniform_mat4(create_frustum_projection_matrix(FOV, screen_size.x, screen_size.y, 0.1f, 50000.0f).to_GL(), "projection_matrix");
-
-	};
-
-};
-
-void Shader::init_light(const vec3& light_position, const vec3& light_color, const vec4& material_properties) {
-
-	float ambient = material_properties.x;
-	float diffuse = material_properties.y;
-	float specular = material_properties.z;
-	float shininess = material_properties.w;
-
-	this->create_uniform_vec3(light_position.to_GL(), "light_position");
-	this->create_uniform_vec3(light_color.to_GL(), "light_color");
-
-	this->create_uniform_float(ambient, "ambient");
-	this->create_uniform_float(diffuse, "diffuse");
-	this->create_uniform_float(specular, "specular");
-	this->create_uniform_float(shininess, "shininess");
-
-};
-
-void Shader::init_booleans(const bool& gamma_correction, const bool& texturing, const bool& normal_mapping, const bool& displacement_mapping, const bool& height_coloring) {
-
-	this->create_uniform_bool(gamma_correction, "gamma_correction");
-	this->create_uniform_bool(texturing, "texturing");
-	this->create_uniform_bool(normal_mapping, "normal_mapping");
-	this->create_uniform_bool(displacement_mapping, "displacement_mapping");
-	this->create_uniform_bool(height_coloring, "height_coloring");
-
-};
-
-void Shader::init_floats(const float& tesselation_multiplier, const float& displacement_scale, const float& point_size) {
-
-	this->create_uniform_float(tesselation_multiplier, "tesselation_multiplier");
-	this->create_uniform_float(displacement_scale, "displacement_scale");
-	this->create_uniform_float(point_size, "point_size");
-
-};
-
-//override
-void Shader::initialize(const vec2& screen_size, const graphics_vectors_container& vectors_container, const graphics_booleans_container& booleans_container, const graphics_floats_container& floats_container) {
-
-	this->init_matrices(screen_size, floats_container.orthogonal_size, floats_container.FOV, booleans_container.orthogonal_projection, vectors_container.right_vector, vectors_container.up_vector, vectors_container.direction_vector, vectors_container.camera_position, vectors_container.camera_rotation_vector, vectors_container.translation_vector, vectors_container.scaling_vector, vectors_container.rotation_vector);
-	this->init_light(vectors_container.light_position, vectors_container.light_color, vectors_container.material_properties);
-	this->init_booleans(booleans_container.gamma_correction, booleans_container.texturing, booleans_container.normal_mapping, booleans_container.displacement_mapping, booleans_container.height_coloring);
-	this->init_floats(floats_container.tesselation_multiplier, floats_container.displacement_scale, floats_container.point_size);
-
-};
-
-void Shader::update(const vec2& screen_size, const graphics_vectors_container& vectors_container, const graphics_booleans_container& booleans_container, const graphics_floats_container& floats_container) {
-
-	this->init_matrices(screen_size, floats_container.orthogonal_size, floats_container.FOV, booleans_container.orthogonal_projection, vectors_container.right_vector, vectors_container.up_vector, vectors_container.direction_vector, vectors_container.camera_position, vectors_container.camera_rotation_vector, vectors_container.translation_vector, vectors_container.scaling_vector, vectors_container.rotation_vector);
-	this->init_light(vectors_container.light_position, vectors_container.light_color, vectors_container.material_properties);
-	this->init_booleans(booleans_container.gamma_correction, booleans_container.texturing, booleans_container.normal_mapping, booleans_container.displacement_mapping, booleans_container.height_coloring);
-	this->init_floats(floats_container.tesselation_multiplier, floats_container.displacement_scale, floats_container.point_size);
-
-};
-
-void Shader::bind_mesh_buffers(Mesh& mesh, const unsigned int& GL_DRAW_TYPE, const bool& gamma_correction) {
+void Shader::bind_mesh_buffers_and_textures(Mesh& mesh, const unsigned int& GL_DRAW_TYPE, const bool& gamma_correction) {
 
 	this->bind_buffer(mesh.generate_buffers_and_textures, GL_ARRAY_BUFFER, &this->positions_buffer, mesh.positions, GL_DRAW_TYPE, 0, 3);
 	this->bind_buffer(mesh.generate_buffers_and_textures, GL_ARRAY_BUFFER, &this->normals_buffer, mesh.normals, GL_DRAW_TYPE, 1, 3);
@@ -269,9 +351,10 @@ void Shader::bind_mesh_buffers(Mesh& mesh, const unsigned int& GL_DRAW_TYPE, con
 
 };
 
-void Shader::bind_and_draw_mesh_elements(Mesh& mesh, const unsigned int& GL_PRIMITIVE_TYPE, const unsigned int& GL_DRAW_MODE, const bool& gamma_correction) {
+void Shader::draw_mesh_elements(Mesh& mesh, const unsigned int& GL_PRIMITIVE_TYPE) {
 
-	this->bind_mesh_buffers(mesh, GL_DRAW_MODE, gamma_correction);
+	glUseProgram(this->program);
+
 	if (mesh.draw_as_elements) {
 
 		glDrawElements(GL_PRIMITIVE_TYPE, mesh.indices.size(), GL_UNSIGNED_INT, 0);
@@ -282,6 +365,13 @@ void Shader::bind_and_draw_mesh_elements(Mesh& mesh, const unsigned int& GL_PRIM
 		glDrawArrays(GL_PRIMITIVE_TYPE, 0, mesh.positions.size());
 
 	};
+
+};
+
+void Shader::bind_and_draw_mesh_elements(Mesh& mesh, const unsigned int& GL_PRIMITIVE_TYPE, const unsigned int& GL_DRAW_MODE, const bool& gamma_correction) {
+
+	this->bind_mesh_buffers_and_textures(mesh, GL_DRAW_MODE, gamma_correction);
+	this->draw_mesh_elements(mesh, GL_PRIMITIVE_TYPE);
 
 };
 

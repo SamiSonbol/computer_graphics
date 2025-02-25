@@ -1,31 +1,27 @@
 #version 440 core
 
+uniform bool gamma_correction;
+uniform bool texturing;
+uniform bool height_coloring;
+
 uniform vec3 light_position;
 uniform vec3 light_color;
-uniform vec3 eye_vector;
+uniform vec3 camera_position;
 
 uniform float ambient;
 uniform float diffuse;
 uniform float specular;
 uniform float shininess;
-uniform bool gamma_correction;
 
-uniform bool height_coloring;
 uniform float min_height;
 uniform float max_height;
 
-uniform sampler2D uNormal_map;
-uniform bool normal_mapping;
-
 uniform sampler2D uTexture;
-uniform bool texturing;
 
 in vec3 gColor;
 in vec3 gPosition;
 in vec3 gNormal;
 in vec2 gTexture_coordinates;
-in vec3 gTangent;
-in vec3 gBitangent;
 
 out vec4 FragColor;
 
@@ -107,15 +103,7 @@ void main() {
     };
 
     vec3 Normal = gNormal;
-	if (normal_mapping) {
-
-		vec3 sampled_normal = texture(uNormal_map, gTexture_coordinates).rgb * 2.0 - 1.0;//getting the normal from the normal map and making it in the range of [-1, 1]
-		mat3 TBN = mat3(gTangent, gBitangent, gNormal);
-		Normal = normalize(TBN * sampled_normal);
-
-	};
-
-    vec3 phong = calculate_phong_lighting(gPosition, Normal, eye_vector, light_position, light_color, light_intensity, Color, ambient, diffuse, specular, shininess);
+    vec3 phong = calculate_phong_lighting(gPosition, Normal, camera_position, light_position, light_color, light_intensity, Color, ambient, diffuse, specular, shininess);
     if (gamma_correction) {
 
         vec3 gamma = vec3(1.0 / 2.2);

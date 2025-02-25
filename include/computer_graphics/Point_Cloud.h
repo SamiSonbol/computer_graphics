@@ -16,35 +16,46 @@
 
 class Point_Cloud {
 
+private:
+
+	std::string Public_Header_Block_Version;
+	std::string Point_Data_Record_Format;
+
+	vec3 openGL_min_position;
+	vec3 openGL_max_position;
+	vec3 openGL_center;
+	float length;
+	float scale_factor;
+
 public:
 
 #pragma pack(push, 1) 
 	struct Public_Header_Block_Version_1_0 {
 
-		char file_signature[4]; // "LASF"
-		uint32_t reserved; // Reserved field
+		char file_signature[4];
+		uint32_t reserved;
 		uint32_t GUID_data1;
 		uint16_t GUID_data2;
 		uint16_t GUID_data3;
 		uint8_t GUID_data4[8];
-		uint8_t version_major; // Major version number
-		uint8_t version_minor; // Minor version number
-		char system_identifier[32]; // System identifier
-		char generating_software[32]; // Generating software
-		uint16_t flight_date_julian; // Julian day of the flight date
-		uint16_t year; // Year of the flight
-		uint16_t header_size; // Size of the header block
-		uint32_t offset_to_point_data; // Offset to point data
-		uint32_t number_of_variable_length_records; // Number of variable-length records
-		uint8_t point_data_record_format; // Point data record format (0 in LAS 1.0)
-		uint16_t point_data_record_length; // Length of the point data record
-		uint32_t number_of_point_records; // Number of point records in the file
-		uint32_t number_of_points_by_return[5]; // Number of points by return (for 5 returns)
-		double X_scale_factor, Y_scale_factor, Z_scale_factor; // Scale factors
-		double X_offset, Y_offset, Z_offset; // Offsets
-		double max_X, min_X; // Maximum and minimum X coordinates
-		double max_Y, min_Y; // Maximum and minimum Y coordinates
-		double max_Z, min_Z; // Maximum and minimum Z coordinates
+		uint8_t version_major;
+		uint8_t version_minor;
+		char system_identifier[32];
+		char generating_software[32];
+		uint16_t flight_date_julian;
+		uint16_t year;
+		uint16_t header_size;
+		uint32_t offset_to_point_data;
+		uint32_t number_of_variable_length_records;
+		uint8_t point_data_record_format;
+		uint16_t point_data_record_length;
+		uint32_t number_of_point_records;
+		uint32_t number_of_points_by_return[5];
+		double X_scale_factor, Y_scale_factor, Z_scale_factor;
+		double X_offset, Y_offset, Z_offset;
+		double max_X, min_X;
+		double max_Y, min_Y;
+		double max_Z, min_Z;
 
 	};
 #pragma pack(pop)
@@ -454,8 +465,26 @@ public:
 	};
 #pragma pack(pop)
 
+	template<typename Public_Header_Block_Version_X_X>
+	void extract_members_data(const Public_Header_Block_Version_X_X& header) {
+
+		this->Public_Header_Block_Version = std::to_string(header.version_major) + "." + std::to_string(header.version_minor);
+		this->Point_Data_Record_Format = std::to_string(header.point_data_record_format);
+
+		this->openGL_min_position = vec3(header.min_X, header.min_Y, header.min_Z);
+		this->openGL_min_position = vec3(this->openGL_min_position.x, this->openGL_min_position.z, -this->openGL_min_position.y);
+
+		this->openGL_max_position = vec3(header.max_X, header.max_Y, header.max_Z);
+		this->openGL_max_position = vec3(this->openGL_max_position.x, this->openGL_max_position.z, -this->openGL_max_position.y);
+
+		this->openGL_center = vec3(this->openGL_min_position + this->openGL_max_position) * 0.5f;
+		this->length = (this->openGL_min_position - this->openGL_max_position).magnitude();
+		this->scale_factor = 100.0f / this->length;
+
+	};
+
 	template<typename Public_Header_Block_Version_X_X, typename Point_Data_Record_Format_X>
-	vec3 compute_point_coordinates(const Public_Header_Block_Version_X_X& header, const Point_Data_Record_Format_X& point_data_record) {
+	vec3 compute_geospatial_point_coordinates(const Public_Header_Block_Version_X_X& header, const Point_Data_Record_Format_X& point_data_record) {
 
 		float x = (point_data_record.X * header.X_scale_factor) + header.X_offset;
 		float y = (point_data_record.Y * header.Y_scale_factor) + header.Y_offset;
@@ -464,8 +493,18 @@ public:
 		return vec3(x, y, z);
 
 	};
-	void from_global_geospatial_coordinates_to_openGL(std::vector<vec3>& positions);
-	std::vector<vec3> extract_points_coordinates(const std::string& path_to_LASer_file);
+
+	template<typename Public_Header_Block_Version_X_X, typename Point_Data_Record_Format_X>
+	vec3 compute_openGL_point_coordinates(const Public_Header_Block_Version_X_X& header, const Point_Data_Record_Format_X& point_data_record) {
+
+		vec3 geospatial_coordinates = this->compute_geospatial_point_coordinates(header, point_data_record);
+
+		//since the LAS geospace takes Z as up whilst openGL takes Y(and Y inverted at that), we need to switch them.
+		return (vec3(geospatial_coordinates.x, geospatial_coordinates.z, -geospatial_coordinates.y) - this->openGL_center) * this->scale_factor;//move to origin and scale down
+
+	};
+
+	std::vector<vec3> extract_openGL_points_coordinates(const std::string& path_to_LASer_file);
 
 };
 	
