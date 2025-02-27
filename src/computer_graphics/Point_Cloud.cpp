@@ -1,6 +1,6 @@
 #include "computer_graphics/Point_Cloud.h"
 
-std::vector<vec3> Point_Cloud::extract_openGL_points_coordinates(const std::string& path_to_LASer_file) {
+void Point_Cloud::extract_openGL_points_attributes(const std::string& path_to_LASer_file, std::vector<vec3>& points_coordinates, std::vector<vec3>& points_colors) {
 
 	exit_if_file_doesnt_exist(path_to_LASer_file);
 	if (std::filesystem::is_directory(std::filesystem::path(path_to_LASer_file))) { std::cerr << "ERROR: path is a directory and not a LAS file!\n"; exit(EXIT_FAILURE); };
@@ -18,7 +18,6 @@ std::vector<vec3> Point_Cloud::extract_openGL_points_coordinates(const std::stri
 	if (version_major != 1) { std::cerr << "ERROR: major version must be 1! read version is " << static_cast<int>(version_major) << "!\n"; data.clear(); data.close(); exit(EXIT_FAILURE); };
 
 	data.seekg(0, std::ios::beg);
-	std::vector<vec3> points_coordinates;
 	switch (version_minor) {
 
 		case 0: {
@@ -30,25 +29,11 @@ std::vector<vec3> Point_Cloud::extract_openGL_points_coordinates(const std::stri
 			this->extract_members_data(header);
 
 			points_coordinates.resize(header.number_of_point_records);
+			points_colors.resize(header.number_of_point_records);
 			data.seekg(header.offset_to_point_data, std::ios::beg);
 			for (int i = 0; i < header.number_of_point_records; i++) {
 
-				switch (header.point_data_record_format) {
-
-				    case 0: { Point_Data_Record_Format_0 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_0)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 1: { Point_Data_Record_Format_1 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_1)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 2: { Point_Data_Record_Format_2 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_2)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 3: { Point_Data_Record_Format_3 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_3)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 4: { Point_Data_Record_Format_4 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_4)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 5: { Point_Data_Record_Format_5 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_5)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 6: { Point_Data_Record_Format_6 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_6)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 7: { Point_Data_Record_Format_7 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_7)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 8: { Point_Data_Record_Format_8 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_8)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 9: { Point_Data_Record_Format_9 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_9)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 10: { Point_Data_Record_Format_10 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_10)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					default: std::cerr << "ERROR: unsupported Data Record Format " << static_cast<int>(header.point_data_record_format) << "\n"; data.clear(); data.close(); exit(EXIT_FAILURE);
-
-				};
+				read_point_and_extract_openGL_attributes(header, data, points_coordinates[i], points_colors[i]);
 
 			};
 
@@ -65,25 +50,11 @@ std::vector<vec3> Point_Cloud::extract_openGL_points_coordinates(const std::stri
 			this->extract_members_data(header);
 
 			points_coordinates.resize(header.number_of_point_records);
+			points_colors.resize(header.number_of_point_records);
 			data.seekg(header.offset_to_point_data, std::ios::beg);
 			for (int i = 0; i < header.number_of_point_records; i++) {
 
-				switch (header.point_data_record_format) {
-
-					case 0: { Point_Data_Record_Format_0 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_0)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 1: { Point_Data_Record_Format_1 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_1)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 2: { Point_Data_Record_Format_2 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_2)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 3: { Point_Data_Record_Format_3 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_3)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 4: { Point_Data_Record_Format_4 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_4)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 5: { Point_Data_Record_Format_5 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_5)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 6: { Point_Data_Record_Format_6 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_6)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 7: { Point_Data_Record_Format_7 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_7)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 8: { Point_Data_Record_Format_8 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_8)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 9: { Point_Data_Record_Format_9 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_9)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 10: { Point_Data_Record_Format_10 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_10)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					default: std::cerr << "ERROR: unsupported Data Record Format " << static_cast<int>(header.point_data_record_format) << "\n"; data.clear(); data.close(); exit(EXIT_FAILURE);
-
-				};
+				read_point_and_extract_openGL_attributes(header, data, points_coordinates[i], points_colors[i]);
 
 			};
 
@@ -100,25 +71,11 @@ std::vector<vec3> Point_Cloud::extract_openGL_points_coordinates(const std::stri
 			this->extract_members_data(header);
 
 			points_coordinates.resize(header.number_of_point_records);
+			points_colors.resize(header.number_of_point_records);
 			data.seekg(header.offset_to_point_data, std::ios::beg);
 			for (int i = 0; i < header.number_of_point_records; i++) {
 
-				switch (header.point_data_record_format) {
-
-					case 0: { Point_Data_Record_Format_0 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_0)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 1: { Point_Data_Record_Format_1 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_1)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 2: { Point_Data_Record_Format_2 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_2)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 3: { Point_Data_Record_Format_3 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_3)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 4: { Point_Data_Record_Format_4 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_4)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 5: { Point_Data_Record_Format_5 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_5)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 6: { Point_Data_Record_Format_6 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_6)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 7: { Point_Data_Record_Format_7 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_7)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 8: { Point_Data_Record_Format_8 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_8)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 9: { Point_Data_Record_Format_9 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_9)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 10: { Point_Data_Record_Format_10 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_10)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					default: std::cerr << "ERROR: unsupported Data Record Format " << static_cast<int>(header.point_data_record_format) << "\n"; data.clear(); data.close(); exit(EXIT_FAILURE);
-
-				};
+				read_point_and_extract_openGL_attributes(header, data, points_coordinates[i], points_colors[i]);
 
 			};
 
@@ -135,25 +92,11 @@ std::vector<vec3> Point_Cloud::extract_openGL_points_coordinates(const std::stri
 			this->extract_members_data(header);
 
 			points_coordinates.resize(header.number_of_point_records);
+			points_colors.resize(header.number_of_point_records);
 			data.seekg(header.offset_to_point_data, std::ios::beg);
 			for (int i = 0; i < header.number_of_point_records; i++) {
 
-				switch (header.point_data_record_format) {
-
-					case 0: { Point_Data_Record_Format_0 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_0)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 1: { Point_Data_Record_Format_1 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_1)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 2: { Point_Data_Record_Format_2 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_2)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 3: { Point_Data_Record_Format_3 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_3)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 4: { Point_Data_Record_Format_4 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_4)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 5: { Point_Data_Record_Format_5 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_5)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 6: { Point_Data_Record_Format_6 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_6)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 7: { Point_Data_Record_Format_7 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_7)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 8: { Point_Data_Record_Format_8 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_8)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 9: { Point_Data_Record_Format_9 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_9)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 10: { Point_Data_Record_Format_10 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_10)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					default: std::cerr << "ERROR: unsupported Data Record Format " << static_cast<int>(header.point_data_record_format) << "\n"; data.clear(); data.close(); exit(EXIT_FAILURE);
-
-				};
+				read_point_and_extract_openGL_attributes(header, data, points_coordinates[i], points_colors[i]);
 
 			};
 
@@ -170,25 +113,11 @@ std::vector<vec3> Point_Cloud::extract_openGL_points_coordinates(const std::stri
 			this->extract_members_data(header);
 
 			points_coordinates.resize(header.number_of_point_records);
+			points_colors.resize(header.number_of_point_records);
 			data.seekg(header.offset_to_point_data, std::ios::beg);
 			for (int i = 0; i < header.number_of_point_records; i++) {
 
-				switch (header.point_data_record_format) {
-
-					case 0: { Point_Data_Record_Format_0 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_0)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 1: { Point_Data_Record_Format_1 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_1)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 2: { Point_Data_Record_Format_2 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_2)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 3: { Point_Data_Record_Format_3 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_3)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 4: { Point_Data_Record_Format_4 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_4)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 5: { Point_Data_Record_Format_5 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_5)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 6: { Point_Data_Record_Format_6 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_6)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 7: { Point_Data_Record_Format_7 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_7)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 8: { Point_Data_Record_Format_8 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_8)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 9: { Point_Data_Record_Format_9 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_9)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					case 10: { Point_Data_Record_Format_10 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_10)); points_coordinates[i] = compute_openGL_point_coordinates(header, point_data_record); break; };
-					default: std::cerr << "ERROR: unsupported Data Record Format " << static_cast<int>(header.point_data_record_format) << "\n"; data.clear(); data.close(); exit(EXIT_FAILURE);
-
-				};
+				read_point_and_extract_openGL_attributes(header, data, points_coordinates[i], points_colors[i]);
 
 			};
 
@@ -204,6 +133,5 @@ std::vector<vec3> Point_Cloud::extract_openGL_points_coordinates(const std::stri
 	data.close();
 
 	std::cout << "Header Version: " << this->Public_Header_Block_Version << " Data Format: " << this->Point_Data_Record_Format << "\n";
-	return points_coordinates;
 
 };

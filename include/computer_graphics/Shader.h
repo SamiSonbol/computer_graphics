@@ -15,7 +15,7 @@ static GLFWwindow* INIT_GLAD_GLFW_WINDOW(vec2& screen_size, const vec3& clear_co
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_DEPTH_BITS, 32);
+	glfwWindowHint(GLFW_DEPTH_BITS, 24);
 
 	GLFWmonitor* primary_monitor = glfwGetPrimaryMonitor();
 	if (!primary_monitor) {
@@ -62,7 +62,8 @@ class Shader {
 public:
 
 	unsigned int program;
-	unsigned int positions_buffer, normals_buffer, colors_buffer, indices_buffer, texture_coordinates_buffer, tangents_buffer, bitangents_buffer;
+	unsigned int positions_buffer, normals_buffer, colors_buffer, indices_buffer, texture_coordinates_buffer, tangents_buffer, bitangents_buffer, frame_buffer;
+	unsigned int frame_buffer_colors_texture_ID, frame_buffer_positions_texture_ID, frame_buffer_depth_texture_ID;
 	
 	void create_uniform_bool(const bool& boolean, const char* uniform_name);
 	void create_uniform_int(const int& data_variable, const char* uniform_name);
@@ -110,38 +111,116 @@ public:
 
 	//generates a buffer from the inputted paramter and binds it OR binds the inputted buffer
 	template<typename T>
-	static void bind_buffer(const bool& generate_buffer, const unsigned int& GL_ARRAY_TYPE, unsigned int* buffer, const std::vector<T>& buffer_data, const unsigned int& GL_DRAW_TYPE, const int& attribute_position, const int& attribute_size) {
+	static void bind_array_buffer(const bool& generate_array_buffer, unsigned int* array_buffer, const std::vector<T>& array_buffer_data, const unsigned int& GL_DRAW_TYPE, const int& attribute_position, const int& attribute_size) {
 
-		if (generate_buffer) { glGenBuffers(1, buffer); };
-		glBindBuffer(GL_ARRAY_TYPE, *buffer);
-		if (*buffer == 0) {
+		if (generate_array_buffer) { glGenBuffers(1, array_buffer); };
+		glBindBuffer(GL_ARRAY_BUFFER, *array_buffer);
+		if (*array_buffer == 0) {
 
 			std::cerr << "ERORR: failed to generate buffer!\n";
 			exit(EXIT_FAILURE);
 
 		};
 
-		glBufferData(GL_ARRAY_TYPE, buffer_data.size() * sizeof(T), buffer_data.data(), GL_DRAW_TYPE);
+		glBufferData(GL_ARRAY_BUFFER, array_buffer_data.size() * sizeof(T), array_buffer_data.data(), GL_DRAW_TYPE);
 
-		if (generate_buffer) {
+		if (generate_array_buffer) {
 
-			if (GL_ARRAY_TYPE == GL_ARRAY_BUFFER) {
-
-				glVertexAttribPointer(attribute_position, attribute_size, GL_FLOAT, GL_FALSE, sizeof(T), (void*)0);
-
-				glEnableVertexAttribArray(attribute_position);
-
-			};
+			glVertexAttribPointer(attribute_position, attribute_size, GL_FLOAT, GL_FALSE, sizeof(T), (void*)0);
+			glEnableVertexAttribArray(attribute_position);
 
 		};
 
 	};
+
+	template<typename T>
+	static void bind_index_buffer(const bool& generate_index_buffer, unsigned int* index_buffer, const std::vector<T>& index_buffer_data, const unsigned int& GL_DRAW_TYPE) {
+
+		if (generate_index_buffer) { glGenBuffers(1, index_buffer); };
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *index_buffer);
+		if (*index_buffer == 0) {
+
+			std::cerr << "ERORR: failed to generate buffer!\n";
+			exit(EXIT_FAILURE);
+
+		};
+
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, index_buffer_data.size() * sizeof(T), index_buffer_data.data(), GL_DRAW_TYPE);
+
+	};
+
+	void generate_frame_buffer(unsigned int* frame_buffer, unsigned int* colors_texture_ID, unsigned int* positions_texture_ID, const vec2& screen_size, unsigned int* depth_texture_ID) {
+
+		glGenFramebuffers(1, frame_buffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, *frame_buffer);
+		
+		glGenTextures(1, colors_texture_ID);
+		glBindTexture(GL_TEXTURE_2D, *colors_texture_ID);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, screen_size.x, screen_size.y, 0, GL_RGBA, GL_FLOAT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, *colors_texture_ID, 0);
+
+		glGenTextures(1, positions_texture_ID);
+		glBindTexture(GL_TEXTURE_2D, *positions_texture_ID);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, screen_size.x, screen_size.y, 0, GL_RGBA, GL_FLOAT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, *positions_texture_ID, 0);
+
+		GLenum draw_buffers[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+		glDrawBuffers(2, draw_buffers);
+
+		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) { 
+			
+			std::cerr << "ERROR: framebuffer is not complete! Frame buffer status code: " << glCheckFramebufferStatus(GL_FRAMEBUFFER) << "\n";
+			exit(EXIT_FAILURE); 
+		
+		};
+		
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	};
+	void bind_frame_buffer(const unsigned int& GL_XX_FRAMEBUFFER) { glBindFramebuffer(GL_XX_FRAMEBUFFER, this->frame_buffer); };
+	std::array<float, 4> read_frame_buffer(const unsigned int& GL_COLOR_ATTACHMENT_X, const vec2& pixel_position, const unsigned int& data_format, const unsigned int& type) {
+
+		bind_frame_buffer(GL_READ_FRAMEBUFFER);
+		GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+		if (status != GL_FRAMEBUFFER_COMPLETE) { std::cerr << "ERROR: framebuffer incomplete: " << status << "\n"; exit(EXIT_FAILURE); };
+
+		std::array<float, 4> pixel;
+		glReadBuffer(GL_COLOR_ATTACHMENT_X);
+		GLenum error = glGetError();
+		if (error != GL_NO_ERROR) {
+
+			std::cerr << "OpenGL Error: " << error << std::endl;
+			exit(EXIT_FAILURE);
+
+		};
+
+		glReadPixels(pixel_position.x, pixel_position.y, 1, 1, data_format, type, pixel.data());
+		error = glGetError();
+		if (error != GL_NO_ERROR) {
+
+			std::cerr << "OpenGL Error: " << error << std::endl;
+			exit(EXIT_FAILURE);
+
+		};
+
+		glReadBuffer(GL_NONE);
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+		return pixel;
+
+	};
+
 	void bind_texture(const bool& generate_texture, unsigned int* texture_ID, const unsigned int& GL_TEXTUREindex, unsigned char* bytes, const int& texture_width, const int& texture_height, const int& n_color_channels, const bool& gamma_correction);
 	void update_texture(unsigned int* texture_ID, const unsigned int& GL_TEXTUREindex, unsigned char* bytes, const int& texture_width, const int& texture_height, const int& n_color_channels);
 
-	void bind_mesh_buffers_and_textures(Mesh& mesh, const unsigned int& GL_DRAW_TYPE, const bool& gamma_correction);
+	static constexpr unsigned int DRAW_TO_FRAME_BUFFER = 1;
+	void bind_mesh_buffers_and_textures(Mesh& mesh, const vec2& screen_size, const unsigned int& GL_DRAW_TYPE, const bool& gamma_correction);
 	void draw_mesh_elements(Mesh& mesh, const unsigned int& GL_PRIMITIVE_TYPE = GL_TRIANGLES);
-	void bind_and_draw_mesh_elements(Mesh& mesh, const unsigned int& GL_PRIMITIVE_TYPE = GL_TRIANGLES, const unsigned int& GL_DRAW_MODE = GL_STATIC_DRAW, const bool& gamma_correction = true);
+	void bind_and_draw_mesh_elements(Mesh& mesh, const vec2& screen_size, const unsigned int& GL_PRIMITIVE_TYPE = GL_TRIANGLES, const unsigned int& GL_DRAW_MODE = GL_STATIC_DRAW, const bool& gamma_correction = true);
 
 	void delete_buffers();
 	void delete_program();

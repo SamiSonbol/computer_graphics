@@ -232,6 +232,7 @@ void Shader::default_uniforms_maps_initialization(const vec2& screen_size) {
 	this->float_uniforms_map["shininess"] = 10.0f;
 
 	this->vec2_uniforms_map["screen_size"] = screen_size;
+	this->vec3_uniforms_map["mouse_ray_vector"] = vec3(-0.0001, -0.0001, -0.0001);
 
 };
 
@@ -326,34 +327,38 @@ void Shader::update_texture(unsigned int* texture_ID, const unsigned int& GL_TEX
 
 };
 
-void Shader::bind_mesh_buffers_and_textures(Mesh& mesh, const unsigned int& GL_DRAW_TYPE, const bool& gamma_correction) {
+void Shader::bind_mesh_buffers_and_textures(Mesh& mesh, const vec2& screen_size, const unsigned int& GL_DRAW_TYPE, const bool& gamma_correction) {
 
-	this->bind_buffer(mesh.generate_buffers_and_textures, GL_ARRAY_BUFFER, &this->positions_buffer, mesh.positions, GL_DRAW_TYPE, 0, 3);
-	this->bind_buffer(mesh.generate_buffers_and_textures, GL_ARRAY_BUFFER, &this->normals_buffer, mesh.normals, GL_DRAW_TYPE, 1, 3);
-	this->bind_buffer(mesh.generate_buffers_and_textures, GL_ARRAY_BUFFER, &this->colors_buffer, mesh.colors, GL_DRAW_TYPE, 2, 3);
-	this->bind_buffer(mesh.generate_buffers_and_textures, GL_ELEMENT_ARRAY_BUFFER, &this->indices_buffer, mesh.indices, GL_DRAW_TYPE, -1, 1);
-	this->bind_buffer(mesh.generate_buffers_and_textures, GL_ARRAY_BUFFER, &this->texture_coordinates_buffer, mesh.texture_coordinates, GL_DRAW_TYPE, 3, 2);
-	this->bind_buffer(mesh.generate_buffers_and_textures, GL_ARRAY_BUFFER, &this->tangents_buffer, mesh.tangents, GL_DRAW_TYPE, 4, 3);
-	this->bind_buffer(mesh.generate_buffers_and_textures, GL_ARRAY_BUFFER, &this->bitangents_buffer, mesh.bitangents, GL_DRAW_TYPE, 5, 3);
+	this->bind_array_buffer(mesh.generate_buffers_and_textures, &this->positions_buffer, mesh.positions, GL_DRAW_TYPE, 0, 3);
+	if (!mesh.indices.empty()) { this->bind_index_buffer(mesh.generate_buffers_and_textures, &this->indices_buffer, mesh.indices, GL_DRAW_TYPE); };
+	if (!mesh.normals.empty()) { this->bind_array_buffer(mesh.generate_buffers_and_textures, &this->normals_buffer, mesh.normals, GL_DRAW_TYPE, 1, 3); };
+	if (!mesh.tangents.empty()) { this->bind_array_buffer(mesh.generate_buffers_and_textures, &this->tangents_buffer, mesh.tangents, GL_DRAW_TYPE, 2, 3); };
+	if (!mesh.bitangents.empty()) { this->bind_array_buffer(mesh.generate_buffers_and_textures, &this->bitangents_buffer, mesh.bitangents, GL_DRAW_TYPE, 3, 3); };
+	if (!mesh.texture_coordinates.empty()) { this->bind_array_buffer(mesh.generate_buffers_and_textures, &this->texture_coordinates_buffer, mesh.texture_coordinates, GL_DRAW_TYPE, 4, 2); };
+	if (!mesh.colors.empty()) { this->bind_array_buffer(mesh.generate_buffers_and_textures, &this->colors_buffer, mesh.colors, GL_DRAW_TYPE, 5, 3); };
 
-	this->bind_texture(mesh.generate_buffers_and_textures, &mesh.diffuse_map.texture_ID, mesh.diffuse_map.GL_TEXTUREindex, mesh.diffuse_map.bytes, mesh.diffuse_map.width, mesh.diffuse_map.height, mesh.diffuse_map.n_color_channels, gamma_correction);
-	this->bind_texture(mesh.generate_buffers_and_textures, &mesh.normal_map.texture_ID, mesh.normal_map.GL_TEXTUREindex, mesh.normal_map.bytes, mesh.normal_map.width, mesh.normal_map.height, mesh.normal_map.n_color_channels, gamma_correction);
-	this->bind_texture(mesh.generate_buffers_and_textures, &mesh.displacement_map.texture_ID, mesh.displacement_map.GL_TEXTUREindex, mesh.displacement_map.bytes, mesh.displacement_map.width, mesh.displacement_map.height, mesh.displacement_map.n_color_channels, gamma_correction);
+	if (mesh.diffuse_map.bytes != NULL) {
 
-	if (mesh.generate_buffers_and_textures) {
-
-		this->create_uniform_2D_texture(mesh.diffuse_map.index, mesh.diffuse_map.uniform_name);
-		this->create_uniform_2D_texture(mesh.normal_map.index, mesh.normal_map.uniform_name);
-		this->create_uniform_2D_texture(mesh.displacement_map.index, mesh.displacement_map.uniform_name);
+		this->bind_texture(mesh.generate_buffers_and_textures, &mesh.diffuse_map.texture_ID, mesh.diffuse_map.GL_TEXTUREindex, mesh.diffuse_map.bytes, mesh.diffuse_map.width, mesh.diffuse_map.height, mesh.diffuse_map.n_color_channels, gamma_correction);
+		if (mesh.generate_buffers_and_textures) { this->create_uniform_2D_texture(mesh.diffuse_map.index, mesh.diffuse_map.uniform_name); };
 
 	};
-	mesh.generate_buffers_and_textures = false;
+	if (mesh.normal_map.bytes != NULL) { 
+
+		this->bind_texture(mesh.generate_buffers_and_textures, &mesh.normal_map.texture_ID, mesh.normal_map.GL_TEXTUREindex, mesh.normal_map.bytes, mesh.normal_map.width, mesh.normal_map.height, mesh.normal_map.n_color_channels, gamma_correction); 
+		if (mesh.generate_buffers_and_textures) { this->create_uniform_2D_texture(mesh.normal_map.index, mesh.normal_map.uniform_name); };
+
+	};
+	if (mesh.displacement_map.bytes != NULL) { 
+
+		this->bind_texture(mesh.generate_buffers_and_textures, &mesh.displacement_map.texture_ID, mesh.displacement_map.GL_TEXTUREindex, mesh.displacement_map.bytes, mesh.displacement_map.width, mesh.displacement_map.height, mesh.displacement_map.n_color_channels, gamma_correction);
+		if (mesh.generate_buffers_and_textures) { this->create_uniform_2D_texture(mesh.displacement_map.index, mesh.displacement_map.uniform_name); mesh.generate_buffers_and_textures = false; };
+
+	};
 
 };
 
 void Shader::draw_mesh_elements(Mesh& mesh, const unsigned int& GL_PRIMITIVE_TYPE) {
-
-	glUseProgram(this->program);
 
 	if (mesh.draw_as_elements) {
 
@@ -368,9 +373,9 @@ void Shader::draw_mesh_elements(Mesh& mesh, const unsigned int& GL_PRIMITIVE_TYP
 
 };
 
-void Shader::bind_and_draw_mesh_elements(Mesh& mesh, const unsigned int& GL_PRIMITIVE_TYPE, const unsigned int& GL_DRAW_MODE, const bool& gamma_correction) {
+void Shader::bind_and_draw_mesh_elements(Mesh& mesh, const vec2& screen_size, const unsigned int& GL_PRIMITIVE_TYPE, const unsigned int& GL_DRAW_MODE, const bool& gamma_correction) {
 
-	this->bind_mesh_buffers_and_textures(mesh, GL_DRAW_MODE, gamma_correction);
+	this->bind_mesh_buffers_and_textures(mesh, screen_size, GL_DRAW_MODE, gamma_correction);
 	this->draw_mesh_elements(mesh, GL_PRIMITIVE_TYPE);
 
 };
@@ -384,6 +389,11 @@ void Shader::delete_buffers() {
 	glDeleteBuffers(1, &this->colors_buffer);
 	glDeleteBuffers(1, &this->tangents_buffer);
 	glDeleteBuffers(1, &this->bitangents_buffer);
+
+	glDeleteFramebuffers(1, &this->frame_buffer);
+	glDeleteTextures(1, &this->frame_buffer_colors_texture_ID);
+	glDeleteTextures(1, &this->frame_buffer_positions_texture_ID);
+	glDeleteTextures(1, &this->frame_buffer_depth_texture_ID);
 
 };
 

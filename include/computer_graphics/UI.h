@@ -34,12 +34,39 @@ class Mouse {
 	 void update_position(GLFWwindow* window);
 	 bool check_for_mouse_click(GLFWwindow* window);
 	 vec2 from_screen_to_NDC(const vec2& screen_position, const vec2& screen_size);
-	 vec3 from_screen_to_model(const vec2& screen_position, const vec2& screen_size, const mat4& projection_matrix, const mat4& view_matrix, const mat4& model_matrix);
+	 vec3 from_screen_to_world(const vec2& screen_position, const vec2& screen_size, const mat4& projection_matrix, const mat4& view_matrix);
 	 vec2 from_model_to_screen(const vec3& model_position, const vec2& screen_size, const mat4& projection_matrix, const mat4& view_matrix, const mat4& model_matrix);
 
-	 //void plot_point(const bool& plot, GLFWwindow* window, const Shader::graphics_vectors_container& vectors_container, const vec2& screen_size, Mesh& mesh, std::vector<vec3>& colors, std::vector<vec3>& positions);
+	 void plot_point(const bool& plot, GLFWwindow* window, Shader& shader);
 
-	 void update(GLFWwindow* window);
+	 // Convert RGB back to Object ID
+	 int colorToID(unsigned char pixel[3]) {
+
+		 return pixel[0] + (pixel[1] << 8) + (pixel[2] << 16);
+
+	 };
+
+	 void pick_object(Shader& shader, GLFWwindow* window, const vec2& mouse_position, const vec2& screen_size, const bool& plot) {
+
+		 if (plot && check_for_mouse_click(window)) {
+
+			 vec2 pixel_position(mouse_position.x, screen_size.y - mouse_position.y - 1);
+			 if (pixel_position.x < 0 || pixel_position.x >= screen_size.x ||
+				 pixel_position.y < 0 || pixel_position.y >= screen_size.y) {
+
+				 std::cerr << "ERROR: mouse to pixel position out of bounds!\n";
+				 return;
+
+			 };
+
+		     std::array<float, 4> pixel = shader.read_frame_buffer(GL_COLOR_ATTACHMENT1, pixel_position, GL_RGBA, GL_FLOAT);
+			 std::cout << "position: "; print_vec(vec4(pixel[0], pixel[1], pixel[2], pixel[3]));
+
+		 };
+
+	 };
+
+	 void update(Shader& shader, GLFWwindow* window, const vec2& screen_size, const bool& plot);
 
 	 Mouse(GLFWwindow* window, const std::string& texture_file_path);
 
@@ -93,7 +120,6 @@ class UI {
 		
 	void shader_debug_mode(Shader& shader, bool& plot);
 
-	void update();
 	void render();
 
 	void destroy();

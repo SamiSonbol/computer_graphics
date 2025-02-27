@@ -169,10 +169,16 @@ Texture::Texture(const std::string& file_path, const char* uniform_name, const u
 	
 	uniform_name(uniform_name), 
 	GL_TEXTUREindex(GL_TEXTUREindex), 
-	index(index) {
+	index(index),
+    bytes(NULL) {
 
-	exit_if_file_doesnt_exist(file_path);
-	bytes = stbi_load(file_path.c_str(), &this->width, &this->height, &this->n_color_channels, 0);
+	if (file_path != "EMPTY TEXTURE") {
+
+		exit_if_file_doesnt_exist(file_path);
+		bytes = stbi_load(file_path.c_str(), &this->width, &this->height, &this->n_color_channels, 0);
+		if (bytes == NULL) { std::cerr << "ERROR: failed to load Texture image!\n"; exit(EXIT_FAILURE); };
+
+	};
 
 };
 
@@ -330,26 +336,14 @@ void Mesh::generate_terrain(const uint8_t& ADD_VERTICES) {
 			int next_x = x + 1;
 
 			//creating our cell structure
-			Vertex a(x, next_y, 0);//top left
-			Vertex b(x, y, 0);//bottom left
-			Vertex c(next_x, next_y, 0);//top right
-			Vertex d(next_x, y, 0);//bottom right
+			Vertex a(x, next_y, -100);//top left
+			Vertex b(x, y, -100);//bottom left
+			Vertex c(next_x, next_y, -100);//top right
+			Vertex d(next_x, y, -100);//bottom right
 
 			//creating our 2 triangle that make up the cell. VIP: NEVER CHANGE THE VERTEX ORDER/WINDUP  abc  bdc
 			Triangle A(a, b, c);
 			Triangle B(b, d, c);
-
-			/*std::cout << "at gridPosition: " << x << ", " << y << std::endl;
-			std::cout << "a uv: "; print_vec(A.A.uv);
-			std::cout << "b uv: "; print_vec(A.B.uv);
-			std::cout << "c uv: "; print_vec(A.C.uv);
-			std::cout << "d uv: "; print_vec(B.C.uv);*/
-
-			/*std::cout << "at gridPosition: " << x << ", " << y << std::endl;
-			std::cout << "a pos: "; print_vec(A.A.position);
-			std::cout << "b pos: "; print_vec(A.B.position);
-			std::cout << "c pos: "; print_vec(A.C.position);
-			std::cout << "d pos: "; print_vec(B.C.position);*/
 
 			//setting the UVs for the vertices in each Triangle(has to be done before all position changes)
 			A.merge_face(this->mesh_dimensions);
@@ -565,67 +559,33 @@ void Mesh::extract_from_OBJ_file(const std::string& file_path, const uint8_t& AD
 
 };
 
-void Mesh::extract_from_LAS_file(const std::string& file_path, const uint8_t& ADD_VERTICES) {
+void Mesh::extract_from_LAS_file(const std::string& file_path) {
 
-	Point_Cloud cloud;
-	std::vector<vec3> temp_positions = cloud.extract_openGL_points_coordinates(file_path);
-	vec3 color(0.0f, 255.0f, 0.0f);
+	Point_Cloud cloud;;
+	cloud.extract_openGL_points_attributes(file_path, this->positions, this->colors);
 
-	//we traverse the grid by going to every row where we work on every column on said row.
-	int index_counter = 0;
-	Vertex vertex(0, 0, 0);
-	for (int i = 0; i < temp_positions.size(); ++i) {
+};
 
-		vertex.position = temp_positions[i];
-		vertex.normal = (0, 0, 1);
-		vertex.bitangent = vec3(0, 1, 0);
-		vertex.tangent = vec3(1, 0, 0);
-		vertex.uv = 0.0;
-		vertex.color = color;
+Mesh::Mesh(const std::vector<vec3>& positions) : 
+	
+	draw_as_elements(false), 
+	mesh_dimensions(100, 100), 
+	generate_buffers_and_textures(true) {
 
-		switch (ADD_VERTICES) {
+	for (int i = 0; i < positions.size(); i++) {
 
-			case ADD_ONLY_UNIQUE_VERTICES: {
+		this->indices.emplace_back(i);
 
-				//checking for duplicates, accumalating TBNs, adding to our data vectors(buffers)
-				check_accumalate_add(vertex, index_counter);
-				break;
-
-			};
-
-			case ADD_ALL_VERTICES: {
-
-				add_without_check(vertex, index_counter);
-				break;
-
-			};
-
-			default: {
-
-				std::cerr << "ERROR: invalid ADD_VERTICES type!\n";
-				exit(EXIT_FAILURE);
-
-			};
-
-		};
-
-	};
-
-	//normalizing the TBN of each vertex after it was accumalated
-	if (ADD_VERTICES == ADD_ONLY_UNIQUE_VERTICES) {
-
-		for (int i = 0; i < this->positions.size(); i++) {
-
-			this->normals[i].normalize();
-			this->tangents[i].normalize();
-			this->bitangents[i].normalize();
-
-		};
+		this->positions.emplace_back(positions[i]);
+		this->normals.emplace_back(vec3(0.0f, 0.0f, 1.0f));
+		this->tangents.emplace_back(vec3(1.0f, 0.0f, 0.0f));
+		this->bitangents.emplace_back(vec3(0.0f, 1.0f, 0.0f));
+		this->texture_coordinates.emplace_back(vec2(0, 0));
+		this->colors.emplace_back(vec3(0, 255, 0));
 
 	};
 
 };
-
 Mesh::Mesh(const vec2& mesh_dimensions, const uint8_t& ADD_VERTICES, Texture&& diffuse_map, Texture&& normal_map, Texture&& displacement_map) :
 
 	generate_buffers_and_textures(true),
@@ -670,7 +630,7 @@ Mesh::Mesh(const vec2& mesh_dimensions, const uint8_t& ADD_VERTICES, Texture&& d
 	std::cout << "cleared map\n";
 
 };
-Mesh::Mesh(const std::string& file_path, const uint8_t& ADD_VERTICES, Texture&& diffuse_map, Texture&& normal_map, Texture&& displacement_map, const uint8_t& FILE_TYPE) :
+Mesh::Mesh(const std::string& obj_file_path, const uint8_t& ADD_VERTICES, Texture&& diffuse_map, Texture&& normal_map, Texture&& displacement_map) :
 
 	generate_buffers_and_textures(true),
 	mesh_dimensions(100, 100),
@@ -703,8 +663,7 @@ Mesh::Mesh(const std::string& file_path, const uint8_t& ADD_VERTICES, Texture&& 
 
 	};
 
-	if (FILE_TYPE == OBJ_FILE) { extract_from_OBJ_file(file_path, ADD_VERTICES); }
-	else if (FILE_TYPE == LAS_FILE) { extract_from_LAS_file(file_path, ADD_VERTICES); };
+	extract_from_OBJ_file(obj_file_path, ADD_VERTICES);
 	std::cout << "actual texture width: " << this->diffuse_map.width << " actual texture height: " << this->diffuse_map.height << " model dimensions: "; print_vec(this->mesh_dimensions);
 	std::cout << "n_vertices: " << positions.size() << std::endl;
 	std::cout << "n_indices: " << indices.size() << std::endl;
@@ -760,7 +719,7 @@ Mesh::Mesh(const vec2& mesh_dimensions, const std::string& path_diffuse_map_file
 	std::cout << "cleared map\n";
 
 };
-Mesh::Mesh(const std::string& file_path, const std::string& path_diffuse_map_file, const uint8_t& ADD_VERTICES, const std::string& path_normal_map_file, const std::string& path_displacement_map_file, const uint8_t& FILE_TYPE) :
+Mesh::Mesh(const std::string& obj_file_path, const std::string& path_diffuse_map_file, const uint8_t& ADD_VERTICES, const std::string& path_normal_map_file, const std::string& path_displacement_map_file) :
 
 	generate_buffers_and_textures(true),
 	mesh_dimensions(100, 100),
@@ -793,8 +752,7 @@ Mesh::Mesh(const std::string& file_path, const std::string& path_diffuse_map_fil
 
 	};
 
-	if (FILE_TYPE == OBJ_FILE) { extract_from_OBJ_file(file_path, ADD_VERTICES); }
-	else if (FILE_TYPE == LAS_FILE) { extract_from_LAS_file(file_path, ADD_VERTICES); };
+	extract_from_OBJ_file(obj_file_path, ADD_VERTICES);
 	std::cout << "actual texture width: " << this->diffuse_map.width << " actual texture height: " << this->diffuse_map.height << " model dimensions: "; print_vec(this->mesh_dimensions);
 	std::cout << "n_vertices: " << positions.size() << std::endl;
 	std::cout << "n_indices: " << indices.size() << std::endl;
@@ -850,7 +808,7 @@ Mesh::Mesh(const vec2& mesh_dimensions, const std::string& path_maps_folder, con
 	std::cout << "cleared map\n";
 
 };
-Mesh::Mesh(const std::string& file_path, const std::string& path_maps_folder, const uint8_t& ADD_VERTICES, const uint8_t& FILE_TYPE) :
+Mesh::Mesh(const std::string& obj_file_path, const std::string& path_maps_folder, const uint8_t& ADD_VERTICES) :
 
 	generate_buffers_and_textures(true),
 	mesh_dimensions(100, 100),
@@ -883,8 +841,7 @@ Mesh::Mesh(const std::string& file_path, const std::string& path_maps_folder, co
 
 	};
 
-	if (FILE_TYPE == OBJ_FILE) { extract_from_OBJ_file(file_path, ADD_VERTICES); }
-	else if (FILE_TYPE == LAS_FILE) { extract_from_LAS_file(file_path, ADD_VERTICES); };
+	extract_from_OBJ_file(obj_file_path, ADD_VERTICES);
 	std::cout << "actual texture width: " << this->diffuse_map.width << " actual texture height: " << this->diffuse_map.height << " model dimensions: "; print_vec(this->mesh_dimensions);
 	std::cout << "n_vertices: " << positions.size() << std::endl;
 	std::cout << "n_indices: " << indices.size() << std::endl;
@@ -896,19 +853,39 @@ Mesh::Mesh(const std::string& file_path, const std::string& path_maps_folder, co
 
 };
 
+Mesh::Mesh(const std::string& las_file_path) :
+
+	generate_buffers_and_textures(true),
+	mesh_dimensions(100, 100),
+    draw_as_elements(false) {
+
+	extract_from_LAS_file(las_file_path);
+	std::cout << "actual texture width: " << this->diffuse_map.width << " actual texture height: " << this->diffuse_map.height << " model dimensions: "; print_vec(this->mesh_dimensions);
+	std::cout << "n_vertices: " << positions.size() << std::endl;
+	std::cout << "n_indices: " << indices.size() << std::endl;
+	std::cout << "n_uv_coords: " << this->texture_coordinates.size() << std::endl;
+	std::cout << "n_TBNs: " << this->normals.size() << std::endl;
+
+	this->vertices_map.clear();
+	std::cout << "cleared map\n";
+
+};
+
+Mesh Mesh::empty_quad() {
+
+	std::vector<vec3> quad = { vec3(0.0f, 1.0f, -100.0f), vec3(0.0f, 0.0f, -100.0f), vec3(1.0f, 1.0f, -100.0f), 
+		                       vec3(0.0f, 0.0f, -100.0f), vec3(1.0f, 1.0f, -100.0f), vec3(1.0f, 0.0f, -100.0f) };
+	return { quad };
+
+};
 Mesh Mesh::from_procedural_Texture(const vec2& mesh_dimensions, const uint8_t& ADD_VERTICES, Texture&& diffuse_map, Texture&& normal_map, Texture&& displacement_map) {
 
 	return { mesh_dimensions, ADD_VERTICES, std::forward<Texture>(diffuse_map), std::forward<Texture>(normal_map), std::forward<Texture>(displacement_map) };
 
 };
-Mesh Mesh::from_OBJ_Texture(const std::string& file_path, const uint8_t& ADD_VERTICES, Texture&& diffuse_map, Texture&& normal_map, Texture&& displacement_map, const uint8_t& FILE_TYPE) {
+Mesh Mesh::from_OBJ_Texture(const std::string& file_path, const uint8_t& ADD_VERTICES, Texture&& diffuse_map, Texture&& normal_map, Texture&& displacement_map) {
 
-	return { file_path, ADD_VERTICES, std::forward<Texture>(diffuse_map), std::forward<Texture>(normal_map), std::forward<Texture>(displacement_map), FILE_TYPE };
-
-};
-Mesh Mesh::from_LAS_Texture(const std::string& file_path, const uint8_t& ADD_VERTICES, Texture&& diffuse_map, Texture&& normal_map, Texture&& displacement_map, const uint8_t& FILE_TYPE) {
-
-	return { file_path, ADD_VERTICES, std::forward<Texture>(diffuse_map), std::forward<Texture>(normal_map), std::forward<Texture>(displacement_map), FILE_TYPE };
+	return { file_path, ADD_VERTICES, std::forward<Texture>(diffuse_map), std::forward<Texture>(normal_map), std::forward<Texture>(displacement_map)};
 
 };
 
@@ -924,7 +901,7 @@ Mesh Mesh::from_procedural_files(const vec2& mesh_dimensions, const std::string&
 	return { mesh_dimensions, path_diffuse_map_file, ADD_VERTICES, path_normal_map_file, path_displacement_map_file };
 
 };
-Mesh Mesh::from_OBJ_files(const std::string& file_path, const std::string& path_diffuse_map_file, const uint8_t& ADD_VERTICES, const std::string& path_normal_map_file, const std::string& path_displacement_map_file, const uint8_t& FILE_TYPE) {
+Mesh Mesh::from_OBJ_files(const std::string& file_path, const std::string& path_diffuse_map_file, const uint8_t& ADD_VERTICES, const std::string& path_normal_map_file, const std::string& path_displacement_map_file) {
 
 	exit_if_file_doesnt_exist(path_diffuse_map_file); exit_if_file_doesnt_exist(path_normal_map_file); exit_if_file_doesnt_exist(path_displacement_map_file);
 	if (check_if_directory(path_diffuse_map_file) || check_if_directory(path_normal_map_file) || check_if_directory(path_displacement_map_file)) {
@@ -933,19 +910,7 @@ Mesh Mesh::from_OBJ_files(const std::string& file_path, const std::string& path_
 		exit(EXIT_FAILURE);
 
 	};
-	return { file_path, path_diffuse_map_file, ADD_VERTICES, path_normal_map_file, path_displacement_map_file, FILE_TYPE };
-
-};
-Mesh Mesh::from_LAS_files(const std::string& file_path, const std::string& path_diffuse_map_file, const uint8_t& ADD_VERTICES, const std::string& path_normal_map_file, const std::string& path_displacement_map_file, const uint8_t& FILE_TYPE) {
-
-	exit_if_file_doesnt_exist(path_diffuse_map_file); exit_if_file_doesnt_exist(path_normal_map_file); exit_if_file_doesnt_exist(path_displacement_map_file);
-	if (check_if_directory(path_diffuse_map_file) || check_if_directory(path_normal_map_file) || check_if_directory(path_displacement_map_file)) {
-
-		std::cerr << "ERROR: an inputed file path was a directory!\n";
-		exit(EXIT_FAILURE);
-
-	};
-	return { file_path, path_diffuse_map_file, ADD_VERTICES, path_normal_map_file, path_displacement_map_file, FILE_TYPE };
+	return { file_path, path_diffuse_map_file, ADD_VERTICES, path_normal_map_file, path_displacement_map_file};
 
 };
 
@@ -961,7 +926,7 @@ Mesh Mesh::from_procedural_folder(const vec2& mesh_dimensions, const std::string
 	return { mesh_dimensions, path_maps_folder, ADD_VERTICES };
 
 };
-Mesh Mesh::from_OBJ_folder(const std::string& file_path, const std::string& path_maps_folder, const uint8_t& ADD_VERTICES, const uint8_t& FILE_TYPE) {
+Mesh Mesh::from_OBJ_folder(const std::string& file_path, const std::string& path_maps_folder, const uint8_t& ADD_VERTICES) {
 
 	exit_if_file_doesnt_exist(path_maps_folder);
 	if (!check_if_directory(path_maps_folder)) {
@@ -970,19 +935,12 @@ Mesh Mesh::from_OBJ_folder(const std::string& file_path, const std::string& path
 		exit(EXIT_FAILURE);
 
 	};
-	return { file_path, path_maps_folder, ADD_VERTICES, FILE_TYPE };
+	return { file_path, path_maps_folder, ADD_VERTICES };
 
 };
-Mesh Mesh::from_LAS_folder(const std::string& file_path, const std::string& path_maps_folder, const uint8_t& ADD_VERTICES, const uint8_t& FILE_TYPE) {
+Mesh Mesh::from_LAS(const std::string& las_file_path) {
 
-	exit_if_file_doesnt_exist(path_maps_folder);
-	if (!check_if_directory(path_maps_folder)) {
-
-		std::cerr << "ERROR: inputed path " << path_maps_folder << " was a file and not a directory!\n";
-		exit(EXIT_FAILURE);
-
-	};
-	return { file_path, path_maps_folder, ADD_VERTICES, FILE_TYPE };
+	return { las_file_path };
 
 };
 

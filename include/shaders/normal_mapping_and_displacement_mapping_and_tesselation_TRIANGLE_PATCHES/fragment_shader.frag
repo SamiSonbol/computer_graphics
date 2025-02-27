@@ -8,6 +8,7 @@ uniform bool texturing;
 uniform vec3 light_position;
 uniform vec3 light_color;
 uniform vec3 camera_position;
+uniform vec3 mouse_ray_vector;
 
 uniform float ambient;
 uniform float diffuse;
@@ -27,7 +28,8 @@ in vec2 tTexture_coordinates;
 in vec3 tTangent;
 in vec3 tBitangent;
 
-out vec4 FragColor;
+layout(location = 0) out vec4 FragColor;
+layout(location = 1) out vec4 FragPosition;
 
 float calculate_light_intensity(float distance_from_light, float initial_light_intensity, float constant_attenuation_component, float linear_attenuation_coefficient, float quadratic_attenuation_coefficient) {
 
@@ -90,6 +92,15 @@ vec3 color_based_off_height(float current_height, float min_height, float max_he
 
 };
 
+bool check_for_ray_intersection(vec3 camera_position, vec3 ray_direction, float ray_length, vec3 sphere_position, float radius) {
+
+    vec3 ray_end = camera_position + ray_direction * ray_length;
+    float SDF = length(sphere_position - ray_end) - radius;
+
+    return SDF < 0.0; //if SDF < 0.0 means intersection
+
+};
+
 void main() {
    
     float distance_from_light = length(light_position - tPosition);
@@ -104,6 +115,12 @@ void main() {
     
        Color = color_based_off_height(tPosition.z, min_height, max_height);
     
+    };
+    
+    if (check_for_ray_intersection(camera_position, mouse_ray_vector, 1000.0, tPosition, 1.0)) {
+    
+       Color = vec3(255.0, 0.0, 0.0);
+
     };
 
     vec3 Normal = tNormal;
@@ -124,5 +141,6 @@ void main() {
      };
 
     FragColor = vec4(phong, 1.0);
+    FragPosition = vec4(tPosition, 1.0);
 
 };

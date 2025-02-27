@@ -12,9 +12,9 @@ int main() {
 	vec2 screen_size;
 	GLFWwindow* window = INIT_GLAD_GLFW_WINDOW(screen_size, vec3(0.478f, 0.647f, 0.702f));
 
-	std::string POINTS_SHADER = SHADERS_DIR"/normal_mapping_and_displacement_mapping_and_geometry_POINTS";
+	std::string LAS_POINTS_SHADER = SHADERS_DIR"/LAS_POINTS";
 	std::string TRIANGLE_PATCHES_SHADER = SHADERS_DIR"/normal_mapping_and_displacement_mapping_and_tesselation_TRIANGLE_PATCHES";
-	Shader shader(POINTS_SHADER);
+	Shader shader(LAS_POINTS_SHADER);
 	glUseProgram(shader.program);
 	shader.default_uniforms_maps_initialization(screen_size);
 
@@ -23,9 +23,9 @@ int main() {
 	bool plot = false;
 	user_interface.shader_debug_mode(shader, plot);
 
-	//Mesh mesh = Mesh::from_procedural_folder(vec2(300, 300), RESOURCES_DIR"/texture_maps/mountain_range", Mesh::ADD_ALL_VERTICES);
-	//Mesh mesh = Mesh::from_OBJ_folder(RESOURCES_DIR"/3D models/cat.obj", RESOURCES_DIR"/texture_maps/cat", Mesh::ADD_ALL_VERTICES);
-	Mesh mesh = Mesh::from_LAS_folder(RESOURCES_DIR"/LAS files/Manawa.las", RESOURCES_DIR"/texture_maps/default", Mesh::ADD_ALL_VERTICES);
+	//Mesh mesh = Mesh::from_procedural_folder(vec2(200, 200), RESOURCES_DIR"/texture_maps/mountain_range", Mesh::ADD_ALL_VERTICES);
+	//Mesh mesh = Mesh::from_OBJ_folder(RESOURCES_DIR"/3D models/cottage.obj", RESOURCES_DIR"/texture_maps/abra", Mesh::ADD_ALL_VERTICES);
+	Mesh mesh = Mesh::from_LAS(RESOURCES_DIR"/LAS files/Berlin1.las");
 	std::pair<vec3, vec3> bounds = get_min_max(mesh.positions);
 	shader.create_uniform_float(bounds.first.z, "min_height");
 	shader.create_uniform_float(bounds.second.z, "max_height");
@@ -35,21 +35,19 @@ int main() {
 	unsigned int vertex_array;
 	glGenVertexArrays(1, &vertex_array);
 	glBindVertexArray(vertex_array);
-	shader.bind_mesh_buffers_and_textures(mesh, GL_STATIC_DRAW, shader.get_reference_bool_uniform("gamma_correction"));
+	shader.bind_mesh_buffers_and_textures(mesh, screen_size, GL_STATIC_DRAW, shader.get_reference_bool_uniform("gamma_correction"));
 	while (!glfwWindowShouldClose(window) && glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS) {
 
+		glUseProgram(shader.program);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		shader.update_uniforms();
 		user_interface.new_frame();
-		mouse.update(window);
-		
-		//shader.bind_and_draw_mesh_elements(mesh, GL_POINTS, GL_STATIC_DRAW, booleans_container.gamma_correction);
+		shader.update_uniforms();
+		//mouse.update(shader, window, screen_size, plot);
+
 		shader.draw_mesh_elements(mesh, GL_POINTS);
-
-		user_interface.update();
 		user_interface.render();
-
+			
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 

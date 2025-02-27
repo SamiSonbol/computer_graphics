@@ -254,8 +254,8 @@ void main() {
   
 	if (displacement_mapping) {
 
-	float displacement_offset = texture(uDisplacement_map, tTexture_coordinates).r * displacement_scale;
-	tPosition = displace(tPosition, normalize(tNormal), displacement_offset);   
+	  float displacement_offset = texture(uDisplacement_map, tTexture_coordinates).r * displacement_scale;
+	  tPosition = displace(tPosition, normalize(tNormal), displacement_offset);   
          
 	};
 

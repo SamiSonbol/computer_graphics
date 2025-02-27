@@ -2,10 +2,10 @@
 
 layout(location = 0) in vec3 aPosition;
 layout(location = 1) in vec3 aNormal;
-layout(location = 2) in vec3 aColor;
-layout(location = 3) in vec2 aTexture_coordinates;
-layout(location = 4) in vec3 aTangent;
-layout(location = 5) in vec3 aBitangent;
+layout(location = 2) in vec3 aTangent;
+layout(location = 3) in vec2 aBitangent;
+layout(location = 4) in vec2 aTexture_coordinates;
+layout(location = 5) in vec3 aColor;
 
 uniform bool orthogonal_projection;
 
@@ -25,9 +25,7 @@ uniform vec3 model_rotation_vector;
 uniform vec2 screen_size;
 
 out vec3 vPosition;
-out vec3 vNormal;
 out vec3 vColor;
-out vec2 vTexture_coordinates;
 
 float to_radians(float degree) {
 
@@ -216,8 +214,6 @@ void main() {
 
 
     vPosition = aPosition;
-    vNormal = normalize(model_matrix * aNormal);
-    vTexture_coordinates = aTexture_coordinates;
     vColor = aColor;
 
     gl_PointSize = point_size;
