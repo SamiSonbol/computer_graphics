@@ -226,8 +226,11 @@ public:
 	void delete_program();
 	void delete_all();
 
-	unsigned int compile_shader(const unsigned int& type, const std::string& source);
+	unsigned int compile_shader(const unsigned int& type, const std::filesystem::path& source);
 	Shader(std::vector<unsigned int>& compiled_shaders_ids);
-	Shader(const std::string& shader_directory);
+	Shader(const std::filesystem::path& shader_directory);
+
+	void rebuild(const std::filesystem::path& shader_directory, unsigned int& vertex_array);
+	void rebuild(std::vector<unsigned int>& compiled_shaders_ids, unsigned int& vertex_array);
 
 };

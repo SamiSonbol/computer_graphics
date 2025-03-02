@@ -4,6 +4,9 @@
 #include <vector>
 #include <algorithm>
 #include <bit>
+#include <float.h>
+#include <limits>
+#include <cstdint>
 
 class point {
 

@@ -26,8 +26,6 @@ class Mouse {
 
 	 GLFWcursor* cursor;
 	 vec2 position;
-	 double position_x;
-	 double position_y;
 
 	 void load_cursor_texture(GLFWwindow* window, const std::string& file_path);
 
@@ -94,7 +92,28 @@ class UI {
 	};
 	
 	std::unordered_map<std::string, Window, label_hasher> windows;
-	ImGuiIO* IO;
+
+private:
+
+	vec2 screen_size;
+
+	std::vector<std::filesystem::path> shaders;
+	std::vector<std::filesystem::path> texture_maps;
+	std::vector<std::filesystem::path> obj_files;
+	std::vector<std::filesystem::path> las_files;
+	std::filesystem::path shader_folder_path;
+	std::filesystem::path obj_file_path;
+	std::filesystem::path las_file_path;
+	std::filesystem::path texture_map_path;
+	unsigned int gl_primitive_type;
+	bool from_OBJ_file;
+	bool from_LAS_file;
+	bool from_Texture_map;
+
+	std::string rendering_information;
+	std::string console_message;
+
+public:
 
 	void add_window(const std::string& label);
 	void delete_window(const std::string& label);
@@ -103,27 +122,32 @@ class UI {
 
 	void vec2_float_sliders(const std::string& label, vec2& vec, const vec2& min_max);
 	void vec2_float_sliders(const std::string& label_x, const std::string& label_y, vec2& vec, const vec2& min_max);
+	void vec2_float_sliders_drag(const std::string& label, vec2& vec, const float& drag_speed, const vec2& min_max);
 	void vec2_vertical_float_sliders(const std::string& label, vec2& vec, const vec2& min_max, const vec2& size);
 	void vec2_vertical_float_sliders(const std::string& label_x, const std::string& label_y, vec2& vec, const vec2& min_max, const vec2& size);
 
 	void vec3_float_sliders(const std::string& label, vec3& vec, const vec2& min_max);
 	void vec3_float_sliders(const std::string& label_x, const std::string& label_y, const std::string& label_z, vec3& vec, const vec2& min_max);
+	void vec3_float_sliders_drag(const std::string& label, vec3& vec, const float& drag_speed, const vec2& min_max);
 	void vec3_vertical_float_sliders(const std::string& label, vec3& vec, const vec2& min_max, const vec2& size);
 	void vec3_vertical_float_sliders(const std::string& label_x, const std::string& label_y, const std::string& label_z, vec3& vec, const vec2& min_max, const vec2& size);
 	void vec3_color_picker(const std::string& label, vec3& RGB);
 
 	void vec4_float_sliders(const std::string& label, vec4& vec, const vec2& min_max);
 	void vec4_float_sliders(const std::string& label_x, const std::string& label_y, const std::string& label_z, const std::string& label_w, vec4& vec, const vec2& min_max);
+	void vec4_float_sliders_drag(const std::string& label, vec4& vec, const float& drag_speed, const vec2& min_max);
 	void vec4_vertical_float_sliders(const std::string& label, vec4& vec, const vec2& min_max, const vec2& size);
 	void vec4_vertical_float_sliders(const std::string& label_x, const std::string& label_y, const std::string& label_z, const std::string& label_w, vec4& vec, const vec2& min_max, const vec2& size);
 	void vec4_color_picker(const std::string& label, vec4& RGBA);
-		
-	void shader_debug_mode(Shader& shader, bool& plot);
+
+	void shader_rendering_options(Shader& shader, Mesh& mesh, unsigned int& GL_PRIMITIVE_TYPE, unsigned int& vertex_array);
+	void shader_scene_and_model_manipulation(Shader& shader, bool& plot);
+	void shader_debug_mode(Shader& shader, Mesh& mesh, unsigned int& GL_PRIMITIVE_TYPE, unsigned int& vertex_array, bool& plot);
 
 	void render();
 
 	void destroy();
 
-	UI(GLFWwindow* window, const std::string& GLSL_VERSION);
+	UI(GLFWwindow* window, const vec2& screen_size, const std::string& GLSL_VERSION);
 
 };

@@ -410,11 +410,11 @@ void Shader::delete_all() {
 
 };
 
-unsigned int Shader::compile_shader(const unsigned int& type, const std::string& source) {
+unsigned int Shader::compile_shader(const unsigned int& type, const std::filesystem::path& source) {
 
 	unsigned int id = glCreateShader(type);
-
-	const char* src = source.c_str();//SOURCE HAS TO EXIST TO USE THIS, MAKE SURE IT IS ALIVE AT THE TIME OF THIS COMPILATION
+	std::string src_string = source.string();
+	const char* src = src_string.c_str();//SOURCE HAS TO EXIST TO USE THIS, MAKE SURE IT IS ALIVE AT THE TIME OF THIS COMPILATION
 
 	glShaderSource(id, 1, &src, nullptr);
 
@@ -476,7 +476,7 @@ Shader::Shader(std::vector<unsigned int>& compiled_shaders_ids) {
 
 };
 
-Shader::Shader(const std::string& shader_directory) {
+Shader::Shader(const std::filesystem::path& shader_directory) {
 
 	//checking if the directory is correct
 	if (!std::filesystem::exists(shader_directory)) {
@@ -494,8 +494,7 @@ Shader::Shader(const std::string& shader_directory) {
 
 	//extracting the data from the shader files and compiling them then storing them in a vector next to their own shader type. Will be used to deduct correct shader order
 	std::vector<std::pair<unsigned int, unsigned int>> shaders;//holds the shader data and its type
-	std::filesystem::path directory(shader_directory);
-	for (const auto& file : std::filesystem::directory_iterator(directory)) {
+	for (const auto& file : std::filesystem::directory_iterator(shader_directory)) {
 
 		if (file.is_regular_file()) {
 
@@ -600,5 +599,27 @@ Shader::Shader(const std::string& shader_directory) {
 
 	};
 	ordered_shaders.clear();
+
+};
+
+void Shader::rebuild(const std::filesystem::path& shader_directory, unsigned int& vertex_array) {
+
+	glBindVertexArray(0);
+	glUseProgram(0);
+	this->delete_all();
+	*this = std::move(Shader(shader_directory));
+	glUseProgram(this->program);
+	glBindVertexArray(vertex_array);
+
+};
+
+void Shader::rebuild(std::vector<unsigned int>& compiled_shaders_ids, unsigned int& vertex_array) {
+
+	glBindVertexArray(0);
+	glUseProgram(0);
+	this->delete_all();
+	*this = std::move(Shader(compiled_shaders_ids));
+	glUseProgram(this->program);
+	glBindVertexArray(vertex_array);
 
 };

@@ -1,6 +1,6 @@
 #include "computer_graphics/Point_Cloud.h"
 
-void Point_Cloud::extract_openGL_points_attributes(const std::string& path_to_LASer_file, std::vector<vec3>& points_coordinates, std::vector<vec3>& points_colors) {
+void Point_Cloud::extract_openGL_points_attributes(const std::filesystem::path& path_to_LASer_file, std::vector<vec3>& points_coordinates, std::vector<vec3>& points_colors) {
 
 	exit_if_file_doesnt_exist(path_to_LASer_file);
 	if (std::filesystem::is_directory(std::filesystem::path(path_to_LASer_file))) { std::cerr << "ERROR: path is a directory and not a LAS file!\n"; exit(EXIT_FAILURE); };

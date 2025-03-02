@@ -477,7 +477,7 @@ public:
 		this->openGL_max_position = vec3(header.max_X, header.max_Y, header.max_Z);
 		this->openGL_max_position = vec3(this->openGL_max_position.x, this->openGL_max_position.z, -this->openGL_max_position.y);
 
-		this->openGL_center = vec3(this->openGL_min_position + this->openGL_max_position) * 0.5f;
+		this->openGL_center = (this->openGL_min_position + this->openGL_max_position) * 0.5f;
 		this->length = (this->openGL_min_position - this->openGL_max_position).magnitude();
 		this->scale_factor = 100.0f / this->length;
 
@@ -516,24 +516,24 @@ public:
 
 		switch (header.point_data_record_format) {
 
-			case 0: { Point_Data_Record_Format_0 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_0)); position = compute_openGL_point_coordinates(header, point_data_record); color = vec3(1.0f, 1.0f, 1.0f); break; };
-			case 1: { Point_Data_Record_Format_1 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_1)); position = compute_openGL_point_coordinates(header, point_data_record); color = vec3(1.0f, 1.0f, 1.0f); break; };
-			case 2: { Point_Data_Record_Format_2 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_2)); position = compute_openGL_point_coordinates(header, point_data_record); color = compute_openGL_point_colors(point_data_record); break; };
-			case 3: { Point_Data_Record_Format_3 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_3)); position = compute_openGL_point_coordinates(header, point_data_record); color = compute_openGL_point_colors(point_data_record); break; };
-			case 4: { Point_Data_Record_Format_4 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_4)); position = compute_openGL_point_coordinates(header, point_data_record); color = vec3(1.0f, 1.0f, 1.0f); break; };
-			case 5: { Point_Data_Record_Format_5 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_5)); position = compute_openGL_point_coordinates(header, point_data_record); color = compute_openGL_point_colors(point_data_record); break; };
-			case 6: { Point_Data_Record_Format_6 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_6)); position = compute_openGL_point_coordinates(header, point_data_record); color = vec3(1.0f, 1.0f, 1.0f); break; };
-			case 7: { Point_Data_Record_Format_7 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_7)); position = compute_openGL_point_coordinates(header, point_data_record); color = compute_openGL_point_colors(point_data_record); break; };
-			case 8: { Point_Data_Record_Format_8 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_8)); position = compute_openGL_point_coordinates(header, point_data_record); color = compute_openGL_point_colors(point_data_record); break; };
-			case 9: { Point_Data_Record_Format_9 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_9)); position = compute_openGL_point_coordinates(header, point_data_record); color = vec3(1.0f, 1.0f, 1.0f); break; };
-			case 10: { Point_Data_Record_Format_10 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_10)); position = compute_openGL_point_coordinates(header, point_data_record); color = compute_openGL_point_colors(point_data_record); break; };
+		    case 0: { Point_Data_Record_Format_0 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_0)); position = std::move(compute_openGL_point_coordinates(header, point_data_record)); color = std::move(vec3(1.0f, 1.0f, 1.0f)); break; };
+			case 1: { Point_Data_Record_Format_1 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_1)); position = std::move(compute_openGL_point_coordinates(header, point_data_record)); color = std::move(vec3(1.0f, 1.0f, 1.0f)); break; };
+			case 2: { Point_Data_Record_Format_2 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_2)); position = std::move(compute_openGL_point_coordinates(header, point_data_record)); color = std::move(compute_openGL_point_colors(point_data_record)); break; };
+			case 3: { Point_Data_Record_Format_3 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_3)); position = std::move(compute_openGL_point_coordinates(header, point_data_record)); color = std::move(compute_openGL_point_colors(point_data_record)); break; };
+			case 4: { Point_Data_Record_Format_4 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_4)); position = std::move(compute_openGL_point_coordinates(header, point_data_record)); color = std::move(vec3(1.0f, 1.0f, 1.0f)); break; };
+			case 5: { Point_Data_Record_Format_5 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_5)); position = std::move(compute_openGL_point_coordinates(header, point_data_record)); color = std::move(compute_openGL_point_colors(point_data_record)); break; };
+			case 6: { Point_Data_Record_Format_6 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_6)); position = std::move(compute_openGL_point_coordinates(header, point_data_record)); color = std::move(vec3(1.0f, 1.0f, 1.0f)); break; };
+			case 7: { Point_Data_Record_Format_7 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_7)); position = std::move(compute_openGL_point_coordinates(header, point_data_record)); color = std::move(compute_openGL_point_colors(point_data_record)); break; };
+			case 8: { Point_Data_Record_Format_8 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_8)); position = std::move(compute_openGL_point_coordinates(header, point_data_record)); color = std::move(compute_openGL_point_colors(point_data_record)); break; };
+			case 9: { Point_Data_Record_Format_9 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_9)); position = std::move(compute_openGL_point_coordinates(header, point_data_record)); color = std::move(vec3(1.0f, 1.0f, 1.0f)); break; };
+			case 10: { Point_Data_Record_Format_10 point_data_record; data.read(reinterpret_cast<char*>(&point_data_record), sizeof(Point_Data_Record_Format_10)); position = std::move(compute_openGL_point_coordinates(header, point_data_record)); color = std::move(compute_openGL_point_colors(point_data_record)); break; };
 			default: std::cerr << "ERROR: unsupported Data Record Format " << static_cast<int>(header.point_data_record_format) << "\n"; data.clear(); data.close(); exit(EXIT_FAILURE);
 
 		};
 
 	};
 
-	void extract_openGL_points_attributes(const std::string& path_to_LASer_file, std::vector<vec3>& points_coordinates, std::vector<vec3>& points_colors);
+	void extract_openGL_points_attributes(const std::filesystem::path& path_to_LASer_file, std::vector<vec3>& points_coordinates, std::vector<vec3>& points_colors);
 
 };
 	
